@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rakhi Experience Gift Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #ff9a56 0%, #ff6b95 50%, #c44569 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Indian pattern overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.1) 2px, transparent 2px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .emoji-header {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .rakhi-decoration {
+            font-size: 1.5rem;
+            margin: 10px;
+            opacity: 0.8;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 0 auto 30px;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 10px solid #ffd700;
+            box-shadow: 
+                0 0 30px rgba(255, 215, 0, 0.5),
+                inset 0 0 20px rgba(0,0,0,0.1);
+            transition: transform 4s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            background: conic-gradient(
+                #ff6b6b 0deg 60deg,
+                #4ecdc4 60deg 120deg,
+                #45b7d1 120deg 180deg,
+                #96ceb4 180deg 240deg,
+                #ffeaa7 240deg 300deg,
+                #fd79a8 300deg 360deg
+            );
+        }
+
+        .icon-ring {
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            top: -10%;
+            left: -10%;
+            pointer-events: none;
+        }
+
+        .wheel-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            background: white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #ffd700;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transform: translate(-50%, -50%);
+        }
+
+        .wheel-icon:nth-child(1) { 
+            top: 10%;
+            left: 50%;
+        }
+        .wheel-icon:nth-child(2) { 
+            top: 30%;
+            left: 86.6%;
+        }
+        .wheel-icon:nth-child(3) { 
+            top: 70%;
+            left: 86.6%;
+        }
+        .wheel-icon:nth-child(4) { 
+            top: 90%;
+            left: 50%;
+        }
+        .wheel-icon:nth-child(5) { 
+            top: 70%;
+            left: 13.4%;
+        }
+        .wheel-icon:nth-child(6) { 
+            top: 30%;
+            left: 13.4%;
+        }
+
+        .wheel.spinning {
+            transform: rotate(1800deg);
+        }
+
+        .pointer {
+            display: none;
+        }
+
+        .center-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0;
+            z-index: 20;
+            transition: all 0.5s ease;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid #ffd700;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .center-icon.show {
+            font-size: 3rem;
+        }
+
+        .center-icon.animate {
+            animation: iconPulse 0.6s ease-in-out;
+        }
+
+        @keyframes iconPulse {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            50% { transform: translate(-50%, -50%) scale(1.3); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .spin-btn {
+            background: linear-gradient(45deg, #ff6b95, #c44569);
+            color: white;
+            border: 3px solid #ffd700;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-family: 'Georgia', serif;
+        }
+
+        .spin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 25px rgba(0,0,0,0.4);
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .prize-card {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(145deg, #fff 0%, #f8f9fa 100%);
+            border-radius: 25px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.3),
+                0 0 0 3px #ffd700;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            border: 3px solid #ff6b95;
+        }
+
+        .prize-card::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(45deg, #ff9a56, #ff6b95, #c44569, #ffd700);
+            border-radius: 30px;
+            z-index: -1;
+        }
+
+        .prize-card.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .prize-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .prize-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 20px;
+            font-family: 'Georgia', serif;
+        }
+
+        .prize-description {
+            color: #636e72;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .share-btn, .reset-btn {
+            background: linear-gradient(45deg, #ff6b95, #c44569);
+            color: white;
+            border: 2px solid #ffd700;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            font-family: 'Georgia', serif;
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+
+        .share-btn:hover, .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 480px) {
+            .emoji-header {
+                font-size: 2rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .wheel-container {
+                width: 280px;
+                height: 280px;
+            }
+            
+            .wheel-segment {
+                font-size: 1.5rem;
+            }
+            
+            .prize-card {
+                padding: 25px;
+                margin: 15px;
+            }
+            
+            .prize-title {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji-header">🤷🏻‍♂️🗡️👧🏻</div>
+        <span class="rakhi-decoration">🎗️</span>
+        <h1>"Dil se chuni mithaas,<br>behen ke liye khaas"</h1>
+        <span class="rakhi-decoration">🎗️</span>
+        <p class="subtitle">Rakhi Special Experience Gift Generator</p>
+        
+        <div class="wheel-container">
+            <div class="wheel" id="wheel"></div>
+            <div class="icon-ring">
+                <div class="wheel-icon">🎬</div>
+                <div class="wheel-icon">🔍</div>
+                <div class="wheel-icon">🎤</div>
+                <div class="wheel-icon">📚</div>
+                <div class="wheel-icon">👨‍🍳</div>
+                <div class="wheel-icon">🎨</div>
+            </div>
+            <div class="center-icon" id="centerIcon"></div>
+        </div>
+        
+        <button class="spin-btn" id="spinBtn">🎲 Spin for Your Rakhi Gift!</button>
+    </div>
+
+    <div class="overlay hidden" id="overlay"></div>
+    
+    <div class="prize-card hidden" id="prizeCard">
+        <div class="prize-emoji" id="prizeEmoji"></div>
+        <div class="prize-title" id="prizeTitle"></div>
+        <div class="prize-description" id="prizeDescription"></div>
+        <div class="card-actions">
+            <button class="share-btn" id="shareBtn">📱 Share Gift</button>
+            <button class="reset-btn" id="resetBtn">🔄 Spin Again</button>
+        </div>
+    </div>
+
+    <canvas id="shareCanvas" style="display: none;"></canvas>
+
+    <script>
+        const prizes = [
+            {
+                emoji: "🎬",
+                title: "MOVIE NIGHT WITH ME!",
+                description: "You pick the movie, I'll bring the commentary and terrible jokes. We'll sync up and watch together over video call - popcorn on me!"
+            },
+            {
+                emoji: "🔍",
+                title: "ESCAPE ROOM CHALLENGE",
+                description: "Time to see if we can actually work together under pressure! I'll book us a virtual escape room and we'll either escape or laugh at our failure."
+            },
+            {
+                emoji: "🎤",
+                title: "PERSONAL KARAOKE SESSION",
+                description: "Get ready for me to absolutely murder your favorite songs while you laugh! Virtual karaoke night where I'll cheer you on (and probably sing off-key backup)."
+            },
+            {
+                emoji: "📚",
+                title: "BOOK CLUB FOR TWO",
+                description: "We'll both pick a book for each other to read, then have epic discussions over coffee calls. May the best book recommender win our friendship!"
+            },
+            {
+                emoji: "👨‍🍳",
+                title: "COOKING COMPETITION SHOWDOWN",
+                description: "Same ingredients, same time limit, totally different kitchens! We'll cook the same dish via video call and judge each other's creations. Loser buys next month's groceries!"
+            },
+            {
+                emoji: "🎨",
+                title: "LET'S CREATE SOMETHING WEIRD",
+                description: "Pick a creative project and we'll tackle it together - could be art, writing, or whatever random idea we come up with. Prepare for chaos!"
+            }
+        ];
+
+        let isSpinning = false;
+        let iconAnimationInterval;
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spinBtn');
+        const prizeCard = document.getElementById('prizeCard');
+        const overlay = document.getElementById('overlay');
+        const prizeEmoji = document.getElementById('prizeEmoji');
+        const prizeTitle = document.getElementById('prizeTitle');
+        const prizeDescription = document.getElementById('prizeDescription');
+        const shareBtn = document.getElementById('shareBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const centerIcon = document.getElementById('centerIcon');
+
+        function animateRandomIcons(finalPrize) {
+            const allEmojis = prizes.map(p => p.emoji);
+            let animationCount = 0;
+            const totalAnimations = 12; // Number of random icons to show
+            
+            iconAnimationInterval = setInterval(() => {
+                if (animationCount >= totalAnimations) {
+                    // Stop showing icons and clear interval
+                    centerIcon.classList.remove('show', 'animate');
+                    centerIcon.textContent = '';
+                    clearInterval(iconAnimationInterval);
+                    
+                    // Wait a bit then show the card directly (no final icon reveal)
+                    setTimeout(() => {
+                        showPrize(finalPrize);
+                        createConfetti();
+                        isSpinning = false;
+                        spinBtn.disabled = false;
+                    }, 500);
+                    return;
+                }
+                
+                // Show random emoji
+                const randomEmoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
+                centerIcon.textContent = randomEmoji;
+                centerIcon.classList.add('show', 'animate');
+                
+                setTimeout(() => {
+                    centerIcon.classList.remove('show', 'animate');
+                }, 300);
+                
+                animationCount++;
+            }, 200);
+        }
+
+        function createConfetti() {
+            const colors = ['#ffd700', '#ff6b95', '#ff9a56', '#c44569', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
+            
+            for (let i = 0; i < 150; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animation = `confetti-fall ${Math.random() * 3 + 2}s linear forwards`;
+                    
+                    // Add some sparkle shapes
+                    if (Math.random() > 0.7) {
+                        confetti.style.borderRadius = '50%';
+                        confetti.style.width = '8px';
+                        confetti.style.height = '8px';
+                    }
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }, i * 20);
+            }
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+            
+            // Clear any existing intervals
+            if (iconAnimationInterval) {
+                clearInterval(iconAnimationInterval);
+            }
+            
+            // Hide center icon initially
+            centerIcon.classList.remove('show', 'animate');
+            centerIcon.textContent = '';
+            
+            // Hide card if showing
+            if (!prizeCard.classList.contains('hidden')) {
+                prizeCard.classList.remove('show');
+                overlay.classList.remove('show');
+                setTimeout(() => {
+                    prizeCard.classList.add('hidden');
+                    overlay.classList.add('hidden');
+                }, 300);
+            }
+            
+            // Reset wheel rotation
+            wheel.style.transform = 'rotate(0deg)';
+            wheel.style.transition = 'none';
+            
+            // Pick the winning prize
+            const prizeIndex = Math.floor(Math.random() * prizes.length);
+            const winningPrize = prizes[prizeIndex];
+            
+            setTimeout(() => {
+                wheel.style.transition = 'transform 4s cubic-bezier(0.23, 1, 0.32, 1)';
+                
+                // Calculate rotation
+                const segmentAngle = 360 / 6;
+                const targetAngle = (prizeIndex * segmentAngle) + (segmentAngle / 2);
+                const finalRotation = 1800 + (360 - targetAngle);
+                
+                wheel.style.transform = `rotate(${finalRotation}deg)`;
+                
+                // Start icon animation after a short delay
+                setTimeout(() => {
+                    animateRandomIcons(winningPrize);
+                }, 1000);
+                
+            }, 100);
+        }
+
+        function showPrize(prize) {
+            prizeEmoji.textContent = prize.emoji;
+            prizeTitle.textContent = prize.title;
+            prizeDescription.textContent = prize.description;
+            
+            // Show overlay first
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                overlay.classList.add('show');
+            }, 10);
+            
+            // Then show card
+            prizeCard.classList.remove('hidden');
+            setTimeout(() => {
+                prizeCard.classList.add('show');
+            }, 200);
+        }
+
+        async function sharePrize() {
+            const canvas = document.getElementById('shareCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size for mobile sharing
+            canvas.width = 800;
+            canvas.height = 800;
+            
+            // Create Indian-themed gradient background
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#ff9a56');
+            gradient.addColorStop(0.5, '#ff6b95');
+            gradient.addColorStop(1, '#c44569');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Add decorative pattern
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            for (let i = 0; i < 20; i++) {
+                for (let j = 0; j < 20; j++) {
+                    ctx.beginPath();
+                    ctx.arc(i * 40 + 20, j * 40 + 20, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+            
+            // Add card background with Indian border
+            ctx.fillStyle = 'white';
+            ctx.shadowColor = 'rgba(0,0,0,0.3)';
+            ctx.shadowBlur = 30;
+            ctx.shadowOffsetY = 15;
+            
+            // Rounded rectangle function
+            function roundRect(x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            roundRect(60, 100, 680, 600, 30);
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Add golden border
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 8;
+            roundRect(60, 100, 680, 600, 30);
+            ctx.stroke();
+            
+            // Add emoji header
+            ctx.font = '60px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#2d3436';
+            ctx.fillText('🤷🏻‍♂️🗡️👧🏻', 400, 80);
+            
+            // Add rakhi decorations
+            ctx.font = '40px Arial';
+            ctx.fillText('🎗️', 300, 160);
+            ctx.fillText('🎗️', 500, 160);
+            
+            // Add title
+            ctx.fillStyle = '#c44569';
+            ctx.font = 'italic bold 32px Georgia';
+            ctx.fillText('"Dil se chuni mithaas,"', 400, 200);
+            ctx.fillText('behen ke liye khaas"', 400, 240);
+            
+            // Add prize emoji
+            ctx.font = '120px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(prizeEmoji.textContent, 400, 370);
+            
+            // Add title
+            ctx.fillStyle = '#2d3436';
+            ctx.font = 'bold 36px Georgia';
+            ctx.textAlign = 'center';
+            
+            // Wrap title text
+            const title = prizeTitle.textContent;
+            const words = title.split(' ');
+            let line = '';
+            const lines = [];
+            const maxWidth = 600;
+            
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
+                const metrics = ctx.measureText(testLine);
+                
+                if (metrics.width > maxWidth && line !== '') {
+                    lines.push(line);
+                    line = words[i] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+            
+            // Draw title lines
+            let titleY = 450;
+            lines.forEach((line, index) => {
+                ctx.fillText(line.trim(), 400, titleY + (index * 40));
+            });
+            
+            // Add description
+            ctx.fillStyle = '#636e72';
+            ctx.font = '22px Georgia';
+            
+            // Wrap description text
+            const description = prizeDescription.textContent;
+            const descWords = description.split(' ');
+            let descLine = '';
+            const descLines = [];
+            const descMaxWidth = 600;
+            
+            for (let i = 0; i < descWords.length; i++) {
+                const testLine = descLine + descWords[i] + ' ';
+                const metrics = ctx.measureText(testLine);
+                
+                if (metrics.width > descMaxWidth && descLine !== '') {
+                    descLines.push(descLine);
+                    descLine = descWords[i] + ' ';
+                } else {
+                    descLine = testLine;
+                }
+            }
+            descLines.push(descLine);
+            
+            // Draw description lines
+            let descY = 530;
+            descLines.forEach((line, index) => {
+                if (index < 4) { // Limit to 4 lines
+                    ctx.fillText(line.trim(), 400, descY + (index * 28));
+                }
+            });
+            
+            // Add footer
+            ctx.fillStyle = '#ff6b95';
+            ctx.font = 'bold 24px Georgia';
+            ctx.fillText('🎁 Rakhi Special Gift Generator 🎗️', 400, 680);
+            
+            // Convert to blob and share
+            canvas.toBlob(async (blob) => {
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'rakhi-gift.png', { type: 'image/png' })] })) {
+                    try {
+                        await navigator.share({
+                            title: 'My Rakhi Experience Gift!',
+                            text: `Rakhi Special: ${prizeTitle.textContent}`,
+                            files: [new File([blob], 'rakhi-gift.png', { type: 'image/png' })]
+                        });
+                    } catch (error) {
+                        console.log('Share cancelled');
+                    }
+                } else {
+                    // Fallback: download the image
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'rakhi-experience-gift.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            }, 'image/png');
+        }
+
+        function resetWheel() {
+            // Clear any ongoing animations
+            if (iconAnimationInterval) {
+                clearInterval(iconAnimationInterval);
+            }
+            
+            prizeCard.classList.remove('show');
+            overlay.classList.remove('show');
+            centerIcon.classList.remove('show', 'animate');
+            centerIcon.textContent = '';
+            
+            setTimeout(() => {
+                prizeCard.classList.add('hidden');
+                overlay.classList.add('hidden');
+                wheel.style.transform = 'rotate(0deg)';
+            }, 300);
+        }
+
+        // Event listeners
+        spinBtn.addEventListener('click', spinWheel);
+        shareBtn.addEventListener('click', sharePrize);
+        resetBtn.addEventListener('click', resetWheel);
+        
+        // Close card when clicking overlay
+        overlay.addEventListener('click', resetWheel);
+
+        // Touch events for mobile
+        wheel.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!isSpinning) spinWheel();
+        });
+    </script>
+</body>
+</html>
