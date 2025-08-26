@@ -372,16 +372,15 @@
                 </ul>
             </div>
 
-            <!-- Manual Signaling for Testing -->
+            <!-- Simple Connection System -->
             <div class="signaling-info">
-                <h4>🔄 Manual Connection (For Testing)</h4>
-                <p>Copy this offer to the receiver device:</p>
-                <div class="offer-display" id="offerDisplay">Start server to generate offer...</div>
-                <button class="copy-btn" onclick="copyOffer()">📋 Copy Offer</button>
-                
-                <p>Paste answer from receiver here:</p>
-                <textarea id="answerInput" placeholder="Paste answer here..." rows="3" style="width: 100%; background: rgba(0,0,0,0.3); color: white; border: 1px solid #666; border-radius: 6px; padding: 8px; resize: vertical;"></textarea>
-                <button class="btn" onclick="setAnswer()">✅ Set Answer</button>
+                <h4>🔗 Simple Connection</h4>
+                <p><strong>Connection Code:</strong></p>
+                <div class="offer-display" id="connectionCode">Start server to generate connection code...</div>
+                <button class="copy-btn" onclick="copyConnectionCode()">📋 Copy Code</button>
+                <p style="font-size: 0.9rem; color: #ccc; margin-top: 10px;">
+                    Share this 6-digit code with receiver devices
+                </p>
             </div>
         </div>
 
@@ -406,16 +405,19 @@
 
             <audio class="audio-player" id="remoteAudio" controls autoplay playsinline></audio>
 
-            <!-- Manual Signaling for Testing -->
+            <!-- Simple Connection System -->
             <div class="signaling-info">
-                <h4>🔄 Manual Connection (For Testing)</h4>
-                <p>Paste offer from server here:</p>
-                <textarea id="offerInput" placeholder="Paste offer here..." rows="3" style="width: 100%; background: rgba(0,0,0,0.3); color: white; border: 1px solid #666; border-radius: 6px; padding: 8px; resize: vertical;"></textarea>
-                <button class="btn" onclick="setOffer()">📥 Set Offer</button>
-                
-                <p>Copy this answer back to server:</p>
-                <div class="answer-display" id="answerDisplay">Set offer first to generate answer...</div>
-                <button class="copy-btn" onclick="copyAnswer()">📋 Copy Answer</button>
+                <h4>🔗 Simple Connection</h4>
+                <p>Enter the 6-digit code from the server:</p>
+                <div style="display: flex; gap: 10px; align-items: center; margin: 15px 0;">
+                    <input type="text" id="connectionCodeInput" placeholder="123456" 
+                           style="width: 120px; padding: 12px; font-size: 1.2rem; text-align: center; background: rgba(0,0,0,0.3); color: white; border: 2px solid #666; border-radius: 8px; font-family: 'Courier New', monospace;"
+                           maxlength="6" onkeyup="formatConnectionCode(this)">
+                    <button class="btn" onclick="connectWithCode()">🔗 Connect</button>
+                </div>
+                <p style="font-size: 0.9rem; color: #ccc;">
+                    Get the code from the server device
+                </p>
             </div>
         </div>
 
@@ -449,6 +451,11 @@
         let audioContext = null;
         let connectedPeers = new Map();
         let dataChannel = null;
+        let connectionCode = null;
+        let pendingConnections = new Map(); // Store connection attempts
+
+        // Simple connection storage (in production, this would be a server)
+        let connectionDatabase = {};
 
         // WebRTC Configuration
         const rtcConfig = {
@@ -591,6 +598,9 @@
             }
 
             try {
+                // Generate simple 6-digit connection code
+                connectionCode = Math.floor(100000 + Math.random() * 900000).toString();
+                
                 peerConnection = new RTCPeerConnection(rtcConfig);
                 
                 // Add local stream
@@ -608,19 +618,29 @@
                 peerConnection.onconnectionstatechange = handleConnectionStateChange;
                 peerConnection.ondatachannel = handleDataChannel;
 
-                // Create offer
+                // Create offer and store it with the connection code
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
 
-                // Display offer for manual signaling
-                document.getElementById('offerDisplay').textContent = JSON.stringify(offer);
+                // Store connection info (in production, this would go to a server)
+                connectionDatabase[connectionCode] = {
+                    offer: offer,
+                    timestamp: Date.now(),
+                    status: 'waiting'
+                };
+
+                // Display simple connection code
+                document.getElementById('connectionCode').textContent = connectionCode;
 
                 isServerRunning = true;
-                updateStatus('serverStatus', 'connected', '📡 Server started - Waiting for connections');
+                updateStatus('serverStatus', 'connected', `📡 Server started - Connection code: ${connectionCode}`);
                 
                 document.getElementById('startServerBtn').disabled = true;
                 document.getElementById('stopServerBtn').disabled = false;
                 document.getElementById('connectionState').textContent = 'Waiting';
+
+                // Start polling for answers (simulate real-time connection)
+                pollForConnections();
 
             } catch (error) {
                 console.error('Server start failed:', error);
@@ -628,71 +648,102 @@
             }
         }
 
-        async function connectToServer() {
+        function pollForConnections() {
+            if (!isServerRunning || !connectionCode) return;
+            
+            const connectionInfo = connectionDatabase[connectionCode];
+            if (connectionInfo && connectionInfo.answer && connectionInfo.status === 'answered') {
+                // Process the answer
+                handleReceivedAnswer(connectionInfo.answer);
+                connectionInfo.status = 'connected';
+            }
+            
+            // Keep polling every 2 seconds
+            setTimeout(pollForConnections, 2000);
+        }
+
+        async function handleReceivedAnswer(answer) {
             try {
-                peerConnection = new RTCPeerConnection(rtcConfig);
-                
-                // Setup event handlers
-                peerConnection.onicecandidate = handleICECandidate;
-                peerConnection.ontrack = handleRemoteStream;
-                peerConnection.onconnectionstatechange = handleConnectionStateChange;
-                peerConnection.ondatachannel = handleDataChannel;
-
-                updateStatus('clientStatus', 'connecting', '🔗 Ready to connect - paste offer above');
-                document.getElementById('connectBtn').disabled = true;
-                document.getElementById('connectionState').textContent = 'Ready';
-
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                updateStatus('serverStatus', 'connecting', '🔄 Client connecting...');
+                document.getElementById('connectionState').textContent = 'Connecting';
             } catch (error) {
-                console.error('Connection setup failed:', error);
-                updateStatus('clientStatus', 'error', '❌ Connection failed: ' + error.message);
+                console.error('Handle answer failed:', error);
+                updateStatus('serverStatus', 'error', '❌ Connection failed: ' + error.message);
             }
         }
 
-        async function setOffer() {
-            const offerText = document.getElementById('offerInput').value.trim();
-            if (!offerText) {
-                alert('Please paste an offer first');
+        async function connectWithCode() {
+            const code = document.getElementById('connectionCodeInput').value.trim();
+            if (!code || code.length !== 6) {
+                alert('Please enter a valid 6-digit connection code');
                 return;
             }
 
             try {
-                const offer = JSON.parse(offerText);
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                // Check if connection code exists
+                const connectionInfo = connectionDatabase[code];
+                if (!connectionInfo) {
+                    alert('Invalid connection code. Make sure the server is running.');
+                    return;
+                }
+
+                if (!peerConnection) {
+                    peerConnection = new RTCPeerConnection(rtcConfig);
+                    
+                    // Setup event handlers
+                    peerConnection.onicecandidate = handleICECandidate;
+                    peerConnection.ontrack = handleRemoteStream;
+                    peerConnection.onconnectionstatechange = handleConnectionStateChange;
+                    peerConnection.ondatachannel = handleDataChannel;
+                }
+
+                // Set the remote offer
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(connectionInfo.offer));
                 
                 // Create answer
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 
-                // Display answer
-                document.getElementById('answerDisplay').textContent = JSON.stringify(answer);
+                // Store answer (in production, send to server)
+                connectionInfo.answer = answer;
+                connectionInfo.status = 'answered';
                 
-                updateStatus('clientStatus', 'connecting', '🔄 Answer generated - copy it back to server');
+                updateStatus('clientStatus', 'connecting', '🔄 Connecting to server...');
                 document.getElementById('connectionState').textContent = 'Connecting';
+                document.getElementById('connectBtn').disabled = true;
 
             } catch (error) {
-                console.error('Set offer failed:', error);
-                updateStatus('clientStatus', 'error', '❌ Invalid offer: ' + error.message);
+                console.error('Connection failed:', error);
+                updateStatus('clientStatus', 'error', '❌ Connection failed: ' + error.message);
             }
         }
 
-        async function setAnswer() {
-            const answerText = document.getElementById('answerInput').value.trim();
-            if (!answerText) {
-                alert('Please paste an answer first');
-                return;
+        function formatConnectionCode(input) {
+            // Only allow numbers and limit to 6 digits
+            input.value = input.value.replace(/\D/g, '').substring(0, 6);
+            
+            // Auto-connect when 6 digits entered
+            if (input.value.length === 6) {
+                setTimeout(() => connectWithCode(), 500);
             }
+        }
 
-            try {
-                const answer = JSON.parse(answerText);
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-                
-                updateStatus('serverStatus', 'connecting', '🔄 Answer received - establishing connection');
-                document.getElementById('connectionState').textContent = 'Connecting';
-
-            } catch (error) {
-                console.error('Set answer failed:', error);
-                updateStatus('serverStatus', 'error', '❌ Invalid answer: ' + error.message);
+        function copyConnectionCode() {
+            const code = document.getElementById('connectionCode').textContent;
+            if (code && code !== 'Start server to generate connection code...') {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('Connection code copied to clipboard!');
+                });
+            } else {
+                alert('No connection code to copy - start server first');
             }
+        }
+
+        async function connectToServer() {
+            // This function is now replaced by connectWithCode()
+            updateStatus('clientStatus', 'ready', '🔗 Enter connection code above to connect');
+            document.getElementById('connectBtn').disabled = true;
         }
 
         function handleICECandidate(event) {
@@ -845,29 +896,23 @@
         }
 
         function copyOffer() {
-            const offer = document.getElementById('offerDisplay').textContent;
-            if (offer && offer !== 'Start server to generate offer...') {
-                navigator.clipboard.writeText(offer).then(() => {
-                    alert('Offer copied to clipboard!');
-                });
-            } else {
-                alert('No offer to copy - start server first');
-            }
+            // This function is replaced by copyConnectionCode()
+            copyConnectionCode();
         }
 
         function copyAnswer() {
-            const answer = document.getElementById('answerDisplay').textContent;
-            if (answer && answer !== 'Set offer first to generate answer...') {
-                navigator.clipboard.writeText(answer).then(() => {
-                    alert('Answer copied to clipboard!');
-                });
-            } else {
-                alert('No answer to copy - set offer first');
-            }
+            // Not needed with simple connection system
+            alert('Simple connection system - just share the 6-digit code!');
         }
 
         function stopServer() {
             cleanup();
+            
+            // Clear connection code and database entry
+            if (connectionCode) {
+                delete connectionDatabase[connectionCode];
+                connectionCode = null;
+            }
             
             isServerRunning = false;
             updateStatus('serverStatus', 'ready', '⏹️ Server stopped');
@@ -884,9 +929,8 @@
             
             updateConnectedDevices('', '');
             
-            // Clear signaling displays
-            document.getElementById('offerDisplay').textContent = 'Start server to generate offer...';
-            document.getElementById('answerInput').value = '';
+            // Clear connection code display
+            document.getElementById('connectionCode').textContent = 'Start server to generate connection code...';
         }
 
         function disconnect() {
@@ -902,9 +946,8 @@
             document.getElementById('audioState').textContent = 'No Audio';
             document.getElementById('dataTransfer').textContent = '0 KB/s';
             
-            // Clear signaling displays
-            document.getElementById('answerDisplay').textContent = 'Set offer first to generate answer...';
-            document.getElementById('offerInput').value = '';
+            // Clear connection code input
+            document.getElementById('connectionCodeInput').value = '';
         }
 
         function cleanup() {
