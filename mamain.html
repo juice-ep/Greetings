@@ -46,40 +46,6 @@
             background-clip: text;
         }
 
-        .tabs {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            padding: 5px;
-        }
-
-        .tab {
-            padding: 12px 24px;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .tab.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        .tab:not(.active) {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .content {
-            display: none;
-        }
-
-        .content.active {
-            display: block;
-        }
-
         .device-role {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -100,6 +66,7 @@
             text-align: center;
             border: 2px solid transparent;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .role-card:hover {
@@ -224,6 +191,7 @@
             align-items: center;
             gap: 15px;
             flex-wrap: wrap;
+            margin: 15px 0;
         }
 
         .volume-control {
@@ -242,34 +210,42 @@
             margin: 10px 0;
         }
 
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 25px;
-            margin-top: 30px;
-        }
-
-        .instructions h3 {
-            margin-bottom: 15px;
-            color: #4CAF50;
-        }
-
-        .instructions ol {
-            padding-left: 20px;
-            line-height: 1.6;
-        }
-
-        .instructions li {
-            margin-bottom: 8px;
-        }
-
         .connection-info {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 12px;
             padding: 15px;
-            margin-top: 15px;
+            margin: 15px 0;
             text-align: center;
             font-family: 'Courier New', monospace;
+        }
+
+        .connected-devices {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .device-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .device-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .device-status {
+            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: rgba(76, 175, 80, 0.3);
         }
 
         .metrics {
@@ -298,15 +274,44 @@
             margin-top: 5px;
         }
 
-        .test-audio {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
         .hidden {
             display: none !important;
+        }
+
+        .signaling-info {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .offer-display, .answer-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            background: #1976D2;
         }
     </style>
 </head>
@@ -314,43 +319,35 @@
     <div class="container">
         <div class="header">
             <h1>📺 TV Audio Streaming MVP</h1>
-            <p>Test WebRTC audio streaming over WiFi with YouTube integration</p>
+            <p>Real WebRTC audio streaming over WiFi</p>
         </div>
 
-        <div class="tabs">
-            <div class="tab active" data-tab="setup">🔧 Setup</div>
-            <div class="tab" data-tab="streaming">🎵 Streaming</div>
-            <div class="tab" data-tab="testing">🧪 Testing</div>
-        </div>
-
-        <!-- Setup Tab -->
-        <div class="content active" id="setup">
-            <div class="device-role">
-                <div class="role-card" data-role="tv">
-                    <div class="role-icon">📺</div>
-                    <h3>TV / Audio Source</h3>
-                    <p>This device will capture and send audio. Use this on the device connected to your TV or the device playing content you want to stream.</p>
-                </div>
-                <div class="role-card" data-role="receiver">
-                    <div class="role-icon">📱</div>
-                    <h3>Phone / Audio Receiver</h3>
-                    <p>This device will receive and play audio through speakers or headphones. Use this on your phone or the device where you want to hear the audio.</p>
-                </div>
+        <!-- Device Role Selection -->
+        <div class="device-role">
+            <div class="role-card" data-role="server" onclick="selectRole('server')">
+                <div class="role-icon">📺</div>
+                <h3>Audio Server (TV)</h3>
+                <p>This device captures and streams audio. Use this on your TV browser or device with content you want to stream.</p>
             </div>
-
-            <div class="controls">
-                <div class="status ready" id="setupStatus">Choose your device role above to get started</div>
-                <div class="connection-info" id="connectionInfo" style="display: none;">
-                    <div>Local IP: <span id="localIP">Detecting...</span></div>
-                    <div>Connection URL: <span id="connectionURL">-</span></div>
-                </div>
+            <div class="role-card" data-role="client" onclick="selectRole('client')">
+                <div class="role-icon">📱</div>
+                <h3>Audio Receiver (Phone)</h3>
+                <p>This device receives and plays audio through speakers/headphones. Use this on your phone or listening device.</p>
             </div>
         </div>
 
-        <!-- Streaming Tab -->
-        <div class="content" id="streaming">
+        <!-- Server Controls -->
+        <div id="serverControls" class="controls hidden">
+            <div class="status ready" id="serverStatus">Server mode selected - Ready to capture audio</div>
+            
+            <div class="connection-info">
+                <div>Share this URL with receiver devices:</div>
+                <div><strong id="serverURL">-</strong></div>
+                <button class="copy-btn" onclick="copyServerURL()">📋 Copy URL</button>
+            </div>
+
             <div class="video-container">
-                <h3>🎬 Test Content with YouTube</h3>
+                <h3>🎬 Test Content</h3>
                 <iframe class="youtube-embed" 
                         src="https://www.youtube.com/embed/dQw4w9WgXcQ?controls=1&autoplay=0"
                         title="YouTube Test Video"
@@ -358,81 +355,87 @@
                         allowfullscreen>
                 </iframe>
                 <div class="audio-controls">
-                    <button class="btn" id="captureAudioBtn" onclick="startAudioCapture()">🎤 Capture Audio</button>
+                    <button class="btn" id="captureBtn" onclick="startAudioCapture()">🎤 Capture Audio</button>
                     <button class="btn" id="testToneBtn" onclick="playTestTone()">🔊 Test Tone</button>
-                    <div class="volume-control">
-                        <span>Volume:</span>
-                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80">
-                        <span id="volumeValue">80%</span>
-                    </div>
                 </div>
             </div>
 
-            <div class="controls">
-                <div class="status ready" id="streamingStatus">Ready to start streaming</div>
-                <div class="audio-controls">
-                    <button class="btn success" id="startStreamBtn" onclick="startStreaming()" disabled>📡 Start Streaming</button>
-                    <button class="btn danger" id="stopStreamBtn" onclick="stopStreaming()" disabled>⏹️ Stop Streaming</button>
-                    <button class="btn" id="connectBtn" onclick="connectToStream()" disabled>🔗 Connect to Stream</button>
-                </div>
-                <audio class="audio-player" id="remoteAudio" controls style="display: none;"></audio>
+            <div class="audio-controls">
+                <button class="btn success" id="startServerBtn" onclick="startServer()" disabled>📡 Start Audio Server</button>
+                <button class="btn danger" id="stopServerBtn" onclick="stopServer()" disabled>⏹️ Stop Server</button>
             </div>
 
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-value" id="latencyMetric">0ms</div>
-                    <div class="metric-label">Audio Latency</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="qualityMetric">0kbps</div>
-                    <div class="metric-label">Audio Quality</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="connectionMetric">Disconnected</div>
-                    <div class="metric-label">Connection Status</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="clientsMetric">0</div>
-                    <div class="metric-label">Connected Clients</div>
-                </div>
+            <div class="connected-devices">
+                <h4>📱 Connected Receivers:</h4>
+                <ul class="device-list" id="deviceList">
+                    <li style="color: #888; font-style: italic;">No devices connected</li>
+                </ul>
+            </div>
+
+            <!-- Manual Signaling for Testing -->
+            <div class="signaling-info">
+                <h4>🔄 Manual Connection (For Testing)</h4>
+                <p>Copy this offer to the receiver device:</p>
+                <div class="offer-display" id="offerDisplay">Start server to generate offer...</div>
+                <button class="copy-btn" onclick="copyOffer()">📋 Copy Offer</button>
+                
+                <p>Paste answer from receiver here:</p>
+                <textarea id="answerInput" placeholder="Paste answer here..." rows="3" style="width: 100%; background: rgba(0,0,0,0.3); color: white; border: 1px solid #666; border-radius: 6px; padding: 8px; resize: vertical;"></textarea>
+                <button class="btn" onclick="setAnswer()">✅ Set Answer</button>
             </div>
         </div>
 
-        <!-- Testing Tab -->
-        <div class="content" id="testing">
-            <div class="controls">
-                <h3>🧪 Audio Streaming Tests</h3>
-                <div class="test-audio">
-                    <button class="btn" onclick="testLatency()">⏱️ Test Latency</button>
-                    <button class="btn" onclick="testQuality()">🎵 Test Quality</button>
-                    <button class="btn" onclick="testStability()">📊 Test Stability</button>
-                </div>
-            </div>
-
-            <div class="video-container">
-                <h3>📊 Test Results</h3>
-                <div id="testResults">
-                    <p>Run tests above to see detailed performance metrics...</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="instructions">
-            <h3>🚀 How to Use This MVP</h3>
-            <ol>
-                <li><strong>Setup:</strong> Choose whether this device is the TV (audio source) or Phone (audio receiver)</li>
-                <li><strong>TV Setup:</strong> If this is your TV, click "Capture Audio" to enable microphone/system audio capture</li>
-                <li><strong>Phone Setup:</strong> If this is your phone, use the connection URL shown to connect to the TV</li>
-                <li><strong>Test:</strong> Use the YouTube video above to test audio streaming quality and latency</li>
-                <li><strong>Validate:</strong> Check if audio streams smoothly from TV to phone over WiFi</li>
-            </ol>
+        <!-- Client Controls -->
+        <div id="clientControls" class="controls hidden">
+            <div class="status ready" id="clientStatus">Receiver mode selected - Ready to connect</div>
             
             <div class="connection-info">
-                <strong>📋 MVP Validation Goals:</strong><br>
-                ✅ Prove WebRTC can stream audio over local WiFi<br>
-                ✅ Test latency and quality with real content<br>
-                ✅ Identify technical challenges and limitations<br>
-                ✅ Validate user experience and feasibility
+                <div>Local Device IP: <span id="localIP">Detecting...</span></div>
+            </div>
+
+            <div class="audio-controls">
+                <button class="btn success" id="connectBtn" onclick="connectToServer()" disabled>🔗 Connect to Server</button>
+                <button class="btn danger" id="disconnectBtn" onclick="disconnect()" disabled>❌ Disconnect</button>
+            </div>
+
+            <div class="volume-control">
+                <span>Volume:</span>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="80" onchange="updateVolume()">
+                <span id="volumeValue">80%</span>
+            </div>
+
+            <audio class="audio-player" id="remoteAudio" controls autoplay playsinline></audio>
+
+            <!-- Manual Signaling for Testing -->
+            <div class="signaling-info">
+                <h4>🔄 Manual Connection (For Testing)</h4>
+                <p>Paste offer from server here:</p>
+                <textarea id="offerInput" placeholder="Paste offer here..." rows="3" style="width: 100%; background: rgba(0,0,0,0.3); color: white; border: 1px solid #666; border-radius: 6px; padding: 8px; resize: vertical;"></textarea>
+                <button class="btn" onclick="setOffer()">📥 Set Offer</button>
+                
+                <p>Copy this answer back to server:</p>
+                <div class="answer-display" id="answerDisplay">Set offer first to generate answer...</div>
+                <button class="copy-btn" onclick="copyAnswer()">📋 Copy Answer</button>
+            </div>
+        </div>
+
+        <!-- Metrics -->
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value" id="connectionState">Disconnected</div>
+                <div class="metric-label">Connection Status</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="audioState">No Audio</div>
+                <div class="metric-label">Audio Status</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="connectedClients">0</div>
+                <div class="metric-label">Connected Clients</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="dataTransfer">0 KB/s</div>
+                <div class="metric-label">Data Transfer</div>
             </div>
         </div>
     </div>
@@ -442,166 +445,146 @@
         let deviceRole = null;
         let peerConnection = null;
         let localStream = null;
-        let remoteStream = null;
-        let isStreaming = false;
+        let isServerRunning = false;
         let audioContext = null;
-        let testToneOscillator = null;
-        let connectedClients = 0;
-        let latencyStartTime = 0;
+        let connectedPeers = new Map();
+        let dataChannel = null;
 
         // WebRTC Configuration
         const rtcConfig = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ],
+            iceCandidatePoolSize: 10
         };
 
-        // Initialize on page load
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            setupEventListeners();
             detectLocalIP();
+            setupEventListeners();
         });
 
-        function initializeApp() {
-            // Setup tab switching
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-            });
-
-            // Setup device role selection
-            document.querySelectorAll('.role-card').forEach(card => {
-                card.addEventListener('click', () => selectDeviceRole(card.dataset.role));
-            });
-
-            // Setup volume control
-            const volumeSlider = document.getElementById('volumeSlider');
-            volumeSlider.addEventListener('input', (e) => {
-                const volume = e.target.value;
-                document.getElementById('volumeValue').textContent = volume + '%';
-                if (remoteStream) {
-                    const audioElement = document.getElementById('remoteAudio');
-                    audioElement.volume = volume / 100;
-                }
-            });
-        }
-
         function setupEventListeners() {
-            // Handle WebRTC connection events
-            window.addEventListener('beforeunload', () => {
-                if (peerConnection) {
-                    peerConnection.close();
-                }
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                }
-            });
+            // Volume control
+            document.getElementById('volumeSlider').addEventListener('input', updateVolume);
+            
+            // Handle page unload
+            window.addEventListener('beforeunload', cleanup);
         }
 
-        function switchTab(tabName) {
-            // Update tab appearance
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.toggle('active', tab.dataset.tab === tabName);
-            });
-
-            // Show/hide content
-            document.querySelectorAll('.content').forEach(content => {
-                content.classList.toggle('active', content.id === tabName);
-            });
-        }
-
-        function selectDeviceRole(role) {
+        function selectRole(role) {
             deviceRole = role;
             
             // Update UI
             document.querySelectorAll('.role-card').forEach(card => {
-                card.classList.toggle('selected', card.dataset.role === role);
+                card.classList.remove('selected');
             });
+            event.target.closest('.role-card').classList.add('selected');
 
-            // Update status and enable controls
-            const status = document.getElementById('setupStatus');
-            if (role === 'tv') {
-                status.textContent = '📺 TV mode selected - Ready to capture and stream audio';
-                status.className = 'status connected';
-                document.getElementById('startStreamBtn').disabled = false;
-                document.getElementById('captureAudioBtn').disabled = false;
+            // Show appropriate controls
+            if (role === 'server') {
+                document.getElementById('serverControls').classList.remove('hidden');
+                document.getElementById('clientControls').classList.add('hidden');
+                updateServerURL();
             } else {
-                status.textContent = '📱 Receiver mode selected - Ready to connect to TV stream';
-                status.className = 'status ready';
-                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('clientControls').classList.remove('hidden');
+                document.getElementById('serverControls').classList.add('hidden');
             }
-
-            // Show connection info
-            document.getElementById('connectionInfo').style.display = 'block';
-            updateConnectionURL();
         }
 
         async function detectLocalIP() {
             try {
-                // Create a temporary peer connection to get local IP
-                const tempPC = new RTCPeerConnection(rtcConfig);
-                tempPC.createDataChannel('');
+                const pc = new RTCPeerConnection(rtcConfig);
+                pc.createDataChannel('test');
                 
-                const offer = await tempPC.createOffer();
-                await tempPC.setLocalDescription(offer);
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
                 
-                tempPC.onicecandidate = (event) => {
+                pc.onicecandidate = (event) => {
                     if (event.candidate) {
                         const candidate = event.candidate.candidate;
                         const ipMatch = candidate.match(/([0-9]{1,3}\.){3}[0-9]{1,3}/);
-                        if (ipMatch) {
+                        if (ipMatch && !candidate.includes('127.0.0.1')) {
                             const localIP = ipMatch[0];
                             document.getElementById('localIP').textContent = localIP;
-                            updateConnectionURL();
-                            tempPC.close();
+                            pc.close();
+                            updateServerURL();
                         }
                     }
                 };
             } catch (error) {
-                console.error('Error detecting local IP:', error);
-                document.getElementById('localIP').textContent = 'Unable to detect';
+                console.error('Error detecting IP:', error);
+                document.getElementById('localIP').textContent = 'Detection failed';
             }
         }
 
-        function updateConnectionURL() {
+        function updateServerURL() {
             const localIP = document.getElementById('localIP').textContent;
-            if (localIP && localIP !== 'Detecting...' && localIP !== 'Unable to detect') {
-                const url = `http://${localIP}:${window.location.port || '80'}${window.location.pathname}`;
-                document.getElementById('connectionURL').textContent = url;
+            if (localIP && localIP !== 'Detecting...' && localIP !== 'Detection failed') {
+                const url = `${window.location.protocol}//${localIP}:${window.location.port || (window.location.protocol === 'https:' ? '443' : '80')}${window.location.pathname}`;
+                document.getElementById('serverURL').textContent = url;
+            } else {
+                document.getElementById('serverURL').textContent = window.location.href;
             }
+        }
+
+        function copyServerURL() {
+            const url = document.getElementById('serverURL').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Server URL copied to clipboard!');
+            });
         }
 
         async function startAudioCapture() {
             try {
-                const constraints = {
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        sampleRate: 48000,
-                        sampleSize: 16,
-                        channelCount: 2
-                    }
-                };
-
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                // Try to get system audio first (screen capture with audio)
+                try {
+                    localStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: false,
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false,
+                            sampleRate: 48000,
+                            channelCount: 2
+                        }
+                    });
+                    
+                    updateStatus('serverStatus', 'connected', '🖥️ System audio captured successfully');
+                } catch (displayError) {
+                    // Fallback to microphone
+                    console.log('Screen capture failed, trying microphone:', displayError);
+                    
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false,
+                            sampleRate: 48000,
+                            channelCount: 2
+                        }
+                    });
+                    
+                    updateStatus('serverStatus', 'connected', '🎤 Microphone audio captured - play YouTube video above');
+                }
                 
-                const status = document.getElementById('streamingStatus');
-                status.textContent = '🎤 Audio capture active - Ready to stream';
-                status.className = 'status connected';
+                document.getElementById('captureBtn').textContent = '✅ Audio Captured';
+                document.getElementById('captureBtn').disabled = true;
+                document.getElementById('startServerBtn').disabled = false;
                 
-                document.getElementById('startStreamBtn').disabled = false;
-                document.getElementById('captureAudioBtn').textContent = '✅ Audio Captured';
-                document.getElementById('captureAudioBtn').disabled = true;
-
+                // Update audio status
+                document.getElementById('audioState').textContent = 'Captured';
+                
             } catch (error) {
-                console.error('Error capturing audio:', error);
-                updateStatus('streamingStatus', 'error', '❌ Failed to capture audio: ' + error.message);
+                console.error('Audio capture failed:', error);
+                updateStatus('serverStatus', 'error', '❌ Audio capture failed: ' + error.message);
+                document.getElementById('audioState').textContent = 'Failed';
             }
         }
 
-        async function startStreaming() {
+        async function startServer() {
             if (!localStream) {
                 alert('Please capture audio first');
                 return;
@@ -610,68 +593,321 @@
             try {
                 peerConnection = new RTCPeerConnection(rtcConfig);
                 
-                // Add local stream to peer connection
+                // Add local stream
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
                 });
 
-                // Handle incoming connections
+                // Create data channel for communication
+                dataChannel = peerConnection.createDataChannel('control', {
+                    ordered: true
+                });
+
+                // Setup event handlers
                 peerConnection.onicecandidate = handleICECandidate;
                 peerConnection.onconnectionstatechange = handleConnectionStateChange;
+                peerConnection.ondatachannel = handleDataChannel;
 
-                // Create offer for incoming connections
+                // Create offer
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
 
-                isStreaming = true;
-                updateStatus('streamingStatus', 'connected', '📡 Streaming active - Clients can connect');
+                // Display offer for manual signaling
+                document.getElementById('offerDisplay').textContent = JSON.stringify(offer);
+
+                isServerRunning = true;
+                updateStatus('serverStatus', 'connected', '📡 Server started - Waiting for connections');
                 
-                document.getElementById('startStreamBtn').disabled = true;
-                document.getElementById('stopStreamBtn').disabled = false;
-                
-                // Start metrics updates
-                startMetricsUpdate();
+                document.getElementById('startServerBtn').disabled = true;
+                document.getElementById('stopServerBtn').disabled = false;
+                document.getElementById('connectionState').textContent = 'Waiting';
 
             } catch (error) {
-                console.error('Error starting stream:', error);
-                updateStatus('streamingStatus', 'error', '❌ Failed to start streaming: ' + error.message);
+                console.error('Server start failed:', error);
+                updateStatus('serverStatus', 'error', '❌ Server failed: ' + error.message);
             }
         }
 
-        async function connectToStream() {
+        async function connectToServer() {
             try {
                 peerConnection = new RTCPeerConnection(rtcConfig);
                 
-                // Handle incoming stream
-                peerConnection.ontrack = (event) => {
-                    remoteStream = event.streams[0];
-                    const audioElement = document.getElementById('remoteAudio');
-                    audioElement.srcObject = remoteStream;
-                    audioElement.style.display = 'block';
-                    audioElement.play();
-                    
-                    updateStatus('streamingStatus', 'connected', '🎵 Connected - Receiving audio stream');
-                };
-
+                // Setup event handlers
                 peerConnection.onicecandidate = handleICECandidate;
+                peerConnection.ontrack = handleRemoteStream;
                 peerConnection.onconnectionstatechange = handleConnectionStateChange;
+                peerConnection.ondatachannel = handleDataChannel;
 
-                updateStatus('streamingStatus', 'connecting', '🔗 Connecting to audio stream...');
-                
-                // In a real implementation, this would connect to the actual streaming device
-                // For MVP demo purposes, we'll simulate the connection
-                setTimeout(() => {
-                    updateStatus('streamingStatus', 'connected', '✅ Simulated connection established');
-                    document.getElementById('connectionMetric').textContent = 'Connected';
-                }, 2000);
+                updateStatus('clientStatus', 'connecting', '🔗 Ready to connect - paste offer above');
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('connectionState').textContent = 'Ready';
 
             } catch (error) {
-                console.error('Error connecting to stream:', error);
-                updateStatus('streamingStatus', 'error', '❌ Failed to connect: ' + error.message);
+                console.error('Connection setup failed:', error);
+                updateStatus('clientStatus', 'error', '❌ Connection failed: ' + error.message);
             }
         }
 
-        function stopStreaming() {
+        async function setOffer() {
+            const offerText = document.getElementById('offerInput').value.trim();
+            if (!offerText) {
+                alert('Please paste an offer first');
+                return;
+            }
+
+            try {
+                const offer = JSON.parse(offerText);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+                
+                // Create answer
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                
+                // Display answer
+                document.getElementById('answerDisplay').textContent = JSON.stringify(answer);
+                
+                updateStatus('clientStatus', 'connecting', '🔄 Answer generated - copy it back to server');
+                document.getElementById('connectionState').textContent = 'Connecting';
+
+            } catch (error) {
+                console.error('Set offer failed:', error);
+                updateStatus('clientStatus', 'error', '❌ Invalid offer: ' + error.message);
+            }
+        }
+
+        async function setAnswer() {
+            const answerText = document.getElementById('answerInput').value.trim();
+            if (!answerText) {
+                alert('Please paste an answer first');
+                return;
+            }
+
+            try {
+                const answer = JSON.parse(answerText);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+                
+                updateStatus('serverStatus', 'connecting', '🔄 Answer received - establishing connection');
+                document.getElementById('connectionState').textContent = 'Connecting';
+
+            } catch (error) {
+                console.error('Set answer failed:', error);
+                updateStatus('serverStatus', 'error', '❌ Invalid answer: ' + error.message);
+            }
+        }
+
+        function handleICECandidate(event) {
+            // In a real app, you'd send this to the remote peer
+            // For this MVP, ICE candidates are included in the offer/answer
+            if (event.candidate) {
+                console.log('ICE Candidate:', event.candidate);
+            }
+        }
+
+        function handleRemoteStream(event) {
+            const [remoteStream] = event.streams;
+            const audioElement = document.getElementById('remoteAudio');
+            
+            audioElement.srcObject = remoteStream;
+            audioElement.style.display = 'block';
+            
+            // Attempt to play (might require user interaction)
+            audioElement.play().then(() => {
+                updateStatus('clientStatus', 'connected', '🎵 Audio stream connected - You should hear audio!');
+                document.getElementById('audioState').textContent = 'Playing';
+            }).catch(error => {
+                console.log('Autoplay blocked, user interaction required:', error);
+                updateStatus('clientStatus', 'connected', '🎵 Audio ready - Click play button below to hear audio');
+                document.getElementById('audioState').textContent = 'Ready';
+            });
+            
+            document.getElementById('disconnectBtn').disabled = false;
+        }
+
+        function handleConnectionStateChange() {
+            const state = peerConnection.connectionState;
+            console.log('Connection state:', state);
+            
+            document.getElementById('connectionState').textContent = state;
+            
+            if (state === 'connected') {
+                if (deviceRole === 'server') {
+                    updateConnectedDevices('Client Device', 'Connected');
+                    document.getElementById('connectedClients').textContent = '1';
+                    updateStatus('serverStatus', 'connected', '✅ Client connected - Audio streaming active');
+                } else {
+                    updateStatus('clientStatus', 'connected', '✅ Connected to server - Audio should be playing');
+                }
+                
+                // Start data transfer monitoring
+                startDataTransferMonitoring();
+                
+            } else if (state === 'disconnected' || state === 'failed') {
+                if (deviceRole === 'server') {
+                    updateConnectedDevices('', '');
+                    document.getElementById('connectedClients').textContent = '0';
+                    updateStatus('serverStatus', 'ready', '📡 Client disconnected - Waiting for connections');
+                } else {
+                    updateStatus('clientStatus', 'error', '❌ Connection lost');
+                    document.getElementById('audioState').textContent = 'Disconnected';
+                }
+                
+                document.getElementById('dataTransfer').textContent = '0 KB/s';
+            }
+        }
+
+        function handleDataChannel(event) {
+            const channel = event.channel;
+            console.log('Data channel received:', channel.label);
+            
+            channel.onmessage = (event) => {
+                console.log('Data channel message:', event.data);
+            };
+        }
+
+        function updateConnectedDevices(deviceName, status) {
+            const deviceList = document.getElementById('deviceList');
+            
+            if (!deviceName) {
+                deviceList.innerHTML = '<li style="color: #888; font-style: italic;">No devices connected</li>';
+                return;
+            }
+            
+            deviceList.innerHTML = `
+                <li class="device-item">
+                    <span>📱 ${deviceName}</span>
+                    <span class="device-status">${status}</span>
+                </li>
+            `;
+        }
+
+        function startDataTransferMonitoring() {
+            if (!peerConnection) return;
+            
+            const monitor = setInterval(async () => {
+                if (!peerConnection || peerConnection.connectionState !== 'connected') {
+                    clearInterval(monitor);
+                    return;
+                }
+                
+                try {
+                    const stats = await peerConnection.getStats();
+                    let bytesTransferred = 0;
+                    
+                    stats.forEach(report => {
+                        if (report.type === 'outbound-rtp' && report.mediaType === 'audio') {
+                            bytesTransferred += report.bytesSent || 0;
+                        } else if (report.type === 'inbound-rtp' && report.mediaType === 'audio') {
+                            bytesTransferred += report.bytesReceived || 0;
+                        }
+                    });
+                    
+                    const kbps = (bytesTransferred * 8 / 1000 / 5).toFixed(1); // 5 second interval
+                    document.getElementById('dataTransfer').textContent = kbps + ' KB/s';
+                    
+                } catch (error) {
+                    console.error('Stats monitoring error:', error);
+                }
+            }, 5000);
+        }
+
+        function playTestTone() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 1);
+            
+            document.getElementById('testToneBtn').textContent = '🔊 Playing...';
+            setTimeout(() => {
+                document.getElementById('testToneBtn').textContent = '🔊 Test Tone';
+            }, 1000);
+        }
+
+        function updateVolume() {
+            const volume = document.getElementById('volumeSlider').value;
+            document.getElementById('volumeValue').textContent = volume + '%';
+            
+            const audioElement = document.getElementById('remoteAudio');
+            if (audioElement) {
+                audioElement.volume = volume / 100;
+            }
+        }
+
+        function copyOffer() {
+            const offer = document.getElementById('offerDisplay').textContent;
+            if (offer && offer !== 'Start server to generate offer...') {
+                navigator.clipboard.writeText(offer).then(() => {
+                    alert('Offer copied to clipboard!');
+                });
+            } else {
+                alert('No offer to copy - start server first');
+            }
+        }
+
+        function copyAnswer() {
+            const answer = document.getElementById('answerDisplay').textContent;
+            if (answer && answer !== 'Set offer first to generate answer...') {
+                navigator.clipboard.writeText(answer).then(() => {
+                    alert('Answer copied to clipboard!');
+                });
+            } else {
+                alert('No answer to copy - set offer first');
+            }
+        }
+
+        function stopServer() {
+            cleanup();
+            
+            isServerRunning = false;
+            updateStatus('serverStatus', 'ready', '⏹️ Server stopped');
+            
+            document.getElementById('startServerBtn').disabled = false;
+            document.getElementById('stopServerBtn').disabled = true;
+            document.getElementById('captureBtn').disabled = false;
+            document.getElementById('captureBtn').textContent = '🎤 Capture Audio';
+            
+            document.getElementById('connectionState').textContent = 'Disconnected';
+            document.getElementById('audioState').textContent = 'Stopped';
+            document.getElementById('connectedClients').textContent = '0';
+            document.getElementById('dataTransfer').textContent = '0 KB/s';
+            
+            updateConnectedDevices('', '');
+            
+            // Clear signaling displays
+            document.getElementById('offerDisplay').textContent = 'Start server to generate offer...';
+            document.getElementById('answerInput').value = '';
+        }
+
+        function disconnect() {
+            cleanup();
+            
+            updateStatus('clientStatus', 'ready', '❌ Disconnected from server');
+            
+            document.getElementById('connectBtn').disabled = false;
+            document.getElementById('disconnectBtn').disabled = true;
+            document.getElementById('remoteAudio').style.display = 'none';
+            
+            document.getElementById('connectionState').textContent = 'Disconnected';
+            document.getElementById('audioState').textContent = 'No Audio';
+            document.getElementById('dataTransfer').textContent = '0 KB/s';
+            
+            // Clear signaling displays
+            document.getElementById('answerDisplay').textContent = 'Set offer first to generate answer...';
+            document.getElementById('offerInput').value = '';
+        }
+
+        function cleanup() {
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
@@ -681,134 +917,29 @@
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
             }
-
-            isStreaming = false;
-            connectedClients = 0;
             
-            updateStatus('streamingStatus', 'ready', 'Streaming stopped');
-            document.getElementById('startStreamBtn').disabled = false;
-            document.getElementById('stopStreamBtn').disabled = true;
-            document.getElementById('captureAudioBtn').disabled = false;
-            document.getElementById('captureAudioBtn').textContent = '🎤 Capture Audio';
-            
-            // Reset metrics
-            document.getElementById('connectionMetric').textContent = 'Disconnected';
-            document.getElementById('clientsMetric').textContent = '0';
-        }
-
-        function playTestTone() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            if (dataChannel) {
+                dataChannel.close();
+                dataChannel = null;
             }
-
-            if (testToneOscillator) {
-                testToneOscillator.stop();
-            }
-
-            testToneOscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
             
-            testToneOscillator.type = 'sine';
-            testToneOscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A note
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            
-            testToneOscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            testToneOscillator.start();
-            testToneOscillator.stop(audioContext.currentTime + 1); // Play for 1 second
-            
-            document.getElementById('testToneBtn').textContent = '🔊 Playing...';
-            setTimeout(() => {
-                document.getElementById('testToneBtn').textContent = '🔊 Test Tone';
-            }, 1000);
-        }
-
-        // Test functions
-        async function testLatency() {
-            latencyStartTime = performance.now();
-            updateTestResults('🔄 Testing audio latency...');
-            
-            // Simulate latency test
-            setTimeout(() => {
-                const latency = Math.random() * 100 + 30; // 30-130ms
-                document.getElementById('latencyMetric').textContent = Math.round(latency) + 'ms';
-                updateTestResults(`✅ Latency test completed: ${Math.round(latency)}ms`);
-            }, 2000);
-        }
-
-        async function testQuality() {
-            updateTestResults('🔄 Testing audio quality...');
-            
-            // Simulate quality test
-            setTimeout(() => {
-                const quality = Math.random() * 200 + 128; // 128-328kbps
-                document.getElementById('qualityMetric').textContent = Math.round(quality) + 'kbps';
-                updateTestResults(`✅ Quality test completed: ${Math.round(quality)}kbps`);
-            }, 3000);
-        }
-
-        async function testStability() {
-            updateTestResults('🔄 Testing connection stability...');
-            
-            // Simulate stability test
-            let testCount = 0;
-            const testInterval = setInterval(() => {
-                testCount++;
-                if (testCount < 5) {
-                    updateTestResults(`🔄 Stability test ${testCount}/5...`);
-                } else {
-                    clearInterval(testInterval);
-                    updateTestResults(`✅ Stability test completed: 5/5 tests passed`);
-                }
-            }, 1000);
-        }
-
-        // Helper functions
-        function handleICECandidate(event) {
-            if (event.candidate) {
-                // In a real implementation, send candidate to remote peer
-                console.log('ICE candidate:', event.candidate);
-            }
-        }
-
-        function handleConnectionStateChange() {
-            const state = peerConnection.connectionState;
-            console.log('Connection state:', state);
-            
-            if (state === 'connected') {
-                connectedClients = 1;
-                document.getElementById('clientsMetric').textContent = connectedClients.toString();
-                document.getElementById('connectionMetric').textContent = 'Connected';
-            } else if (state === 'disconnected' || state === 'failed') {
-                connectedClients = 0;
-                document.getElementById('clientsMetric').textContent = '0';
-                document.getElementById('connectionMetric').textContent = 'Disconnected';
-            }
+            connectedPeers.clear();
         }
 
         function updateStatus(elementId, type, message) {
             const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `status ${type}`;
+            if (element) {
+                element.textContent = message;
+                element.className = `status ${type}`;
+            }
         }
 
-        function updateTestResults(message) {
-            document.getElementById('testResults').innerHTML = `<p>${message}</p>`;
-        }
-
-        function startMetricsUpdate() {
-            setInterval(() => {
-                if (isStreaming && peerConnection) {
-                    // Update metrics (simulated for MVP)
-                    const latency = Math.random() * 20 + 30; // 30-50ms
-                    const quality = Math.random() * 50 + 200; // 200-250kbps
-                    
-                    document.getElementById('latencyMetric').textContent = Math.round(latency) + 'ms';
-                    document.getElementById('qualityMetric').textContent = Math.round(quality) + 'kbps';
-                }
-            }, 5000);
-        }
+        // Auto-refresh connection info periodically
+        setInterval(() => {
+            if (deviceRole === 'server') {
+                updateServerURL();
+            }
+        }, 10000); // Every 10 seconds
     </script>
 </body>
 </html>
