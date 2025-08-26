@@ -357,6 +357,7 @@
                 <div class="audio-controls">
                     <button class="btn" id="captureBtn" onclick="startAudioCapture()">🎤 Capture Audio</button>
                     <button class="btn" id="testToneBtn" onclick="playTestTone()">🔊 Test Tone</button>
+                    <button class="btn" onclick="testWebRTCSupport()">🔧 Test WebRTC</button>
                 </div>
             </div>
 
@@ -592,19 +593,34 @@
         }
 
         async function startServer() {
+            console.log('Starting server...');
+            
             if (!localStream) {
-                alert('Please capture audio first');
+                alert('Please capture audio first by clicking "Capture Audio" button');
+                return;
+            }
+
+            const audioTracks = localStream.getAudioTracks();
+            if (audioTracks.length === 0) {
+                alert('No audio tracks available - please recapture audio');
                 return;
             }
 
             try {
+                console.log('Creating peer connection...');
+                updateStatus('serverStatus', 'connecting', '🔄 Starting server...');
+                
                 // Generate simple 6-digit connection code
                 connectionCode = Math.floor(100000 + Math.random() * 900000).toString();
+                console.log('Generated connection code:', connectionCode);
                 
+                // Create peer connection
                 peerConnection = new RTCPeerConnection(rtcConfig);
+                console.log('Peer connection created');
                 
-                // Add local stream
-                localStream.getTracks().forEach(track => {
+                // Add local stream tracks
+                audioTracks.forEach(track => {
+                    console.log('Adding audio track to peer connection:', track.label);
                     peerConnection.addTrack(track, localStream);
                 });
 
@@ -612,39 +628,59 @@
                 dataChannel = peerConnection.createDataChannel('control', {
                     ordered: true
                 });
+                console.log('Data channel created');
 
                 // Setup event handlers
-                peerConnection.onicecandidate = handleICECandidate;
-                peerConnection.onconnectionstatechange = handleConnectionStateChange;
+                peerConnection.onicecandidate = (event) => {
+                    console.log('ICE candidate generated:', event.candidate ? 'yes' : 'gathering complete');
+                };
+                
+                peerConnection.onconnectionstatechange = () => {
+                    console.log('Connection state changed to:', peerConnection.connectionState);
+                    handleConnectionStateChange();
+                };
+                
                 peerConnection.ondatachannel = handleDataChannel;
 
-                // Create offer and store it with the connection code
-                const offer = await peerConnection.createOffer();
+                // Create offer
+                console.log('Creating WebRTC offer...');
+                const offer = await peerConnection.createOffer({
+                    offerToReceiveAudio: false,
+                    offerToReceiveVideo: false
+                });
+                
                 await peerConnection.setLocalDescription(offer);
+                console.log('Local description set, offer created');
 
-                // Store connection info (in production, this would go to a server)
+                // Store connection info in simple database
                 connectionDatabase[connectionCode] = {
                     offer: offer,
                     timestamp: Date.now(),
-                    status: 'waiting'
+                    status: 'waiting',
+                    peerConnection: peerConnection
                 };
+                console.log('Connection stored with code:', connectionCode);
 
                 // Display simple connection code
                 document.getElementById('connectionCode').textContent = connectionCode;
 
                 isServerRunning = true;
-                updateStatus('serverStatus', 'connected', `📡 Server started - Connection code: ${connectionCode}`);
+                updateStatus('serverStatus', 'connected', `📡 Server running! Share code: ${connectionCode}`);
                 
                 document.getElementById('startServerBtn').disabled = true;
                 document.getElementById('stopServerBtn').disabled = false;
                 document.getElementById('connectionState').textContent = 'Waiting';
 
-                // Start polling for answers (simulate real-time connection)
+                // Start polling for connections
+                console.log('Starting connection polling...');
                 pollForConnections();
 
             } catch (error) {
                 console.error('Server start failed:', error);
                 updateStatus('serverStatus', 'error', '❌ Server failed: ' + error.message);
+                
+                // Show detailed error
+                alert(`Server failed to start: ${error.message}\n\nCheck:\n1. Audio was captured successfully\n2. Browser supports WebRTC\n3. Console for detailed errors`);
             }
         }
 
@@ -920,7 +956,43 @@
             document.getElementById('startServerBtn').disabled = false;
             document.getElementById('stopServerBtn').disabled = true;
             document.getElementById('captureBtn').disabled = false;
-            document.getElementById('captureBtn').textContent = '🎤 Capture Audio';
+                    // Add simple WebRTC test function
+        async function testWebRTCSupport() {
+            console.log('Testing WebRTC support...');
+            
+            try {
+                // Test 1: Check WebRTC availability
+                if (!window.RTCPeerConnection) {
+                    throw new Error('WebRTC not supported in this browser');
+                }
+                console.log('✅ WebRTC is available');
+                
+                // Test 2: Create basic peer connection
+                const testPC = new RTCPeerConnection(rtcConfig);
+                console.log('✅ Peer connection created successfully');
+                
+                // Test 3: Test media devices API
+                if (!navigator.mediaDevices) {
+                    throw new Error('Media devices API not available');
+                }
+                console.log('✅ Media devices API available');
+                
+                // Test 4: Test getUserMedia
+                const testStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                console.log('✅ getUserMedia working, tracks:', testStream.getTracks().length);
+                testStream.getTracks().forEach(track => track.stop());
+                
+                testPC.close();
+                
+                updateStatus('serverStatus', 'connected', '✅ WebRTC tests passed - Audio capture should work');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ WebRTC test failed:', error);
+                updateStatus('serverStatus', 'error', `❌ WebRTC test failed: ${error.message}`);
+                return false;
+            }
+        }
             
             document.getElementById('connectionState').textContent = 'Disconnected';
             document.getElementById('audioState').textContent = 'Stopped';
