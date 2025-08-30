@@ -173,6 +173,13 @@
             position: relative;
         }
 
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 20px 100px 20px; /* Reset top, add bottom padding for FAB */
+            }
+        }
+
         /* Theme Toggle Button */
         .theme-toggle {
             position: fixed;
@@ -1296,10 +1303,14 @@ https://www.youtube.com/watch?v=kJQP7kiw5Fk"></textarea>
             const scrollY = window.scrollY;
             const themeToggle = document.getElementById('themeToggle');
             
-            if (scrollY > 50 && !isScrolled) {
+            // Different scroll thresholds for mobile vs desktop
+            const isMobile = window.innerWidth <= 768;
+            const scrollThreshold = isMobile ? 100 : 50;
+            
+            if (scrollY > scrollThreshold && !isScrolled) {
                 themeToggle.classList.add('minimized');
                 isScrolled = true;
-            } else if (scrollY <= 50 && isScrolled) {
+            } else if (scrollY <= scrollThreshold && isScrolled) {
                 themeToggle.classList.remove('minimized');
                 isScrolled = false;
             }
