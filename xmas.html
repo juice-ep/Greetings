@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Kaleidoscope</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #kaleidoscope {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #0f2818 0%, #1a472a 100%);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+        }
+
+        .instruction {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 10;
+            animation: pulse 2s ease-in-out infinite;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .message-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .message-content {
+            background: linear-gradient(135deg, #c41e3a 0%, #165b33 100%);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            color: white;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .message-emoji {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .message-text {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .message-text p {
+            margin-bottom: 12px;
+        }
+
+        .game-instructions {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            border-radius: 20px;
+            display: none;
+            z-index: 30;
+            text-align: center;
+            max-width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            width: 500px;
+        }
+
+        .game-instructions h2 {
+            color: #c41e3a;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .game-instructions p {
+            color: #165b33;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .game-instructions .tip {
+            background: #fffacd;
+            padding: 12px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-style: italic;
+            color: #8B4513;
+            font-size: 15px;
+        }
+
+        .start-game-btn {
+            background: #c41e3a;
+            color: white;
+            padding: 12px 35px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.2s;
+        }
+
+        .start-game-btn:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 600px) {
+            .game-instructions {
+                padding: 20px 15px;
+                width: 90%;
+            }
+
+            .game-instructions h2 {
+                font-size: 20px;
+                margin-bottom: 12px;
+            }
+
+            .game-instructions p {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+
+            .game-instructions .tip {
+                padding: 10px;
+                font-size: 13px;
+                margin: 12px 0;
+            }
+
+            .start-game-btn {
+                padding: 10px 25px;
+                font-size: 16px;
+            }
+
+            .message-content {
+                padding: 25px 20px;
+                max-width: 90%;
+            }
+
+            .message-emoji {
+                font-size: 60px;
+                margin-bottom: 15px;
+            }
+
+            .message-text {
+                font-size: 16px;
+            }
+
+            .message-text p {
+                font-size: 15px !important;
+                margin-bottom: 10px !important;
+            }
+
+            .message-text p:first-child {
+                font-size: 18px !important;
+            }
+
+            .score-display {
+                font-size: 22px;
+                margin: 15px 0;
+            }
+
+            .high-score {
+                font-size: 15px;
+                margin-bottom: 15px;
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+
+            .button-container {
+                gap: 10px;
+            }
+        }
+
+        .score-display {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffd700;
+        }
+
+        .high-score {
+            font-size: 18px;
+            color: #90EE90;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: white;
+            color: #165b33;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.3);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .share-btn {
+            background: #1DA1F2;
+            color: white;
+        }
+
+        #gameUI {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 50;
+            display: none;
+        }
+
+        .emoji-selector {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            display: none;
+            z-index: 20;
+            text-align: center;
+        }
+
+        .emoji-selector h2 {
+            color: #165b33;
+            margin-bottom: 20px;
+        }
+
+        .emoji-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .emoji-option {
+            font-size: 60px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            padding: 10px;
+        }
+
+        .emoji-option:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="kaleidoscope"></canvas>
+        <div class="instruction" id="tapInstruction">Tap or shake to reveal ✨</div>
+        
+        <div class="emoji-selector" id="emojiSelector">
+            <h2>Choose Your Christmas Spirit!</h2>
+            <div class="emoji-options">
+                <div class="emoji-option" data-emoji="🎄">🎄</div>
+                <div class="emoji-option" data-emoji="⭐">⭐</div>
+                <div class="emoji-option" data-emoji="🎁">🎁</div>
+                <div class="emoji-option" data-emoji="❄️">❄️</div>
+                <div class="emoji-option" data-emoji="🔔">🔔</div>
+            </div>
+        </div>
+
+        <div class="game-instructions" id="gameInstructions">
+            <h2>🎮 Ready to Outrun the Grinch? 🎮</h2>
+            <p><strong>The green meanie is on your tail!</strong> 🏃‍♂️💨</p>
+            <p>👆 <strong>Tap, Click, or Press SPACE</strong> to jump over obstacles</p>
+            <p>🍬 <strong>Collect candy canes</strong> for extra points</p>
+            <p>⏱️ <strong>Survive as long as you can</strong> without getting caught!</p>
+            <div class="tip">
+                💡 Pro tip: Keep that Christmas spirit bouncing! The Grinch gets grumpier (and faster) as time goes on!
+            </div>
+            <button class="start-game-btn" onclick="startGameFromInstructions()">Let's Go! 🎄</button>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameUI">
+            <div>Score: <span id="score">0</span></div>
+            <div style="font-size: 16px; margin-top: 5px;">High Score: <span id="highScoreDisplay">0</span></div>
+        </div>
+
+        <div class="message-screen" id="messageScreen">
+            <div class="message-content">
+                <div class="message-emoji" id="messageEmoji">🎄</div>
+                <div class="score-display" id="finalScore"></div>
+                <div class="high-score" id="finalHighScore"></div>
+                <div class="message-text">
+                    <p style="font-size: 22px; margin-bottom: 15px; font-weight: bold;">
+                        🎉 You outran the green grump! 🎉
+                    </p>
+                    <p>
+                        Just like dodging the Grinch's grumpy clutches, 
+                        don't let life's challenges steal your joy! 
+                    </p>
+                    <p>
+                        Keep bouncing back, keep collecting sweet moments, 
+                        and keep your Christmas spirit alive all year! 
+                    </p>
+                    <p style="margin-top: 15px; font-style: italic;">
+                        <em>Joy isn't just for December—it's a year-round adventure!</em> 🌟
+                    </p>
+                    <p style="font-size: 24px; margin-top: 20px; font-weight: bold;">
+                        🎄 Merry Christmas! 🎄
+                    </p>
+                </div>
+                <div class="button-container">
+                    <button onclick="shareScore()" class="share-btn">Share 📤</button>
+                    <button onclick="playAgain()">Play Again 🎮</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Kaleidoscope variables
+        const kaleidoscopeCanvas = document.getElementById('kaleidoscope');
+        const kaleidoscopeCtx = kaleidoscopeCanvas.getContext('2d');
+        let kaleidoscopeActive = true;
+        let interactionCount = 0;
+        const emojis = ['🎄', '⭐', '🎁', '❄️', '🔔'];
+        let particles = [];
+        let selectedEmoji = '🎄';
+
+        // Game variables
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gameCtx = gameCanvas.getContext('2d');
+        let gameActive = false;
+        let gameStarted = false; // New flag for actual gameplay
+        let introComplete = false;
+        let score = 0;
+        let highScore = localStorage.getItem('christmasHighScore') || 0;
+        let player, grinch, obstacles, candyCanes;
+        let gameSpeed = 3;
+        let gameTime = 0;
+        let safeZoneDistance = 0; // Track horizontal distance traveled
+
+        // Audio context for polyphonic music
+        let audioContext;
+        let currentNotes = [];
+        let musicInterval;
+
+        // Christmas music - Jingle Bells in polyphonic format
+        // Format: [frequency, duration in ms]
+        const jingleBellsMelody = [
+            // "Jingle bells, jingle bells"
+            [330, 250], [330, 250], [330, 500],
+            [330, 250], [330, 250], [330, 500],
+            // "Jingle all the way"
+            [330, 250], [392, 250], [262, 375], [294, 125], [330, 1000],
+            // "Oh what fun it is to ride"
+            [349, 250], [349, 250], [349, 375], [349, 125],
+            [349, 250], [330, 250], [330, 250], [330, 125], [330, 125],
+            // "In a one-horse open sleigh"
+            [330, 250], [294, 250], [294, 250], [330, 250], [294, 500], [392, 500]
+        ];
+
+        let melodyIndex = 0;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playNote(frequency, duration) {
+            if (!audioContext) return;
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine'; // Smooth bell-like sound
+
+            // Envelope for smoother sound
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.15, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration / 1000);
+
+            currentNotes.push({ oscillator, gainNode });
+
+            // Cleanup
+            setTimeout(() => {
+                const index = currentNotes.findIndex(n => n.oscillator === oscillator);
+                if (index > -1) currentNotes.splice(index, 1);
+            }, duration);
+        }
+
+        function playChristmasMusic() {
+            if (melodyIndex >= jingleBellsMelody.length) {
+                melodyIndex = 0; // Loop the melody
+            }
+
+            const [frequency, duration] = jingleBellsMelody[melodyIndex];
+            playNote(frequency, duration);
+            
+            melodyIndex++;
+
+            // Schedule next note
+            musicInterval = setTimeout(playChristmasMusic, duration);
+        }
+
+        function startMusic() {
+            initAudio();
+            melodyIndex = 0;
+            playChristmasMusic();
+        }
+
+        function stopMusic() {
+            if (musicInterval) {
+                clearTimeout(musicInterval);
+                musicInterval = null;
+            }
+            currentNotes.forEach(({ oscillator }) => {
+                try {
+                    oscillator.stop();
+                } catch (e) {
+                    // Already stopped
+                }
+            });
+            currentNotes = [];
+        }
+
+        // Setup canvases
+        function resizeCanvases() {
+            kaleidoscopeCanvas.width = window.innerWidth;
+            kaleidoscopeCanvas.height = window.innerHeight;
+            gameCanvas.width = window.innerWidth;
+            gameCanvas.height = window.innerHeight;
+        }
+        resizeCanvases();
+        window.addEventListener('resize', resizeCanvases);
+
+        // Kaleidoscope Particle
+        class KaleidoscopeParticle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * kaleidoscopeCanvas.width;
+                this.y = Math.random() * kaleidoscopeCanvas.height;
+                this.emoji = emojis[Math.floor(Math.random() * emojis.length)];
+                this.size = Math.random() * 30 + 20;
+                this.speedX = (Math.random() - 0.5) * 3;
+                this.speedY = (Math.random() - 0.5) * 3;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+                this.opacity = Math.random() * 0.5 + 0.5;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.rotation += this.rotationSpeed;
+
+                if (this.x < 0 || this.x > kaleidoscopeCanvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > kaleidoscopeCanvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                kaleidoscopeCtx.save();
+                kaleidoscopeCtx.globalAlpha = this.opacity;
+                kaleidoscopeCtx.translate(this.x, this.y);
+                kaleidoscopeCtx.rotate(this.rotation);
+                kaleidoscopeCtx.font = `${this.size}px Arial`;
+                kaleidoscopeCtx.textAlign = 'center';
+                kaleidoscopeCtx.textBaseline = 'middle';
+                kaleidoscopeCtx.fillText(this.emoji, 0, 0);
+                kaleidoscopeCtx.restore();
+            }
+        }
+
+        // Initialize particles
+        for (let i = 0; i < 30; i++) {
+            particles.push(new KaleidoscopeParticle());
+        }
+
+        // Kaleidoscope animation
+        function animateKaleidoscope() {
+            if (!kaleidoscopeActive) return;
+
+            kaleidoscopeCtx.fillStyle = 'rgba(15, 40, 24, 0.1)';
+            kaleidoscopeCtx.fillRect(0, 0, kaleidoscopeCanvas.width, kaleidoscopeCanvas.height);
+
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animateKaleidoscope);
+        }
+        animateKaleidoscope();
+
+        // Handle interaction
+        function handleInteraction() {
+            interactionCount++;
+            particles.forEach(p => {
+                p.speedX = (Math.random() - 0.5) * 6;
+                p.speedY = (Math.random() - 0.5) * 6;
+                p.rotationSpeed = (Math.random() - 0.5) * 0.2;
+            });
+
+            if (interactionCount >= 5) {
+                setTimeout(showEmojiSelector, 500);
+            }
+        }
+
+        kaleidoscopeCanvas.addEventListener('click', handleInteraction);
+        kaleidoscopeCanvas.addEventListener('touchstart', handleInteraction);
+
+        // Motion detection for shake
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', (event) => {
+                const acceleration = event.accelerationIncludingGravity;
+                if (Math.abs(acceleration.x) > 15 || Math.abs(acceleration.y) > 15) {
+                    handleInteraction();
+                }
+            });
+        }
+
+        // Show emoji selector
+        function showEmojiSelector() {
+            document.getElementById('tapInstruction').style.display = 'none';
+            document.getElementById('emojiSelector').style.display = 'block';
+        }
+
+        // Emoji selection
+        document.querySelectorAll('.emoji-option').forEach(option => {
+            option.addEventListener('click', function() {
+                selectedEmoji = this.dataset.emoji;
+                document.getElementById('emojiSelector').style.display = 'none';
+                document.getElementById('gameInstructions').style.display = 'block';
+            });
+        });
+
+        // Start game from instructions
+        function startGameFromInstructions() {
+            document.getElementById('gameInstructions').style.display = 'none';
+            setTimeout(startGame, 300);
+        }
+
+        // Game classes
+        class Player {
+            constructor() {
+                this.width = 50;
+                this.height = 50;
+                this.x = gameCanvas.width * 0.6; // Start at 60% across screen
+                this.y = gameCanvas.height - this.height - 50;
+                this.velocityY = 0;
+                this.gravity = 0.5;
+                this.jumpStrength = -15;
+            }
+
+            jump() {
+                // Allow jumping even in mid-air for easier gameplay
+                this.velocityY = this.jumpStrength;
+            }
+
+            update() {
+                this.velocityY += this.gravity;
+                this.y += this.velocityY;
+
+                // Ground collision
+                if (this.y > gameCanvas.height - this.height - 50) {
+                    this.y = gameCanvas.height - this.height - 50;
+                    this.velocityY = 0;
+                }
+
+                // Ceiling collision
+                if (this.y < 0) {
+                    this.y = 0;
+                    this.velocityY = 0;
+                }
+            }
+
+            draw() {
+                gameCtx.font = `${this.width}px Arial`;
+                gameCtx.textAlign = 'center';
+                gameCtx.textBaseline = 'middle';
+                gameCtx.fillText(selectedEmoji, this.x + this.width/2, this.y + this.height/2);
+            }
+        }
+
+        class Grinch {
+            constructor() {
+                this.width = 60;
+                this.height = 60;
+                this.x = -100; // Start off-screen left
+                this.y = gameCanvas.height - this.height - 50;
+                this.slideSpeed = 3; // Speed for intro slide
+                this.targetDistance = 200; // Target distance from player
+                this.isSliding = true; // Sliding in during intro
+            }
+
+            update() {
+                if (this.isSliding) {
+                    // Slide in from the left
+                    this.x += this.slideSpeed;
+                    
+                    // Check if we've reached the target distance from player
+                    const distanceFromPlayer = player.x - this.x;
+                    if (distanceFromPlayer <= this.targetDistance) {
+                        this.isSliding = false;
+                        introComplete = true;
+                        gameStarted = true;
+                    }
+                } else if (gameStarted) {
+                    // During gameplay, slowly creep closer horizontally
+                    this.targetDistance -= 0.02; // Gradually decrease distance
+                    const targetX = player.x - this.targetDistance;
+                    this.x += (targetX - this.x) * 0.01;
+                }
+                
+                // Always follow player vertically with delay
+                const targetY = player.y;
+                this.y += (targetY - this.y) * 0.03; // Follow player's vertical position
+            }
+
+            draw() {
+                // Draw the troll emoji
+                gameCtx.font = `${this.width}px Arial`;
+                gameCtx.textAlign = 'center';
+                gameCtx.textBaseline = 'middle';
+                gameCtx.fillText('🧌', this.x + this.width/2, this.y + this.height/2);
+            }
+        }
+
+        class Obstacle {
+            constructor() {
+                this.width = 40;
+                this.height = Math.random() * 40 + 30; // Smaller obstacles
+                this.x = gameCanvas.width;
+                this.y = gameCanvas.height - this.height - 50;
+                this.speed = gameSpeed;
+                this.type = Math.random() > 0.5 ? '🏔️' : '⛄';
+            }
+
+            update() {
+                this.x -= this.speed;
+            }
+
+            draw() {
+                gameCtx.font = `${this.width}px Arial`;
+                gameCtx.fillText(this.type, this.x, this.y + this.height/2);
+            }
+        }
+
+        class CandyCane {
+            constructor() {
+                this.width = 30;
+                this.height = 30;
+                this.x = gameCanvas.width;
+                this.y = Math.random() * (gameCanvas.height - 150) + 50;
+                this.speed = gameSpeed;
+                this.collected = false;
+            }
+
+            update() {
+                this.x -= this.speed;
+            }
+
+            draw() {
+                if (!this.collected) {
+                    gameCtx.font = `${this.width}px Arial`;
+                    gameCtx.fillText('🍬', this.x, this.y);
+                }
+            }
+        }
+
+        // Collision detection
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Start game
+        function startGame() {
+            kaleidoscopeActive = false;
+            kaleidoscopeCanvas.style.display = 'none';
+            gameCanvas.style.display = 'block';
+            document.getElementById('gameUI').style.display = 'block';
+            gameActive = true;
+            gameStarted = false; // Gameplay hasn't started yet
+            introComplete = false; // Intro animation not complete
+            score = 0;
+            gameSpeed = 3;
+            gameTime = 0;
+            safeZoneDistance = 0; // Reset safe zone tracking
+
+            document.getElementById('highScoreDisplay').textContent = highScore;
+
+            player = new Player();
+            grinch = new Grinch();
+            obstacles = [];
+            candyCanes = [];
+
+            // Start Christmas music
+            startMusic();
+
+            gameLoop();
+        }
+
+        // Game controls
+        gameCanvas.addEventListener('click', () => {
+            if (gameActive && gameStarted) player.jump();
+        });
+
+        gameCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameActive && gameStarted) player.jump();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && gameActive && gameStarted) {
+                e.preventDefault();
+                player.jump();
+            }
+        });
+
+        // Game loop
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // Only increment game time after intro is complete
+            if (gameStarted && introComplete) {
+                gameTime++;
+            }
+            
+            // Clear canvas
+            gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+            // Draw ground
+            gameCtx.fillStyle = '#8B4513';
+            gameCtx.fillRect(0, gameCanvas.height - 50, gameCanvas.width, 50);
+
+            // Update and draw player (no movement during intro)
+            if (gameStarted && introComplete) {
+                player.update();
+            }
+            player.draw();
+
+            // Update and draw grinch
+            grinch.update();
+            grinch.draw();
+
+            // Show intro message
+            if (!introComplete) {
+                gameCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                gameCtx.fillRect(gameCanvas.width/2 - 200, 50, 400, 80);
+                gameCtx.fillStyle = 'white';
+                gameCtx.font = 'bold 24px Arial';
+                gameCtx.textAlign = 'center';
+                gameCtx.fillText('The Grinch is coming...', gameCanvas.width/2, 80);
+                gameCtx.font = '18px Arial';
+                gameCtx.fillText('Get ready to run! 🏃', gameCanvas.width/2, 110);
+            } else if (gameStarted && safeZoneDistance < gameCanvas.width * 2) {
+                // Show safe zone indicator
+                const remaining = Math.ceil((gameCanvas.width * 2 - safeZoneDistance) / gameSpeed / 60);
+                gameCtx.fillStyle = 'rgba(76, 175, 80, 0.8)';
+                gameCtx.fillRect(gameCanvas.width/2 - 150, 20, 300, 60);
+                gameCtx.fillStyle = 'white';
+                gameCtx.font = 'bold 20px Arial';
+                gameCtx.textAlign = 'center';
+                gameCtx.fillText('🛡️ Safe Zone 🛡️', gameCanvas.width/2, 45);
+                gameCtx.font = '16px Arial';
+                gameCtx.fillText('Obstacles incoming soon!', gameCanvas.width/2, 68);
+            }
+
+            // Only do gameplay after intro
+            if (gameStarted && introComplete) {
+                // Track distance traveled
+                safeZoneDistance += gameSpeed;
+                
+                // Check if Grinch caught player
+                if (checkCollision(player, grinch)) {
+                    endGame();
+                    return;
+                }
+
+                // Only spawn obstacles after traveling 2 screen widths (safe zone)
+                const safeZoneWidth = gameCanvas.width * 2;
+                
+                if (safeZoneDistance > safeZoneWidth && gameTime % 150 === 0) {
+                    obstacles.push(new Obstacle());
+                }
+
+                // Spawn candy canes (can start earlier for bonus points)
+                if (safeZoneDistance > gameCanvas.width * 0.5 && gameTime % 200 === 0) {
+                    candyCanes.push(new CandyCane());
+                }
+
+                // Update obstacles
+                obstacles.forEach((obstacle, index) => {
+                    obstacle.update();
+                    obstacle.draw();
+
+                    // Check collision with player
+                    if (checkCollision(player, obstacle)) {
+                        endGame();
+                        return;
+                    }
+
+                    // Remove off-screen obstacles
+                    if (obstacle.x + obstacle.width < 0) {
+                        obstacles.splice(index, 1);
+                        score += 10;
+                    }
+                });
+
+                // Update candy canes
+                candyCanes.forEach((candy, index) => {
+                    candy.update();
+                    candy.draw();
+
+                    // Check collision with player
+                    if (!candy.collected && checkCollision(player, candy)) {
+                        candy.collected = true;
+                        score += 50;
+                    }
+
+                    // Remove off-screen candy
+                    if (candy.x + candy.width < 0) {
+                        candyCanes.splice(index, 1);
+                    }
+                });
+
+                // Increase difficulty (slower progression)
+                if (gameTime % 400 === 0) {
+                    gameSpeed += 0.2;
+                }
+
+                // Update score display
+                document.getElementById('score').textContent = score;
+
+                // Game duration limit (60 seconds)
+                if (gameTime > 3600) {
+                    endGame(true);
+                    return;
+                }
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // End game
+        function endGame(won = false) {
+            gameActive = false;
+            stopMusic(); // Stop the Christmas music
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('christmasHighScore', highScore);
+            }
+
+            // Show message screen
+            document.getElementById('messageEmoji').textContent = selectedEmoji;
+            document.getElementById('finalScore').textContent = `Your Score: ${score}`;
+            document.getElementById('finalHighScore').textContent = `High Score: ${highScore}`;
+            document.getElementById('messageScreen').style.display = 'flex';
+        }
+
+        // Play again
+        function playAgain() {
+            stopMusic(); // Ensure music is stopped
+            document.getElementById('messageScreen').style.display = 'none';
+            document.getElementById('gameUI').style.display = 'none';
+            gameCanvas.style.display = 'none';
+            kaleidoscopeCanvas.style.display = 'block';
+            kaleidoscopeActive = true;
+            gameStarted = false;
+            introComplete = false;
+            interactionCount = 0;
+            safeZoneDistance = 0;
+            document.getElementById('tapInstruction').style.display = 'block';
+            particles.forEach(p => p.reset());
+            animateKaleidoscope();
+        }
+
+        // Share function
+        async function shareScore() {
+            const shareData = {
+                title: 'Christmas Kaleidoscope',
+                text: `🎄 I scored ${score} points keeping the Christmas spirit alive! High Score: ${highScore} 🎄\n\nMerry Christmas! Don't let the Grinch steal your joy! ✨`,
+                url: window.location.href
+            };
+
+            // Try native share first
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('Share cancelled or failed:', err);
+                }
+            } else {
+                // Fallback: copy to clipboard
+                const textToCopy = `${shareData.text}\n${shareData.url}`;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    alert('Score copied to clipboard! 📋');
+                } catch (err) {
+                    // Final fallback
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = textToCopy;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    alert('Score copied to clipboard! 📋');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
