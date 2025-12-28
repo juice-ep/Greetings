@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scratch & Win Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Admin Panel Styles */
+        .admin-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .admin-toggle:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .admin-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .admin-panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .category-config-section {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #667eea;
+        }
+
+        .category-config-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .category-input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .item-type-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .item-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .item-type-header h3 {
+            color: #333;
+            font-size: 18px;
+        }
+
+        .remove-item-type {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .emoji-picker-container {
+            position: relative;
+        }
+
+        .emoji-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .emoji-preview {
+            font-size: 32px;
+            padding: 10px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .emoji-preview:hover {
+            border-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .emoji-picker {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 100;
+            max-height: 300px;
+            overflow-y: auto;
+            width: 300px;
+        }
+
+        .emoji-picker.active {
+            display: block;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+        }
+
+        .emoji-option {
+            font-size: 28px;
+            padding: 8px;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .emoji-option:hover {
+            background: #f0f4ff;
+            transform: scale(1.2);
+        }
+
+        .add-item-type-btn,
+        .save-config-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .add-item-type-btn:hover,
+        .save-config-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .reset-config-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .reset-config-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        /* Tracking Sheet Styles */
+        .tracking-sheet {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .tracking-sheet h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .tracking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .tracking-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .tracking-item h3 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tracking-emoji {
+            font-size: 24px;
+        }
+
+        .tracking-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .tracking-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .tracking-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .tracking-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s ease;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .filter-section h2 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .card-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            min-height: 400px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+            width: 420px;
+            height: 580px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        }
+
+        .scratch-cover {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .card.scratched .scratch-cover {
+            opacity: 0;
+        }
+
+        .scratch-text {
+            font-size: 36px;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .scratch-icon {
+            font-size: 80px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .card-content {
+            opacity: 0;
+            transition: opacity 0.5s ease 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card.scratched .card-content {
+            opacity: 1;
+        }
+
+        .card-emoji {
+            font-size: 100px;
+            margin-bottom: 15px;
+        }
+
+        .card-name {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .category1-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .category2-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #51cf66;
+            color: white;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .greeting {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            font-style: italic;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            max-width: 340px;
+            width: 100%;
+        }
+
+        .greeting-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .reset-btn {
+            margin-top: 40px;
+            padding: 18px 50px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            display: none;
+        }
+
+        .reset-btn.show {
+            display: inline-block;
+        }
+
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .category-input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .tracking-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                width: 100%;
+                max-width: 400px;
+                height: auto;
+                min-height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-toggle" onclick="toggleAdminPanel()">⚙️ Admin Panel</div>
+
+    <div class="container">
+        <h1>🎁 Scratch & Win! 🎁</h1>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <h2>🔧 Admin Configuration Panel</h2>
+            
+            <!-- Category Configuration -->
+            <div class="category-config-section">
+                <h3>📋 Category Settings</h3>
+                <div class="category-input-row">
+                    <div class="input-group">
+                        <label>Category 1 Name:</label>
+                        <input type="text" id="category1Name" value="Contains Egg" placeholder="e.g., Contains Egg, Male, Option A">
+                    </div>
+                    <div class="input-group">
+                        <label>Category 2 Name:</label>
+                        <input type="text" id="category2Name" value="Eggless" placeholder="e.g., Eggless, Female, Option B">
+                    </div>
+                </div>
+                <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                    ℹ️ These category names will be used for filtering and badges. Category 1 is the default.
+                </p>
+            </div>
+
+            <div id="itemTypesContainer"></div>
+            <div style="margin-top: 20px;">
+                <button class="add-item-type-btn" id="addItemBtn" onclick="addItemType()">+ Add Item</button>
+                <button class="save-config-btn" onclick="saveConfiguration()">💾 Save Configuration</button>
+                <button class="reset-config-btn" onclick="resetToDefault()">🔄 Reset to Default</button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <h2>Filter by Preference:</h2>
+            <div class="filter-buttons" id="filterButtons">
+                <button class="filter-btn active" data-filter="all">Show All</button>
+                <button class="filter-btn" data-filter="category2" id="category2FilterBtn">Category 2 Only</button>
+            </div>
+        </div>
+
+        <div class="card-grid" id="cardGrid"></div>
+
+        <div style="text-align: center;">
+            <button class="reset-btn" id="resetBtn">Try Again</button>
+        </div>
+
+        <!-- Tracking Sheet -->
+        <div class="tracking-sheet">
+            <h2>📊 Distribution Tracker (Tambola Style)</h2>
+            <div class="tracking-grid" id="trackingGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Common emoji options
+        const emojiOptions = [
+            "🎂", "🍰", "🧁", "🍫", "🎄", "🎁", "🎉", "🎊", "⭐", "✨",
+            "🌟", "💝", "💖", "❤️", "💙", "💚", "💛", "🧡", "💜", "🖤",
+            "🌹", "🌺", "🌸", "🌼", "🌻", "🌷", "🏆", "🥇", "🥈", "🥉",
+            "🎯", "🎪", "🎭", "🎨", "🎬", "🎮", "🎲", "🎸", "🎹", "🎤",
+            "📱", "💻", "⌚", "📷", "🎧", "📺", "🎥", "☕", "🍕", "🍔"
+        ];
+
+        // Default configuration
+        const defaultConfig = {
+            category1Name: "Contains Egg",
+            category2Name: "Eggless",
+            itemTypes: [
+                { name: "Chocolate", emoji: "🍫", category: 2, quantity: 10 },
+                { name: "Plum", emoji: "🎄", category: 2, quantity: 10 },
+                { name: "Dates & Nuts", emoji: "🍰", category: 1, quantity: 5 }
+            ]
+        };
+
+        const greetings = [
+            "May this season bring you peace, hope, and the gift of love.",
+            "Wishing you joy and light during this season of giving and grace.",
+            "May the spirit of love and generosity fill your heart.",
+            "Celebrating the gift of hope, peace, and new beginnings.",
+            "May your days be filled with warmth, wonder, and togetherness."
+        ];
+
+        // Load configuration from localStorage or use default
+        let config = JSON.parse(localStorage.getItem('scratchConfig')) || JSON.parse(JSON.stringify(defaultConfig));
+        let items = [];
+        let claimedItems = JSON.parse(localStorage.getItem('claimedItems')) || {};
+        let currentFilter = 'all';
+        let isScratched = false;
+        let currentCard = null;
+        let currentGreeting = null;
+
+        // Initialize items array from configuration
+        function initializeItems() {
+            items = [];
+            let id = 1;
+            config.itemTypes.forEach(type => {
+                for (let i = 0; i < type.quantity; i++) {
+                    items.push({
+                        id: id++,
+                        name: type.name,
+                        category: type.category,
+                        emoji: type.emoji
+                    });
+                }
+            });
+        }
+
+        // Initialize claimed items tracking
+        function initializeClaimedItems() {
+            config.itemTypes.forEach(type => {
+                if (!claimedItems[type.name]) {
+                    claimedItems[type.name] = 0;
+                }
+            });
+        }
+
+        // Update UI labels based on category names
+        function updateCategoryLabels() {
+            const category2FilterBtn = document.getElementById('category2FilterBtn');
+            if (category2FilterBtn) {
+                category2FilterBtn.textContent = `${config.category2Name} Only`;
+            }
+            
+            const addItemBtn = document.getElementById('addItemBtn');
+            if (addItemBtn) {
+                addItemBtn.textContent = `+ Add Item`;
+            }
+        }
+
+        // Toggle admin panel
+        function toggleAdminPanel() {
+            const panel = document.getElementById('adminPanel');
+            panel.classList.toggle('active');
+            if (panel.classList.contains('active')) {
+                renderAdminPanel();
+            }
+        }
+
+        // Show emoji picker
+        function showEmojiPicker(index) {
+            const picker = document.getElementById(`emojiPicker${index}`);
+            picker.classList.toggle('active');
+        }
+
+        // Select emoji
+        function selectEmoji(index, emoji) {
+            config.itemTypes[index].emoji = emoji;
+            document.getElementById(`emojiPreview${index}`).textContent = emoji;
+            document.getElementById(`emojiPicker${index}`).classList.remove('active');
+        }
+
+        // Render admin panel
+        function renderAdminPanel() {
+            // Update category name inputs
+            document.getElementById('category1Name').value = config.category1Name;
+            document.getElementById('category2Name').value = config.category2Name;
+
+            const container = document.getElementById('itemTypesContainer');
+            container.innerHTML = '';
+
+            config.itemTypes.forEach((type, index) => {
+                const section = document.createElement('div');
+                section.className = 'item-type-section';
+                section.innerHTML = `
+                    <div class="item-type-header">
+                        <h3>Item ${index + 1}</h3>
+                        <button class="remove-item-type" onclick="removeItemType(${index})">Remove</button>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Name:</label>
+                            <input type="text" value="${type.name}" onchange="updateItemType(${index}, 'name', this.value)">
+                        </div>
+                        <div class="input-group emoji-picker-container">
+                            <label>Emoji:</label>
+                            <div class="emoji-display">
+                                <div class="emoji-preview" id="emojiPreview${index}" onclick="showEmojiPicker(${index})">${type.emoji}</div>
+                                <div class="emoji-picker" id="emojiPicker${index}">
+                                    <div class="emoji-grid">
+                                        ${emojiOptions.map(emoji => 
+                                            `<div class="emoji-option" onclick="selectEmoji(${index}, '${emoji}')">${emoji}</div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Quantity:</label>
+                            <input type="number" min="1" value="${type.quantity}" onchange="updateItemType(${index}, 'quantity', parseInt(this.value))">
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-top: 10px;">
+                        <label>Category:</label>
+                        <select onchange="updateItemType(${index}, 'category', parseInt(this.value))">
+                            <option value="1" ${type.category === 1 ? 'selected' : ''}>${config.category1Name} (Category 1 - Default)</option>
+                            <option value="2" ${type.category === 2 ? 'selected' : ''}>${config.category2Name} (Category 2)</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        // Update item type
+        function updateItemType(index, field, value) {
+            config.itemTypes[index][field] = value;
+        }
+
+        // Add new item type
+        function addItemType() {
+            config.itemTypes.push({
+                name: "New Item",
+                emoji: "🎁",
+                category: 1, // Default to category 1
+                quantity: 5
+            });
+            renderAdminPanel();
+        }
+
+        // Remove item type
+        function removeItemType(index) {
+            if (confirm('Are you sure you want to remove this item?')) {
+                config.itemTypes.splice(index, 1);
+                renderAdminPanel();
+            }
+        }
+
+        // Save configuration
+        function saveConfiguration() {
+            // Update category names
+            config.category1Name = document.getElementById('category1Name').value;
+            config.category2Name = document.getElementById('category2Name').value;
+
+            localStorage.setItem('scratchConfig', JSON.stringify(config));
+            // Reset claimed items when configuration changes
+            claimedItems = {};
+            initializeItems();
+            initializeClaimedItems();
+            localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+            updateCategoryLabels();
+            updateTrackingSheet();
+            alert('Configuration saved successfully!');
+            document.getElementById('adminPanel').classList.remove('active');
+            resetSelection();
+        }
+
+        // Reset to default configuration
+        function resetToDefault() {
+            if (confirm('Reset to default configuration? This will clear all custom settings.')) {
+                config = JSON.parse(JSON.stringify(defaultConfig));
+                claimedItems = {};
+                localStorage.setItem('scratchConfig', JSON.stringify(config));
+                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                initializeItems();
+                initializeClaimedItems();
+                updateCategoryLabels();
+                renderAdminPanel();
+                updateTrackingSheet();
+                resetSelection();
+            }
+        }
+
+        // Update tracking sheet
+        function updateTrackingSheet() {
+            const grid = document.getElementById('trackingGrid');
+            grid.innerHTML = '';
+
+            config.itemTypes.forEach(type => {
+                const claimed = claimedItems[type.name] || 0;
+                const percentage = (claimed / type.quantity) * 100;
+                const categoryName = type.category === 1 ? config.category1Name : config.category2Name;
+
+                const item = document.createElement('div');
+                item.className = 'tracking-item';
+                item.innerHTML = `
+                    <h3>
+                        <span class="tracking-emoji">${type.emoji}</span>
+                        ${type.name}
+                    </h3>
+                    <div class="tracking-stats">
+                        <span class="tracking-count">${claimed} / ${type.quantity}</span>
+                        <span style="color: #666; font-size: 14px;">${percentage.toFixed(1)}% claimed</span>
+                    </div>
+                    <div class="tracking-bar">
+                        <div class="tracking-progress" style="width: ${percentage}%"></div>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 14px; color: #666;">
+                        ${categoryName}
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function getRandomItem() {
+            let availableItems = items;
+            
+            if (currentFilter === 'category2') {
+                availableItems = items.filter(item => item.category === 2);
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableItems.length);
+            return availableItems[randomIndex];
+        }
+
+        function getRandomGreeting() {
+            const randomIndex = Math.floor(Math.random() * greetings.length);
+            return greetings[randomIndex];
+        }
+
+        function renderCard() {
+            const grid = document.getElementById('cardGrid');
+            grid.innerHTML = '';
+            isScratched = false;
+
+            currentCard = getRandomItem();
+            currentGreeting = getRandomGreeting();
+
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const categoryBadgeClass = currentCard.category === 1 ? 'category1-badge' : 'category2-badge';
+            const categoryName = currentCard.category === 1 ? config.category1Name : config.category2Name;
+
+            card.innerHTML = `
+                <div class="scratch-cover">
+                    <div class="scratch-text">Tap to Reveal</div>
+                    <div class="scratch-icon">🎁</div>
+                </div>
+                <div class="card-content">
+                    <div class="card-emoji">${currentCard.emoji}</div>
+                    <div class="card-name">${currentCard.name}</div>
+                    <div class="${categoryBadgeClass}">
+                        ${categoryName}
+                    </div>
+                    <div class="greeting">
+                        <div class="greeting-icon">⭐</div>
+                        ${currentGreeting}
+                    </div>
+                </div>
+            `;
+
+            card.addEventListener('click', () => scratchCard(card));
+            grid.appendChild(card);
+
+            document.getElementById('resetBtn').classList.remove('show');
+        }
+
+        function scratchCard(cardElement) {
+            if (!isScratched) {
+                isScratched = true;
+                cardElement.classList.add('scratched');
+                
+                // Update claimed count
+                claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
+                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                updateTrackingSheet();
+                
+                setTimeout(() => {
+                    document.getElementById('resetBtn').classList.add('show');
+                }, 800);
+            }
+        }
+
+        function resetSelection() {
+            renderCard();
+        }
+
+        // Close emoji pickers when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.emoji-picker-container')) {
+                document.querySelectorAll('.emoji-picker').forEach(picker => {
+                    picker.classList.remove('active');
+                });
+            }
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                resetSelection();
+            });
+        });
+
+        // Reset button
+        document.getElementById('resetBtn').addEventListener('click', resetSelection);
+
+        // Initialize
+        initializeItems();
+        initializeClaimedItems();
+        updateCategoryLabels();
+        renderCard();
+        updateTrackingSheet();
+    </script>
+</body>
+</html>
