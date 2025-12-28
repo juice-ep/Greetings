@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Scratch & Win Selector</title>
     <style>
         * {
@@ -468,6 +468,11 @@
             height: 100%;
             cursor: grab;
             border-radius: 20px;
+            touch-action: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
         .scratch-canvas:active {
@@ -477,6 +482,16 @@
         .card.scratched .scratch-cover {
             opacity: 0;
             pointer-events: none;
+        }
+
+        /* Prevent pull-to-refresh and other touch behaviors during scratching */
+        .card-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            min-height: 400px;
+            touch-action: manipulation;
         }
 
         .scratch-text {
@@ -1048,17 +1063,21 @@
             const ctx = canvas.getContext('2d');
             const rect = card.getBoundingClientRect();
             
-            // Set canvas size to match card
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            // Set canvas size to match card with device pixel ratio for sharp rendering
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            ctx.scale(dpr, dpr);
 
             // Fill canvas with scratch-off pattern
-            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
             gradient.addColorStop(0, '#c0c0c0');
             gradient.addColorStop(0.5, '#e8e8e8');
             gradient.addColorStop(1, '#c0c0c0');
             ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillRect(0, 0, rect.width, rect.height);
 
             let isDrawing = false;
             let scratchedPercentage = 0;
@@ -1082,22 +1101,44 @@
                 ctx.fill();
             }
 
+            function getPosition(e) {
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if (e.changedTouches && e.changedTouches.length > 0) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
             function handleStart(e) {
                 isDrawing = true;
-                const rect = canvas.getBoundingClientRect();
-                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-                scratch(x, y);
+                const pos = getPosition(e);
+                scratch(pos.x, pos.y);
+                
+                // Prevent default to stop scrolling on mobile
+                e.preventDefault();
             }
 
             function handleMove(e) {
                 if (!isDrawing) return;
+                
+                // Prevent default to stop scrolling on mobile
                 e.preventDefault();
                 
-                const rect = canvas.getBoundingClientRect();
-                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-                scratch(x, y);
+                const pos = getPosition(e);
+                scratch(pos.x, pos.y);
 
                 scratchedPercentage = getScratchedPercentage();
                 
@@ -1107,8 +1148,12 @@
                 }
             }
 
-            function handleEnd() {
+            function handleEnd(e) {
                 isDrawing = false;
+                // Prevent default on touchend as well
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
             }
 
             function completeReveal() {
@@ -1128,15 +1173,16 @@
             }
 
             // Mouse events
-            canvas.addEventListener('mousedown', handleStart);
-            canvas.addEventListener('mousemove', handleMove);
-            canvas.addEventListener('mouseup', handleEnd);
-            canvas.addEventListener('mouseleave', handleEnd);
+            canvas.addEventListener('mousedown', handleStart, { passive: false });
+            canvas.addEventListener('mousemove', handleMove, { passive: false });
+            canvas.addEventListener('mouseup', handleEnd, { passive: false });
+            canvas.addEventListener('mouseleave', handleEnd, { passive: false });
 
-            // Touch events for mobile
-            canvas.addEventListener('touchstart', handleStart);
-            canvas.addEventListener('touchmove', handleMove);
-            canvas.addEventListener('touchend', handleEnd);
+            // Touch events for mobile with passive: false to allow preventDefault
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+            canvas.addEventListener('touchmove', handleMove, { passive: false });
+            canvas.addEventListener('touchend', handleEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handleEnd, { passive: false });
         }
 
         function scratchCard(cardElement) {
