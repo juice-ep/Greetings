@@ -141,6 +141,60 @@
             font-size: 16px;
         }
 
+        .category-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-chip {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-chip:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .category-chip.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .category-chip.category1.selected {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .category-chip.category2.selected {
+            background: #51cf66;
+            border-color: #51cf66;
+        }
+
+        .chip-badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .category-chip.selected .chip-badge {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
         .input-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -403,11 +457,26 @@
             justify-content: center;
             border-radius: 20px;
             transition: opacity 0.5s ease;
-            pointer-events: none;
+            pointer-events: all;
+        }
+
+        .scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+            border-radius: 20px;
+        }
+
+        .scratch-canvas:active {
+            cursor: grabbing;
         }
 
         .card.scratched .scratch-cover {
             opacity: 0;
+            pointer-events: none;
         }
 
         .scratch-text {
@@ -562,11 +631,11 @@
                 <div class="category-input-row">
                     <div class="input-group">
                         <label>Category 1 Name:</label>
-                        <input type="text" id="category1Name" value="Contains Egg" placeholder="e.g., Contains Egg, Male, Option A">
+                        <input type="text" id="category1Name" value="Contains Egg" placeholder="e.g., Contains Egg, Male, Option A" oninput="updateCategoryDropdownLabels()">
                     </div>
                     <div class="input-group">
                         <label>Category 2 Name:</label>
-                        <input type="text" id="category2Name" value="Eggless" placeholder="e.g., Eggless, Female, Option B">
+                        <input type="text" id="category2Name" value="Eggless" placeholder="e.g., Eggless, Female, Option B" oninput="updateCategoryDropdownLabels()">
                     </div>
                 </div>
                 <p style="color: #666; font-size: 14px; margin-top: 10px;">
@@ -743,13 +812,49 @@
                     </div>
                     <div class="input-group" style="margin-top: 10px;">
                         <label>Category:</label>
-                        <select onchange="updateItemType(${index}, 'category', parseInt(this.value))">
-                            <option value="1" ${type.category === 1 ? 'selected' : ''}>${config.category1Name} (Category 1 - Default)</option>
-                            <option value="2" ${type.category === 2 ? 'selected' : ''}>${config.category2Name} (Category 2)</option>
-                        </select>
+                        <div class="category-chips" id="categoryChips${index}">
+                            <div class="category-chip category1 ${type.category === 1 ? 'selected' : ''}" onclick="selectCategory(${index}, 1)">
+                                <span id="cat1Label${index}">${config.category1Name}</span>
+                                <span class="chip-badge">DEFAULT</span>
+                            </div>
+                            <div class="category-chip category2 ${type.category === 2 ? 'selected' : ''}" onclick="selectCategory(${index}, 2)">
+                                <span id="cat2Label${index}">${config.category2Name}</span>
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(section);
+            });
+        }
+
+        // Select category chip
+        function selectCategory(index, category) {
+            config.itemTypes[index].category = category;
+            
+            // Update chip selection visually
+            const chips = document.getElementById(`categoryChips${index}`);
+            chips.querySelectorAll('.category-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            
+            if (category === 1) {
+                chips.querySelector('.category1').classList.add('selected');
+            } else {
+                chips.querySelector('.category2').classList.add('selected');
+            }
+        }
+
+        // Update category chip labels in real-time
+        function updateCategoryDropdownLabels() {
+            const cat1Name = document.getElementById('category1Name').value;
+            const cat2Name = document.getElementById('category2Name').value;
+            
+            config.itemTypes.forEach((type, index) => {
+                const cat1Label = document.getElementById(`cat1Label${index}`);
+                const cat2Label = document.getElementById(`cat2Label${index}`);
+                
+                if (cat1Label) cat1Label.textContent = cat1Name;
+                if (cat2Label) cat2Label.textContent = cat2Name;
             });
         }
 
@@ -847,17 +952,25 @@
         function getRandomItem() {
             let availableItems = items;
             
+            // Filter by category preference
             if (currentFilter === 'category2') {
                 availableItems = items.filter(item => item.category === 2);
             }
             
+            // Check if item has available remaining quantity
+            availableItems = availableItems.filter(item => {
+                const itemType = config.itemTypes.find(t => t.name === item.name);
+                const claimedCount = claimedItems[item.name] || 0;
+                return claimedCount < itemType.quantity;
+            });
+            
+            // If no items available, return null
+            if (availableItems.length === 0) {
+                return null;
+            }
+            
             const randomIndex = Math.floor(Math.random() * availableItems.length);
             return availableItems[randomIndex];
-        }
-
-        function getRandomGreeting() {
-            const randomIndex = Math.floor(Math.random() * greetings.length);
-            return greetings[randomIndex];
         }
 
         function renderCard() {
@@ -866,19 +979,42 @@
             isScratched = false;
 
             currentCard = getRandomItem();
+            
+            // Check if all items have been claimed
+            if (!currentCard) {
+                grid.innerHTML = `
+                    <div style="text-align: center; padding: 60px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+                        <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
+                        <h2 style="color: #667eea; margin-bottom: 15px; font-size: 32px;">All Items Claimed!</h2>
+                        <p style="color: #666; font-size: 18px; margin-bottom: 20px;">
+                            All available items have been distributed.
+                        </p>
+                        <button onclick="resetAllClaims()" style="
+                            padding: 15px 40px;
+                            background: #667eea;
+                            color: white;
+                            border: none;
+                            border-radius: 25px;
+                            font-size: 18px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">Reset All Claims</button>
+                    </div>
+                `;
+                return;
+            }
+            
             currentGreeting = getRandomGreeting();
 
             const card = document.createElement('div');
             card.className = 'card';
+            card.id = 'scratchCard';
 
             const categoryBadgeClass = currentCard.category === 1 ? 'category1-badge' : 'category2-badge';
             const categoryName = currentCard.category === 1 ? config.category1Name : config.category2Name;
 
             card.innerHTML = `
-                <div class="scratch-cover">
-                    <div class="scratch-text">Tap to Reveal</div>
-                    <div class="scratch-icon">🎁</div>
-                </div>
                 <div class="card-content">
                     <div class="card-emoji">${currentCard.emoji}</div>
                     <div class="card-name">${currentCard.name}</div>
@@ -890,12 +1026,137 @@
                         ${currentGreeting}
                     </div>
                 </div>
+                <div class="scratch-cover" id="scratchCover">
+                    <div class="scratch-text" style="position: relative; z-index: 1; pointer-events: none;">Scratch to Reveal</div>
+                    <div class="scratch-icon" style="position: relative; z-index: 1; pointer-events: none;">✋</div>
+                    <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+                </div>
             `;
 
-            card.addEventListener('click', () => scratchCard(card));
             grid.appendChild(card);
-
+            initializeScratchCard();
             document.getElementById('resetBtn').classList.remove('show');
+        }
+
+        function initializeScratchCard() {
+            const canvas = document.getElementById('scratchCanvas');
+            const card = document.getElementById('scratchCard');
+            const cover = document.getElementById('scratchCover');
+            
+            if (!canvas || !card) return;
+
+            const ctx = canvas.getContext('2d');
+            const rect = card.getBoundingClientRect();
+            
+            // Set canvas size to match card
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            // Fill canvas with scratch-off pattern
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#c0c0c0');
+            gradient.addColorStop(0.5, '#e8e8e8');
+            gradient.addColorStop(1, '#c0c0c0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let isDrawing = false;
+            let scratchedPercentage = 0;
+
+            function getScratchedPercentage() {
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                let transparent = 0;
+                
+                for (let i = 3; i < pixels.length; i += 4) {
+                    if (pixels[i] < 128) transparent++;
+                }
+                
+                return (transparent / (pixels.length / 4)) * 100;
+            }
+
+            function scratch(x, y) {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 30, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function handleStart(e) {
+                isDrawing = true;
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                scratch(x, y);
+            }
+
+            function handleMove(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                scratch(x, y);
+
+                scratchedPercentage = getScratchedPercentage();
+                
+                // Auto-reveal when 50% is scratched
+                if (scratchedPercentage > 50 && !isScratched) {
+                    completeReveal();
+                }
+            }
+
+            function handleEnd() {
+                isDrawing = false;
+            }
+
+            function completeReveal() {
+                if (!isScratched) {
+                    isScratched = true;
+                    card.classList.add('scratched');
+                    
+                    // Update claimed count
+                    claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
+                    localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                    updateTrackingSheet();
+                    
+                    setTimeout(() => {
+                        document.getElementById('resetBtn').classList.add('show');
+                    }, 800);
+                }
+            }
+
+            // Mouse events
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('mouseleave', handleEnd);
+
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', handleStart);
+            canvas.addEventListener('touchmove', handleMove);
+            canvas.addEventListener('touchend', handleEnd);
+        }
+
+        function scratchCard(cardElement) {
+            // This function is now handled by the scratch canvas
+            // Kept for backward compatibility if needed
+        }
+
+        function resetAllClaims() {
+            if (confirm('Reset all claimed items? This will clear the distribution tracker.')) {
+                claimedItems = {};
+                initializeClaimedItems();
+                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                updateTrackingSheet();
+                renderCard();
+            }
+        }
+
+        function getRandomGreeting() {
+            const randomIndex = Math.floor(Math.random() * greetings.length);
+            return greetings[randomIndex];
         }
 
         function scratchCard(cardElement) {
