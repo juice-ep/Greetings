@@ -1045,11 +1045,45 @@
                     <div class="scratch-text" style="position: relative; z-index: 1; pointer-events: none;">Scratch to Reveal</div>
                     <div class="scratch-icon" style="position: relative; z-index: 1; pointer-events: none;">✋</div>
                     <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+                    <div style="position: absolute; bottom: 20px; font-size: 12px; color: #999; z-index: 1; pointer-events: none;">
+                        Tap anywhere if scratch doesn't work
+                    </div>
                 </div>
             `;
 
             grid.appendChild(card);
-            initializeScratchCard();
+            
+            // Initialize scratch after a brief delay to ensure DOM is ready
+            setTimeout(() => {
+                initializeScratchCard();
+            }, 100);
+            
+            // Fallback: if user taps the cover after 3 seconds, allow instant reveal
+            setTimeout(() => {
+                const coverElement = document.getElementById('scratchCover');
+                if (coverElement && !isScratched) {
+                    coverElement.addEventListener('click', function fallbackReveal() {
+                        if (!isScratched) {
+                            isScratched = true;
+                            coverElement.style.transition = 'opacity 0.5s ease';
+                            coverElement.style.opacity = '0';
+                            
+                            setTimeout(() => {
+                                card.classList.add('scratched');
+                            }, 100);
+                            
+                            claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
+                            localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                            updateTrackingSheet();
+                            
+                            setTimeout(() => {
+                                document.getElementById('resetBtn').classList.add('show');
+                            }, 800);
+                        }
+                    }, { once: true });
+                }
+            }, 3000);
+            
             document.getElementById('resetBtn').classList.remove('show');
         }
 
@@ -1060,129 +1094,166 @@
             
             if (!canvas || !card) return;
 
-            const ctx = canvas.getContext('2d');
-            const rect = card.getBoundingClientRect();
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
             
-            // Set canvas size to match card with device pixel ratio for sharp rendering
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
-            ctx.scale(dpr, dpr);
-
-            // Fill canvas with scratch-off pattern
-            const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-            gradient.addColorStop(0, '#c0c0c0');
-            gradient.addColorStop(0.5, '#e8e8e8');
-            gradient.addColorStop(1, '#c0c0c0');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, rect.width, rect.height);
+            // Function to set canvas size properly
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                
+                // Fill canvas with scratch-off pattern
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                gradient.addColorStop(0, '#c0c0c0');
+                gradient.addColorStop(0.5, '#e8e8e8');
+                gradient.addColorStop(1, '#c0c0c0');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            resizeCanvas();
 
             let isDrawing = false;
-            let scratchedPercentage = 0;
+            let lastX = 0;
+            let lastY = 0;
 
-            function getScratchedPercentage() {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const pixels = imageData.data;
-                let transparent = 0;
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                let x, y;
                 
-                for (let i = 3; i < pixels.length; i += 4) {
-                    if (pixels[i] < 128) transparent++;
+                if (e.type.startsWith('touch')) {
+                    const touch = e.touches[0] || e.changedTouches[0];
+                    x = touch.clientX - rect.left;
+                    y = touch.clientY - rect.top;
+                } else {
+                    x = e.clientX - rect.left;
+                    y = e.clientY - rect.top;
                 }
                 
-                return (transparent / (pixels.length / 4)) * 100;
+                return { x, y };
             }
 
             function scratch(x, y) {
                 ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 30, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            function getPosition(e) {
-                const rect = canvas.getBoundingClientRect();
-                let clientX, clientY;
+                ctx.lineWidth = 40;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 
-                if (e.touches && e.touches.length > 0) {
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else if (e.changedTouches && e.changedTouches.length > 0) {
-                    clientX = e.changedTouches[0].clientX;
-                    clientY = e.changedTouches[0].clientY;
+                if (isDrawing) {
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(x, y);
+                    ctx.stroke();
                 } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
+                    // Draw circle for initial touch
+                    ctx.beginPath();
+                    ctx.arc(x, y, 20, 0, Math.PI * 2);
+                    ctx.fill();
                 }
                 
-                return {
-                    x: clientX - rect.left,
-                    y: clientY - rect.top
-                };
+                lastX = x;
+                lastY = y;
             }
 
-            function handleStart(e) {
-                isDrawing = true;
-                const pos = getPosition(e);
-                scratch(pos.x, pos.y);
+            function checkScratchPercentage() {
+                if (isScratched) return;
                 
-                // Prevent default to stop scrolling on mobile
-                e.preventDefault();
-            }
-
-            function handleMove(e) {
-                if (!isDrawing) return;
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                let transparent = 0;
+                const total = pixels.length / 4;
                 
-                // Prevent default to stop scrolling on mobile
-                e.preventDefault();
+                // Sample every 10th pixel for better performance
+                for (let i = 3; i < pixels.length; i += 40) {
+                    if (pixels[i] < 128) transparent++;
+                }
                 
-                const pos = getPosition(e);
-                scratch(pos.x, pos.y);
-
-                scratchedPercentage = getScratchedPercentage();
+                const percentage = (transparent / (total / 10)) * 100;
                 
-                // Auto-reveal when 50% is scratched
-                if (scratchedPercentage > 50 && !isScratched) {
+                if (percentage > 40) {
                     completeReveal();
                 }
             }
 
-            function handleEnd(e) {
+            function startScratch(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const coords = getCoordinates(e);
+                lastX = coords.x;
+                lastY = coords.y;
+                scratch(coords.x, coords.y);
+            }
+
+            function moveScratch(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                
+                const coords = getCoordinates(e);
+                scratch(coords.x, coords.y);
+            }
+
+            function endScratch(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
                 isDrawing = false;
-                // Prevent default on touchend as well
-                if (e.cancelable) {
-                    e.preventDefault();
-                }
+                checkScratchPercentage();
             }
 
             function completeReveal() {
-                if (!isScratched) {
-                    isScratched = true;
+                if (isScratched) return;
+                isScratched = true;
+                
+                // Fade out the scratch cover
+                cover.style.transition = 'opacity 0.5s ease';
+                cover.style.opacity = '0';
+                
+                setTimeout(() => {
                     card.classList.add('scratched');
-                    
-                    // Update claimed count
-                    claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
-                    localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
-                    updateTrackingSheet();
-                    
-                    setTimeout(() => {
-                        document.getElementById('resetBtn').classList.add('show');
-                    }, 800);
-                }
+                }, 100);
+                
+                // Update claimed count
+                claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
+                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+                updateTrackingSheet();
+                
+                setTimeout(() => {
+                    document.getElementById('resetBtn').classList.add('show');
+                }, 800);
             }
 
-            // Mouse events
-            canvas.addEventListener('mousedown', handleStart, { passive: false });
-            canvas.addEventListener('mousemove', handleMove, { passive: false });
-            canvas.addEventListener('mouseup', handleEnd, { passive: false });
-            canvas.addEventListener('mouseleave', handleEnd, { passive: false });
-
-            // Touch events for mobile with passive: false to allow preventDefault
-            canvas.addEventListener('touchstart', handleStart, { passive: false });
-            canvas.addEventListener('touchmove', handleMove, { passive: false });
-            canvas.addEventListener('touchend', handleEnd, { passive: false });
-            canvas.addEventListener('touchcancel', handleEnd, { passive: false });
+            // Remove any existing event listeners
+            const newCanvas = canvas.cloneNode(true);
+            canvas.parentNode.replaceChild(newCanvas, canvas);
+            const freshCanvas = document.getElementById('scratchCanvas');
+            
+            // Add event listeners with explicit options
+            freshCanvas.addEventListener('mousedown', startScratch, false);
+            freshCanvas.addEventListener('mousemove', moveScratch, false);
+            freshCanvas.addEventListener('mouseup', endScratch, false);
+            freshCanvas.addEventListener('mouseleave', endScratch, false);
+            
+            freshCanvas.addEventListener('touchstart', startScratch, { passive: false });
+            freshCanvas.addEventListener('touchmove', moveScratch, { passive: false });
+            freshCanvas.addEventListener('touchend', endScratch, { passive: false });
+            freshCanvas.addEventListener('touchcancel', endScratch, { passive: false });
+            
+            // Re-run resize after replacing canvas
+            setTimeout(() => {
+                const canvasElement = document.getElementById('scratchCanvas');
+                if (canvasElement) {
+                    const ctx2 = canvasElement.getContext('2d', { willReadFrequently: true });
+                    const rect = canvasElement.getBoundingClientRect();
+                    canvasElement.width = rect.width;
+                    canvasElement.height = rect.height;
+                    
+                    const gradient = ctx2.createLinearGradient(0, 0, canvasElement.width, canvasElement.height);
+                    gradient.addColorStop(0, '#c0c0c0');
+                    gradient.addColorStop(0.5, '#e8e8e8');
+                    gradient.addColorStop(1, '#c0c0c0');
+                    ctx2.fillStyle = gradient;
+                    ctx2.fillRect(0, 0, canvasElement.width, canvasElement.height);
+                }
+            }, 50);
         }
 
         function scratchCard(cardElement) {
