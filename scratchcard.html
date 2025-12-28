@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scratch & Win Selector</title>
+    <title>Flip & Win Selector</title>
     <style>
         * {
             margin: 0;
@@ -141,60 +141,6 @@
             font-size: 16px;
         }
 
-        .category-chips {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .category-chip {
-            padding: 10px 20px;
-            border: 2px solid #ddd;
-            background: white;
-            color: #666;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .category-chip:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .category-chip.selected {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .category-chip.category1.selected {
-            background: #ff6b6b;
-            border-color: #ff6b6b;
-        }
-
-        .category-chip.category2.selected {
-            background: #51cf66;
-            border-color: #51cf66;
-        }
-
-        .chip-badge {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .category-chip.selected .chip-badge {
-            background: rgba(255, 255, 255, 0.4);
-        }
-
         .input-row {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -264,6 +210,60 @@
         .emoji-option:hover {
             background: #f0f4ff;
             transform: scale(1.2);
+        }
+
+        .category-chips {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-chip {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-chip:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .category-chip.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .category-chip.category1.selected {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .category-chip.category2.selected {
+            background: #51cf66;
+            border-color: #51cf66;
+        }
+
+        .chip-badge {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .category-chip.selected .chip-badge {
+            background: rgba(255, 255, 255, 0.4);
         }
 
         .add-item-type-btn,
@@ -420,81 +420,47 @@
             align-items: center;
             margin-bottom: 30px;
             min-height: 400px;
+            perspective: 1000px;
         }
 
+        /* Card Flip Animation */
         .card {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            position: relative;
-            overflow: hidden;
             width: 420px;
             height: 580px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
         }
 
-        .card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
+        .card.flipped {
+            transform: rotateY(180deg);
         }
 
-        .scratch-cover {
+        .card-face {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border-radius: 20px;
-            transition: opacity 0.5s ease;
-            pointer-events: all;
+            padding: 40px;
         }
 
-        .scratch-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            cursor: grab;
-            border-radius: 20px;
-            touch-action: none;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+        .card-front {
+            background: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 50%, #c0c0c0 100%);
         }
 
-        .scratch-canvas:active {
-            cursor: grabbing;
+        .card-back {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            transform: rotateY(180deg);
         }
 
-        .card.scratched .scratch-cover {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Prevent pull-to-refresh and other touch behaviors during scratching */
-        .card-grid {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-            min-height: 400px;
-            touch-action: manipulation;
-        }
-
-        .scratch-text {
+        .front-text {
             font-size: 36px;
             font-weight: 700;
             color: #666;
@@ -503,7 +469,7 @@
             letter-spacing: 3px;
         }
 
-        .scratch-icon {
+        .front-icon {
             font-size: 80px;
             animation: pulse 2s ease-in-out infinite;
         }
@@ -511,18 +477,6 @@
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
-        }
-
-        .card-content {
-            opacity: 0;
-            transition: opacity 0.5s ease 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .card.scratched .card-content {
-            opacity: 1;
         }
 
         .card-emoji {
@@ -579,6 +533,40 @@
             margin-bottom: 10px;
         }
 
+        /* Shuffle Animation */
+        @keyframes shuffleIn {
+            0% {
+                transform: translateX(-150%) rotateZ(-15deg);
+                opacity: 0;
+            }
+            60% {
+                transform: translateX(15px) rotateZ(5deg);
+            }
+            100% {
+                transform: translateX(0) rotateZ(0deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shuffleOut {
+            0% {
+                transform: translateX(0) rotateZ(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(150%) rotateZ(15deg);
+                opacity: 0;
+            }
+        }
+
+        .card.shuffle-in {
+            animation: shuffleIn 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .card.shuffle-out {
+            animation: shuffleOut 0.5s ease-in forwards;
+        }
+
         .reset-btn {
             margin-top: 40px;
             padding: 18px 50px;
@@ -627,6 +615,10 @@
                 height: auto;
                 min-height: 500px;
             }
+
+            .card-face {
+                min-height: 500px;
+            }
         }
     </style>
 </head>
@@ -634,7 +626,7 @@
     <div class="admin-toggle" onclick="toggleAdminPanel()">⚙️ Admin Panel</div>
 
     <div class="container">
-        <h1>🎁 Scratch & Win! 🎁</h1>
+        <h1>🎁 Tap to Flip & Win! 🎁</h1>
 
         <!-- Admin Panel -->
         <div class="admin-panel" id="adminPanel">
@@ -646,11 +638,11 @@
                 <div class="category-input-row">
                     <div class="input-group">
                         <label>Category 1 Name:</label>
-                        <input type="text" id="category1Name" value="Contains Egg" placeholder="e.g., Contains Egg, Male, Option A" oninput="updateCategoryDropdownLabels()">
+                        <input type="text" id="category1Name" value="Contains Egg" placeholder="e.g., Contains Egg, Male, Option A" oninput="updateCategoryChipLabels()">
                     </div>
                     <div class="input-group">
                         <label>Category 2 Name:</label>
-                        <input type="text" id="category2Name" value="Eggless" placeholder="e.g., Eggless, Female, Option B" oninput="updateCategoryDropdownLabels()">
+                        <input type="text" id="category2Name" value="Eggless" placeholder="e.g., Eggless, Female, Option B" oninput="updateCategoryChipLabels()">
                     </div>
                 </div>
                 <p style="color: #666; font-size: 14px; margin-top: 10px;">
@@ -677,7 +669,7 @@
         <div class="card-grid" id="cardGrid"></div>
 
         <div style="text-align: center;">
-            <button class="reset-btn" id="resetBtn">Try Again</button>
+            <button class="reset-btn" id="resetBtn">Next Card</button>
         </div>
 
         <!-- Tracking Sheet -->
@@ -721,7 +713,7 @@
         let items = [];
         let claimedItems = JSON.parse(localStorage.getItem('claimedItems')) || {};
         let currentFilter = 'all';
-        let isScratched = false;
+        let isFlipped = false;
         let currentCard = null;
         let currentGreeting = null;
 
@@ -756,11 +748,6 @@
             if (category2FilterBtn) {
                 category2FilterBtn.textContent = `${config.category2Name} Only`;
             }
-            
-            const addItemBtn = document.getElementById('addItemBtn');
-            if (addItemBtn) {
-                addItemBtn.textContent = `+ Add Item`;
-            }
         }
 
         // Toggle admin panel
@@ -783,6 +770,37 @@
             config.itemTypes[index].emoji = emoji;
             document.getElementById(`emojiPreview${index}`).textContent = emoji;
             document.getElementById(`emojiPicker${index}`).classList.remove('active');
+        }
+
+        // Select category chip
+        function selectCategory(index, category) {
+            config.itemTypes[index].category = category;
+            
+            // Update chip selection visually
+            const chips = document.getElementById(`categoryChips${index}`);
+            chips.querySelectorAll('.category-chip').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            
+            if (category === 1) {
+                chips.querySelector('.category1').classList.add('selected');
+            } else {
+                chips.querySelector('.category2').classList.add('selected');
+            }
+        }
+
+        // Update category chip labels in real-time
+        function updateCategoryChipLabels() {
+            const cat1Name = document.getElementById('category1Name').value;
+            const cat2Name = document.getElementById('category2Name').value;
+            
+            config.itemTypes.forEach((type, index) => {
+                const cat1Label = document.getElementById(`cat1Label${index}`);
+                const cat2Label = document.getElementById(`cat2Label${index}`);
+                
+                if (cat1Label) cat1Label.textContent = cat1Name;
+                if (cat2Label) cat2Label.textContent = cat2Name;
+            });
         }
 
         // Render admin panel
@@ -842,37 +860,6 @@
             });
         }
 
-        // Select category chip
-        function selectCategory(index, category) {
-            config.itemTypes[index].category = category;
-            
-            // Update chip selection visually
-            const chips = document.getElementById(`categoryChips${index}`);
-            chips.querySelectorAll('.category-chip').forEach(chip => {
-                chip.classList.remove('selected');
-            });
-            
-            if (category === 1) {
-                chips.querySelector('.category1').classList.add('selected');
-            } else {
-                chips.querySelector('.category2').classList.add('selected');
-            }
-        }
-
-        // Update category chip labels in real-time
-        function updateCategoryDropdownLabels() {
-            const cat1Name = document.getElementById('category1Name').value;
-            const cat2Name = document.getElementById('category2Name').value;
-            
-            config.itemTypes.forEach((type, index) => {
-                const cat1Label = document.getElementById(`cat1Label${index}`);
-                const cat2Label = document.getElementById(`cat2Label${index}`);
-                
-                if (cat1Label) cat1Label.textContent = cat1Name;
-                if (cat2Label) cat2Label.textContent = cat2Name;
-            });
-        }
-
         // Update item type
         function updateItemType(index, field, value) {
             config.itemTypes[index][field] = value;
@@ -883,7 +870,7 @@
             config.itemTypes.push({
                 name: "New Item",
                 emoji: "🎁",
-                category: 1, // Default to category 1
+                category: 1,
                 quantity: 5
             });
             renderAdminPanel();
@@ -899,12 +886,10 @@
 
         // Save configuration
         function saveConfiguration() {
-            // Update category names
             config.category1Name = document.getElementById('category1Name').value;
             config.category2Name = document.getElementById('category2Name').value;
 
             localStorage.setItem('scratchConfig', JSON.stringify(config));
-            // Reset claimed items when configuration changes
             claimedItems = {};
             initializeItems();
             initializeClaimedItems();
@@ -967,7 +952,6 @@
         function getRandomItem() {
             let availableItems = items;
             
-            // Filter by category preference
             if (currentFilter === 'category2') {
                 availableItems = items.filter(item => item.category === 2);
             }
@@ -979,7 +963,6 @@
                 return claimedCount < itemType.quantity;
             });
             
-            // If no items available, return null
             if (availableItems.length === 0) {
                 return null;
             }
@@ -988,10 +971,14 @@
             return availableItems[randomIndex];
         }
 
+        function getRandomGreeting() {
+            const randomIndex = Math.floor(Math.random() * greetings.length);
+            return greetings[randomIndex];
+        }
+
         function renderCard() {
             const grid = document.getElementById('cardGrid');
-            grid.innerHTML = '';
-            isScratched = false;
+            isFlipped = false;
 
             currentCard = getRandomItem();
             
@@ -1022,15 +1009,19 @@
             
             currentGreeting = getRandomGreeting();
 
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.id = 'scratchCard';
-
             const categoryBadgeClass = currentCard.category === 1 ? 'category1-badge' : 'category2-badge';
             const categoryName = currentCard.category === 1 ? config.category1Name : config.category2Name;
 
+            const card = document.createElement('div');
+            card.className = 'card shuffle-in';
+            card.id = 'flipCard';
+
             card.innerHTML = `
-                <div class="card-content">
+                <div class="card-face card-front">
+                    <div class="front-text">Tap to Reveal</div>
+                    <div class="front-icon">🎴</div>
+                </div>
+                <div class="card-face card-back">
                     <div class="card-emoji">${currentCard.emoji}</div>
                     <div class="card-name">${currentCard.name}</div>
                     <div class="${categoryBadgeClass}">
@@ -1041,224 +1032,43 @@
                         ${currentGreeting}
                     </div>
                 </div>
-                <div class="scratch-cover" id="scratchCover">
-                    <div class="scratch-text" style="position: relative; z-index: 1; pointer-events: none;">Scratch to Reveal</div>
-                    <div class="scratch-icon" style="position: relative; z-index: 1; pointer-events: none;">✋</div>
-                    <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
-                    <div style="position: absolute; bottom: 20px; font-size: 12px; color: #999; z-index: 1; pointer-events: none;">
-                        Tap anywhere if scratch doesn't work
-                    </div>
-                </div>
             `;
 
+            card.addEventListener('click', flipCard);
+            
+            grid.innerHTML = '';
             grid.appendChild(card);
-            
-            // Initialize scratch after a brief delay to ensure DOM is ready
-            setTimeout(() => {
-                initializeScratchCard();
-            }, 100);
-            
-            // Fallback: if user taps the cover after 3 seconds, allow instant reveal
-            setTimeout(() => {
-                const coverElement = document.getElementById('scratchCover');
-                if (coverElement && !isScratched) {
-                    coverElement.addEventListener('click', function fallbackReveal() {
-                        if (!isScratched) {
-                            isScratched = true;
-                            coverElement.style.transition = 'opacity 0.5s ease';
-                            coverElement.style.opacity = '0';
-                            
-                            setTimeout(() => {
-                                card.classList.add('scratched');
-                            }, 100);
-                            
-                            claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
-                            localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
-                            updateTrackingSheet();
-                            
-                            setTimeout(() => {
-                                document.getElementById('resetBtn').classList.add('show');
-                            }, 800);
-                        }
-                    }, { once: true });
-                }
-            }, 3000);
-            
+
             document.getElementById('resetBtn').classList.remove('show');
         }
 
-        function initializeScratchCard() {
-            const canvas = document.getElementById('scratchCanvas');
-            const card = document.getElementById('scratchCard');
-            const cover = document.getElementById('scratchCover');
+        function flipCard() {
+            if (isFlipped) return;
             
-            if (!canvas || !card) return;
+            const card = document.getElementById('flipCard');
+            card.classList.add('flipped');
+            isFlipped = true;
 
-            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // Update claimed count
+            claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
+            localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
+            updateTrackingSheet();
             
-            // Function to set canvas size properly
-            function resizeCanvas() {
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                
-                // Fill canvas with scratch-off pattern
-                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                gradient.addColorStop(0, '#c0c0c0');
-                gradient.addColorStop(0.5, '#e8e8e8');
-                gradient.addColorStop(1, '#c0c0c0');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            
-            resizeCanvas();
-
-            let isDrawing = false;
-            let lastX = 0;
-            let lastY = 0;
-
-            function getCoordinates(e) {
-                const rect = canvas.getBoundingClientRect();
-                let x, y;
-                
-                if (e.type.startsWith('touch')) {
-                    const touch = e.touches[0] || e.changedTouches[0];
-                    x = touch.clientX - rect.left;
-                    y = touch.clientY - rect.top;
-                } else {
-                    x = e.clientX - rect.left;
-                    y = e.clientY - rect.top;
-                }
-                
-                return { x, y };
-            }
-
-            function scratch(x, y) {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.lineWidth = 40;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                
-                if (isDrawing) {
-                    ctx.beginPath();
-                    ctx.moveTo(lastX, lastY);
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
-                } else {
-                    // Draw circle for initial touch
-                    ctx.beginPath();
-                    ctx.arc(x, y, 20, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-                
-                lastX = x;
-                lastY = y;
-            }
-
-            function checkScratchPercentage() {
-                if (isScratched) return;
-                
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const pixels = imageData.data;
-                let transparent = 0;
-                const total = pixels.length / 4;
-                
-                // Sample every 10th pixel for better performance
-                for (let i = 3; i < pixels.length; i += 40) {
-                    if (pixels[i] < 128) transparent++;
-                }
-                
-                const percentage = (transparent / (total / 10)) * 100;
-                
-                if (percentage > 40) {
-                    completeReveal();
-                }
-            }
-
-            function startScratch(e) {
-                e.preventDefault();
-                isDrawing = true;
-                const coords = getCoordinates(e);
-                lastX = coords.x;
-                lastY = coords.y;
-                scratch(coords.x, coords.y);
-            }
-
-            function moveScratch(e) {
-                if (!isDrawing) return;
-                e.preventDefault();
-                
-                const coords = getCoordinates(e);
-                scratch(coords.x, coords.y);
-            }
-
-            function endScratch(e) {
-                if (!isDrawing) return;
-                e.preventDefault();
-                isDrawing = false;
-                checkScratchPercentage();
-            }
-
-            function completeReveal() {
-                if (isScratched) return;
-                isScratched = true;
-                
-                // Fade out the scratch cover
-                cover.style.transition = 'opacity 0.5s ease';
-                cover.style.opacity = '0';
-                
-                setTimeout(() => {
-                    card.classList.add('scratched');
-                }, 100);
-                
-                // Update claimed count
-                claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
-                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
-                updateTrackingSheet();
-                
-                setTimeout(() => {
-                    document.getElementById('resetBtn').classList.add('show');
-                }, 800);
-            }
-
-            // Remove any existing event listeners
-            const newCanvas = canvas.cloneNode(true);
-            canvas.parentNode.replaceChild(newCanvas, canvas);
-            const freshCanvas = document.getElementById('scratchCanvas');
-            
-            // Add event listeners with explicit options
-            freshCanvas.addEventListener('mousedown', startScratch, false);
-            freshCanvas.addEventListener('mousemove', moveScratch, false);
-            freshCanvas.addEventListener('mouseup', endScratch, false);
-            freshCanvas.addEventListener('mouseleave', endScratch, false);
-            
-            freshCanvas.addEventListener('touchstart', startScratch, { passive: false });
-            freshCanvas.addEventListener('touchmove', moveScratch, { passive: false });
-            freshCanvas.addEventListener('touchend', endScratch, { passive: false });
-            freshCanvas.addEventListener('touchcancel', endScratch, { passive: false });
-            
-            // Re-run resize after replacing canvas
             setTimeout(() => {
-                const canvasElement = document.getElementById('scratchCanvas');
-                if (canvasElement) {
-                    const ctx2 = canvasElement.getContext('2d', { willReadFrequently: true });
-                    const rect = canvasElement.getBoundingClientRect();
-                    canvasElement.width = rect.width;
-                    canvasElement.height = rect.height;
-                    
-                    const gradient = ctx2.createLinearGradient(0, 0, canvasElement.width, canvasElement.height);
-                    gradient.addColorStop(0, '#c0c0c0');
-                    gradient.addColorStop(0.5, '#e8e8e8');
-                    gradient.addColorStop(1, '#c0c0c0');
-                    ctx2.fillStyle = gradient;
-                    ctx2.fillRect(0, 0, canvasElement.width, canvasElement.height);
-                }
-            }, 50);
+                document.getElementById('resetBtn').classList.add('show');
+            }, 800);
         }
 
-        function scratchCard(cardElement) {
-            // This function is now handled by the scratch canvas
-            // Kept for backward compatibility if needed
+        function resetSelection() {
+            const oldCard = document.getElementById('flipCard');
+            if (oldCard) {
+                oldCard.classList.add('shuffle-out');
+                setTimeout(() => {
+                    renderCard();
+                }, 500);
+            } else {
+                renderCard();
+            }
         }
 
         function resetAllClaims() {
@@ -1269,31 +1079,6 @@
                 updateTrackingSheet();
                 renderCard();
             }
-        }
-
-        function getRandomGreeting() {
-            const randomIndex = Math.floor(Math.random() * greetings.length);
-            return greetings[randomIndex];
-        }
-
-        function scratchCard(cardElement) {
-            if (!isScratched) {
-                isScratched = true;
-                cardElement.classList.add('scratched');
-                
-                // Update claimed count
-                claimedItems[currentCard.name] = (claimedItems[currentCard.name] || 0) + 1;
-                localStorage.setItem('claimedItems', JSON.stringify(claimedItems));
-                updateTrackingSheet();
-                
-                setTimeout(() => {
-                    document.getElementById('resetBtn').classList.add('show');
-                }, 800);
-            }
-        }
-
-        function resetSelection() {
-            renderCard();
         }
 
         // Close emoji pickers when clicking outside
