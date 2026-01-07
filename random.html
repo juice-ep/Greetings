@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Randomizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        :root {
+            --bg-primary: #667eea;
+            --bg-secondary: #764ba2;
+            --accent: #f093fb;
+            --text: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-shadow: rgba(0, 0, 0, 0.2);
+            --removed-bg: #ffebee;
+            --removed-text: #c62828;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        .header-section {
+            position: relative;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: var(--card-bg);
+            box-shadow: 0 10px 30px var(--card-shadow);
+        }
+
+        .header-image-container {
+            width: 100%;
+            height: 250px;
+            background: linear-gradient(135deg, var(--bg-primary), var(--bg-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: none;
+        }
+
+        .header-image.active {
+            display: block;
+        }
+
+        .header-placeholder {
+            color: var(--text);
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Dice Animation Container */
+        .dice-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px var(--card-shadow);
+            text-align: center;
+        }
+
+        .dice-scene {
+            perspective: 1000px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .dice {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .dice.rolling {
+            animation: roll 1s ease-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            25% { transform: rotateX(180deg) rotateY(180deg) rotateZ(90deg); }
+            50% { transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg); }
+            75% { transform: rotateX(540deg) rotateY(540deg) rotateZ(270deg); }
+            100% { transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg); }
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, var(--bg-primary), var(--accent));
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .dice-face.front  { transform: translateZ(75px); }
+        .dice-face.back   { transform: rotateY(180deg) translateZ(75px); }
+        .dice-face.right  { transform: rotateY(90deg) translateZ(75px); }
+        .dice-face.left   { transform: rotateY(-90deg) translateZ(75px); }
+        .dice-face.top    { transform: rotateX(90deg) translateZ(75px); }
+        .dice-face.bottom { transform: rotateX(-90deg) translateZ(75px); }
+
+        .result-display {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 20px;
+            min-height: 40px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        /* Roll Button */
+        .roll-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .roll-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .roll-button:active {
+            transform: translateY(-1px);
+        }
+
+        .roll-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Statistics */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Revealed Values Section */
+        .revealed-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px var(--card-shadow);
+        }
+
+        .tambola-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .repeat-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 26px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .revealed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .revealed-item {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 20px 15px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            animation: revealPop 0.5s ease-out;
+        }
+
+        @keyframes revealPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .revealed-number {
+            position: absolute;
+            top: 5px;
+            left: 8px;
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .revealed-text {
+            font-weight: 600;
+            font-size: 14px;
+            word-break: break-word;
+        }
+
+        .empty-revealed {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+            grid-column: 1 / -1;
+        }
+
+        /* Options List */
+        .options-section {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px var(--card-shadow);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .option-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .option-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .option-item.removed {
+            background: var(--removed-bg);
+            color: var(--removed-text);
+            opacity: 0.7;
+        }
+
+        .option-text {
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .option-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.05);
+        }
+
+        .option-item.removed .option-btn {
+            color: var(--removed-text);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px var(--card-shadow);
+            margin-bottom: 20px;
+        }
+
+        .admin-toggle {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .admin-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .admin-content {
+            display: none;
+        }
+
+        .admin-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--bg-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f5576c 0%, #c62828 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .file-upload-container {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .file-upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-upload-container input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .color-input {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .dice-scene {
+                height: 150px;
+            }
+
+            .dice, .dice-face {
+                width: 100px;
+                height: 100px;
+            }
+
+            .dice-face {
+                font-size: 18px;
+            }
+
+            .dice-face.front, .dice-face.back,
+            .dice-face.right, .dice-face.left,
+            .dice-face.top, .dice-face.bottom {
+                transform: translateZ(50px);
+            }
+
+            .dice-face.back { transform: rotateY(180deg) translateZ(50px); }
+            .dice-face.right { transform: rotateY(90deg) translateZ(50px); }
+            .dice-face.left { transform: rotateY(-90deg) translateZ(50px); }
+            .dice-face.top { transform: rotateX(90deg) translateZ(50px); }
+            .dice-face.bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+            .roll-button {
+                padding: 15px 35px;
+                font-size: 20px;
+            }
+
+            .options-grid, .revealed-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tambola-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="header-image-container">
+                <img id="headerImage" class="header-image" alt="Header">
+                <div id="headerPlaceholder" class="header-placeholder">🎲 Dice Randomizer</div>
+            </div>
+        </div>
+
+        <!-- Dice Animation Section -->
+        <div class="dice-container">
+            <div class="dice-scene">
+                <div id="dice" class="dice">
+                    <div class="dice-face front">?</div>
+                    <div class="dice-face back">?</div>
+                    <div class="dice-face right">?</div>
+                    <div class="dice-face left">?</div>
+                    <div class="dice-face top">?</div>
+                    <div class="dice-face bottom">?</div>
+                </div>
+            </div>
+            <button id="rollButton" class="roll-button" onclick="rollDice()">🎲 Roll the Dice!</button>
+            <div id="result" class="result-display">Click the button to roll!</div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOptions">0</div>
+                <div class="stat-label">Total Options</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="availableOptions">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="removedOptions">0</div>
+                <div class="stat-label">Removed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="revealedCount">0</div>
+                <div class="stat-label">Revealed</div>
+            </div>
+        </div>
+
+        <!-- Revealed Values Section (Tambola Style) -->
+        <div class="revealed-section">
+            <div class="tambola-header">
+                <div class="section-title">
+                    🎯 Revealed Values
+                </div>
+                <div class="repeat-toggle">
+                    <span class="toggle-label">Allow Repeats</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="allowRepeats" onchange="toggleRepeats()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="revealedList" class="revealed-grid">
+                <div class="empty-revealed">No values revealed yet. Roll the dice to start! 🎲</div>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="clearRevealed()">🔄 Reset Revealed</button>
+                <button class="btn btn-primary" onclick="exportRevealed()">💾 Export Revealed List</button>
+            </div>
+        </div>
+
+        <!-- Options List -->
+        <div class="options-section">
+            <div class="section-title">
+                📋 Options List
+            </div>
+            <div id="optionsList" class="options-grid"></div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="restoreAll()">↩️ Restore All</button>
+                <button class="btn btn-danger" onclick="clearAllOptions()">🗑️ Clear All Options</button>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel">
+            <button class="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Panel</button>
+            <div id="adminContent" class="admin-content">
+                <!-- Options Management -->
+                <div class="form-group">
+                    <label class="form-label">Add Options (one per line)</label>
+                    <textarea id="optionsInput" class="form-input form-textarea" placeholder="Enter options here, one per line..."></textarea>
+                </div>
+                <div class="button-group" style="margin-bottom: 30px;">
+                    <button class="btn btn-primary" onclick="addOptions()">➕ Add Options</button>
+                    <button class="btn btn-secondary" onclick="exportOptions()">💾 Export Options</button>
+                    <button class="btn btn-secondary" onclick="importOptions()">📂 Import Options</button>
+                </div>
+
+                <!-- Header Image -->
+                <div class="form-group">
+                    <label class="form-label">Custom Header Image</label>
+                    <div class="file-upload-container">
+                        <label class="file-upload-btn" for="headerImageInput">
+                            📷 Choose Header Image
+                        </label>
+                        <input type="file" id="headerImageInput" accept="image/*" onchange="handleHeaderImage(event)">
+                    </div>
+                    <img id="imagePreview" class="preview-image" style="display: none;">
+                    <div class="button-group" style="margin-top: 10px;">
+                        <button class="btn btn-secondary" onclick="removeHeaderImage()">❌ Remove Image</button>
+                    </div>
+                </div>
+
+                <!-- Color Scheme -->
+                <div class="form-group">
+                    <label class="form-label">Customize Color Scheme</label>
+                    <div class="color-picker-group">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 12px;">Primary Color</label>
+                            <input type="color" id="primaryColor" class="color-input" value="#667eea" onchange="updateColors()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 12px;">Secondary Color</label>
+                            <input type="color" id="secondaryColor" class="color-input" value="#764ba2" onchange="updateColors()">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; font-size: 12px;">Accent Color</label>
+                            <input type="color" id="accentColor" class="color-input" value="#f093fb" onchange="updateColors()">
+                        </div>
+                    </div>
+                    <div class="button-group" style="margin-top: 15px;">
+                        <button class="btn btn-secondary" onclick="resetColors()">🔄 Reset to Default</button>
+                        <button class="btn btn-primary" onclick="extractColorsFromImage()">🎨 Extract from Image</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State Management
+        let options = [];
+        let removedOptions = new Set();
+        let revealedValues = [];
+        let allowRepeats = false;
+        let isRolling = false;
+
+        // Initialize
+        function init() {
+            loadData();
+            renderOptions();
+            renderRevealed();
+            updateStats();
+            
+            // Load sample data if empty
+            if (options.length === 0) {
+                options = [
+                    "Option 1",
+                    "Option 2",
+                    "Option 3",
+                    "Option 4",
+                    "Option 5",
+                    "Option 6",
+                    "Option 7",
+                    "Option 8"
+                ];
+                saveData();
+                renderOptions();
+                updateStats();
+            }
+        }
+
+        // Dice Rolling
+        function rollDice() {
+            if (isRolling) return;
+            
+            // Get available options (not removed, and if no repeats, not revealed)
+            let availableOptions = options.filter(opt => !removedOptions.has(opt));
+            
+            if (!allowRepeats) {
+                availableOptions = availableOptions.filter(opt => !revealedValues.includes(opt));
+            }
+            
+            if (availableOptions.length === 0) {
+                if (!allowRepeats && revealedValues.length > 0) {
+                    document.getElementById('result').textContent = '🎉 All options revealed! Enable "Allow Repeats" or reset.';
+                } else {
+                    document.getElementById('result').textContent = '⚠️ No options available!';
+                }
+                return;
+            }
+
+            isRolling = true;
+            document.getElementById('rollButton').disabled = true;
+            document.getElementById('result').textContent = '🎲 Rolling...';
+            
+            const dice = document.getElementById('dice');
+            dice.classList.add('rolling');
+
+            // Animate dice faces during roll
+            const faces = dice.querySelectorAll('.dice-face');
+            let animationInterval = setInterval(() => {
+                const randomOption = availableOptions[Math.floor(Math.random() * availableOptions.length)];
+                const displayText = randomOption.length > 15 ? randomOption.substring(0, 12) + '...' : randomOption;
+                faces.forEach(face => face.textContent = displayText);
+            }, 50);
+
+            setTimeout(() => {
+                clearInterval(animationInterval);
+                const selectedIndex = Math.floor(Math.random() * availableOptions.length);
+                const selectedOption = availableOptions[selectedIndex];
+                
+                // Add to revealed values
+                revealedValues.push(selectedOption);
+                saveData();
+                
+                const displayText = selectedOption.length > 15 ? selectedOption.substring(0, 12) + '...' : selectedOption;
+                faces.forEach(face => face.textContent = displayText);
+                document.getElementById('result').textContent = `🎯 ${selectedOption}`;
+                
+                // Update UI
+                renderRevealed();
+                updateStats();
+                
+                dice.classList.remove('rolling');
+                isRolling = false;
+                document.getElementById('rollButton').disabled = false;
+            }, 1000);
+        }
+
+        // Revealed Values Management
+        function renderRevealed() {
+            const container = document.getElementById('revealedList');
+            
+            if (revealedValues.length === 0) {
+                container.innerHTML = '<div class="empty-revealed">No values revealed yet. Roll the dice to start! 🎲</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            revealedValues.forEach((value, index) => {
+                const item = document.createElement('div');
+                item.className = 'revealed-item';
+                item.innerHTML = `
+                    <div class="revealed-number">#${index + 1}</div>
+                    <div class="revealed-text">${value}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function clearRevealed() {
+            if (revealedValues.length === 0) return;
+            
+            if (confirm('Reset all revealed values? This will allow all options to be selected again.')) {
+                revealedValues = [];
+                saveData();
+                renderRevealed();
+                updateStats();
+                document.getElementById('result').textContent = 'Revealed values reset! 🔄';
+            }
+        }
+
+        function exportRevealed() {
+            if (revealedValues.length === 0) {
+                alert('No revealed values to export!');
+                return;
+            }
+            
+            const data = {
+                timestamp: new Date().toISOString(),
+                count: revealedValues.length,
+                values: revealedValues
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `revealed-values-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function toggleRepeats() {
+            allowRepeats = document.getElementById('allowRepeats').checked;
+            localStorage.setItem('allowRepeats', allowRepeats);
+            
+            if (allowRepeats) {
+                document.getElementById('result').textContent = '♻️ Repeats enabled - values can appear multiple times';
+            } else {
+                document.getElementById('result').textContent = '🔒 Repeats disabled - each value appears once';
+            }
+        }
+
+        // Options Management
+        function addOptions() {
+            const input = document.getElementById('optionsInput');
+            const newOptions = input.value.split('\n')
+                .map(opt => opt.trim())
+                .filter(opt => opt.length > 0);
+            
+            if (newOptions.length > 0) {
+                options = [...options, ...newOptions];
+                saveData();
+                renderOptions();
+                updateStats();
+                input.value = '';
+                alert(`✅ Added ${newOptions.length} option(s)!`);
+            }
+        }
+
+        function removeOption(option) {
+            removedOptions.add(option);
+            saveData();
+            renderOptions();
+            updateStats();
+        }
+
+        function restoreOption(option) {
+            removedOptions.delete(option);
+            saveData();
+            renderOptions();
+            updateStats();
+        }
+
+        function deleteOption(option) {
+            if (confirm(`Delete "${option}" permanently?`)) {
+                options = options.filter(opt => opt !== option);
+                removedOptions.delete(option);
+                // Also remove from revealed values
+                revealedValues = revealedValues.filter(val => val !== option);
+                saveData();
+                renderOptions();
+                renderRevealed();
+                updateStats();
+            }
+        }
+
+        function restoreAll() {
+            removedOptions.clear();
+            saveData();
+            renderOptions();
+            updateStats();
+            alert('✅ All options restored!');
+        }
+
+        function clearAllOptions() {
+            if (confirm('⚠️ Delete ALL options permanently? This cannot be undone!')) {
+                options = [];
+                removedOptions.clear();
+                revealedValues = [];
+                saveData();
+                renderOptions();
+                renderRevealed();
+                updateStats();
+            }
+        }
+
+        // Rendering
+        function renderOptions() {
+            const container = document.getElementById('optionsList');
+            container.innerHTML = '';
+            
+            options.forEach(option => {
+                const isRemoved = removedOptions.has(option);
+                const item = document.createElement('div');
+                item.className = `option-item ${isRemoved ? 'removed' : ''}`;
+                item.innerHTML = `
+                    <span class="option-text">${option}</span>
+                    <div class="option-buttons">
+                        ${isRemoved ? 
+                            `<button class="option-btn" onclick="restoreOption('${escapeHtml(option)}')">↩️ Restore</button>` :
+                            `<button class="option-btn" onclick="removeOption('${escapeHtml(option)}')">✖️ Remove</button>`
+                        }
+                        <button class="option-btn" onclick="deleteOption('${escapeHtml(option)}')">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalOptions').textContent = options.length;
+            document.getElementById('availableOptions').textContent = options.length - removedOptions.size;
+            document.getElementById('removedOptions').textContent = removedOptions.size;
+            document.getElementById('revealedCount').textContent = revealedValues.length;
+        }
+
+        // Utility function to escape HTML
+        function escapeHtml(text) {
+            return text.replace(/'/g, "\\'");
+        }
+
+        // Admin Panel
+        function toggleAdmin() {
+            const content = document.getElementById('adminContent');
+            content.classList.toggle('active');
+        }
+
+        // Header Image
+        function handleHeaderImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    const headerImage = document.getElementById('headerImage');
+                    const placeholder = document.getElementById('headerPlaceholder');
+                    const preview = document.getElementById('imagePreview');
+                    
+                    headerImage.src = imageData;
+                    headerImage.classList.add('active');
+                    placeholder.style.display = 'none';
+                    preview.src = imageData;
+                    preview.style.display = 'block';
+                    
+                    localStorage.setItem('headerImage', imageData);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeHeaderImage() {
+            const headerImage = document.getElementById('headerImage');
+            const placeholder = document.getElementById('headerPlaceholder');
+            const preview = document.getElementById('imagePreview');
+            
+            headerImage.classList.remove('active');
+            headerImage.src = '';
+            placeholder.style.display = 'flex';
+            preview.style.display = 'none';
+            preview.src = '';
+            
+            localStorage.removeItem('headerImage');
+        }
+
+        // Color Management
+        function updateColors() {
+            const primary = document.getElementById('primaryColor').value;
+            const secondary = document.getElementById('secondaryColor').value;
+            const accent = document.getElementById('accentColor').value;
+            
+            document.documentElement.style.setProperty('--bg-primary', primary);
+            document.documentElement.style.setProperty('--bg-secondary', secondary);
+            document.documentElement.style.setProperty('--accent', accent);
+            
+            localStorage.setItem('primaryColor', primary);
+            localStorage.setItem('secondaryColor', secondary);
+            localStorage.setItem('accentColor', accent);
+        }
+
+        function resetColors() {
+            document.getElementById('primaryColor').value = '#667eea';
+            document.getElementById('secondaryColor').value = '#764ba2';
+            document.getElementById('accentColor').value = '#f093fb';
+            updateColors();
+        }
+
+        function extractColorsFromImage() {
+            const headerImage = document.getElementById('headerImage');
+            if (!headerImage.src) {
+                alert('⚠️ Please upload a header image first!');
+                return;
+            }
+
+            // Create canvas to analyze image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // Sample colors from different parts of the image
+                const colors = [];
+                for (let i = 0; i < 5; i++) {
+                    const x = Math.floor(img.width * (i + 1) / 6);
+                    const y = Math.floor(img.height / 2);
+                    const pixel = ctx.getImageData(x, y, 1, 1).data;
+                    colors.push(`#${((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1)}`);
+                }
+                
+                // Set colors
+                document.getElementById('primaryColor').value = colors[1];
+                document.getElementById('secondaryColor').value = colors[3];
+                document.getElementById('accentColor').value = colors[2];
+                updateColors();
+                
+                alert('🎨 Colors extracted from image!');
+            };
+            
+            img.src = headerImage.src;
+        }
+
+        // Data Persistence
+        function saveData() {
+            localStorage.setItem('options', JSON.stringify(options));
+            localStorage.setItem('removedOptions', JSON.stringify([...removedOptions]));
+            localStorage.setItem('revealedValues', JSON.stringify(revealedValues));
+            localStorage.setItem('allowRepeats', allowRepeats);
+        }
+
+        function loadData() {
+            const savedOptions = localStorage.getItem('options');
+            const savedRemoved = localStorage.getItem('removedOptions');
+            const savedRevealed = localStorage.getItem('revealedValues');
+            const savedRepeats = localStorage.getItem('allowRepeats');
+            const savedImage = localStorage.getItem('headerImage');
+            const savedPrimary = localStorage.getItem('primaryColor');
+            const savedSecondary = localStorage.getItem('secondaryColor');
+            const savedAccent = localStorage.getItem('accentColor');
+            
+            if (savedOptions) options = JSON.parse(savedOptions);
+            if (savedRemoved) removedOptions = new Set(JSON.parse(savedRemoved));
+            if (savedRevealed) revealedValues = JSON.parse(savedRevealed);
+            if (savedRepeats) {
+                allowRepeats = savedRepeats === 'true';
+                document.getElementById('allowRepeats').checked = allowRepeats;
+            }
+            
+            if (savedImage) {
+                const headerImage = document.getElementById('headerImage');
+                const placeholder = document.getElementById('headerPlaceholder');
+                const preview = document.getElementById('imagePreview');
+                
+                headerImage.src = savedImage;
+                headerImage.classList.add('active');
+                placeholder.style.display = 'none';
+                preview.src = savedImage;
+                preview.style.display = 'block';
+            }
+            
+            if (savedPrimary) {
+                document.getElementById('primaryColor').value = savedPrimary;
+                document.documentElement.style.setProperty('--bg-primary', savedPrimary);
+            }
+            if (savedSecondary) {
+                document.getElementById('secondaryColor').value = savedSecondary;
+                document.documentElement.style.setProperty('--bg-secondary', savedSecondary);
+            }
+            if (savedAccent) {
+                document.getElementById('accentColor').value = savedAccent;
+                document.documentElement.style.setProperty('--accent', savedAccent);
+            }
+        }
+
+        // Import/Export
+        function exportOptions() {
+            const data = {
+                options: options,
+                removedOptions: [...removedOptions],
+                revealedValues: revealedValues,
+                allowRepeats: allowRepeats,
+                colors: {
+                    primary: document.getElementById('primaryColor').value,
+                    secondary: document.getElementById('secondaryColor').value,
+                    accent: document.getElementById('accentColor').value
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'randomizer-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importOptions() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        options = data.options || [];
+                        removedOptions = new Set(data.removedOptions || []);
+                        revealedValues = data.revealedValues || [];
+                        allowRepeats = data.allowRepeats || false;
+                        
+                        document.getElementById('allowRepeats').checked = allowRepeats;
+                        
+                        if (data.colors) {
+                            document.getElementById('primaryColor').value = data.colors.primary;
+                            document.getElementById('secondaryColor').value = data.colors.secondary;
+                            document.getElementById('accentColor').value = data.colors.accent;
+                            updateColors();
+                        }
+                        
+                        saveData();
+                        renderOptions();
+                        renderRevealed();
+                        updateStats();
+                        alert('✅ Data imported successfully!');
+                    } catch (error) {
+                        alert('❌ Error importing file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
