@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV Mechanic — Skyy Skill Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --navy: #1e2d5a;
+  --blue: #2176ae;
+  --cyan: #29b6d4;
+  --orange: #f47c20;
+  --green: #4caf50;
+  --red: #e53935;
+  --yellow: #ffc107;
+  --bg: #0d1b2a;
+  --surface: #162032;
+  --surface2: #1e2d40;
+  --border: #2a3f55;
+  --text: #e8f0fe;
+  --muted: #7a9ab5;
+  --success: #4caf50;
+  --danger: #e53935;
+  --apprentice: #00c896;
+  --sr-tech: #f5a623;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.screen { display:none; min-height:100vh; }
+.screen.active { display:flex; flex-direction:column; }
+
+/* ===== HEADER ===== */
+.game-header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top:0; z-index:100;
+}
+.logo-area { display:flex; align-items:center; gap:10px; }
+.logo-area img { height:40px; }
+.logo-text { font-family:'Rajdhani',sans-serif; font-size:13px; color:var(--muted); line-height:1.2; }
+.logo-text strong { color:var(--cyan); display:block; font-size:15px; }
+.hud { display:flex; gap:16px; align-items:center; }
+.hud-item { text-align:center; }
+.hud-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+.hud-value { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--cyan); }
+.hud-value.orange { color:var(--orange); }
+.hud-value.green { color:var(--green); }
+
+/* ===== WELCOME SCREEN ===== */
+#screen-welcome {
+  justify-content: center; align-items: center;
+  background: radial-gradient(ellipse at 30% 50%, #162d50 0%, #0d1b2a 70%);
+  padding: 20px;
+}
+.welcome-inner { max-width:600px; width:100%; text-align:center; }
+.welcome-logo { margin-bottom:20px; }
+.welcome-logo img { height:60px; }
+.welcome-title {
+  font-family:'Rajdhani',sans-serif;
+  font-size:clamp(32px,6vw,52px);
+  font-weight:700;
+  color:#fff;
+  line-height:1;
+  margin-bottom:6px;
+}
+.welcome-title span { color:var(--cyan); }
+.welcome-sub { color:var(--muted); font-size:15px; margin-bottom:30px; }
+.welcome-form { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; text-align:left; }
+.form-row { margin-bottom:18px; }
+.form-label { display:block; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.form-input {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  border-radius:8px; padding:12px 14px; color:var(--text);
+  font-family:'Nunito',sans-serif; font-size:15px;
+  transition: border-color 0.2s;
+}
+.form-input:focus { outline:none; border-color:var(--cyan); }
+.difficulty-row { display:flex; gap:12px; }
+.diff-btn {
+  flex:1; padding:12px; border-radius:8px; border:2px solid var(--border);
+  background:var(--bg); color:var(--muted); cursor:pointer;
+  font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px;
+  transition:all 0.2s; text-align:center;
+}
+.diff-btn:hover { border-color:var(--cyan); color:var(--cyan); }
+.diff-btn.selected { border-color:var(--cyan); background:rgba(41,182,212,0.1); color:var(--cyan); }
+.diff-btn[data-diff="apprentice"].selected { border-color:var(--apprentice); background:rgba(0,200,150,0.1); color:var(--apprentice); }
+.diff-btn[data-diff="srtech"].selected { border-color:var(--sr-tech); background:rgba(245,166,35,0.1); color:var(--sr-tech); }
+.diff-btn .diff-icon { font-size:22px; display:block; margin-bottom:4px; }
+
+/* Difficulty tier badges */
+.tier-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 12px; border-radius:20px;
+  font-family:'Rajdhani',sans-serif; font-weight:700;
+  font-size:12px; letter-spacing:1px;
+}
+.tier-apprentice { background:rgba(0,200,150,0.15); color:var(--apprentice); border:1px solid var(--apprentice); }
+.tier-srtech { background:rgba(245,166,35,0.15); color:var(--sr-tech); border:1px solid var(--sr-tech); }
+.summary-tier-bar {
+  height:4px; width:100%; border-radius:2px; margin-bottom:16px;
+}
+.summary-tier-bar.apprentice { background: linear-gradient(90deg, var(--apprentice), #00e5b0); }
+.summary-tier-bar.srtech { background: linear-gradient(90deg, var(--sr-tech), #ffcc44); }
+.avatar-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.avatar-card {
+  background:var(--bg); border:2px solid var(--border);
+  border-radius:10px; padding:12px 6px; text-align:center;
+  cursor:pointer; transition:all 0.2s;
+}
+.avatar-card:hover { border-color:var(--cyan); }
+.avatar-card.selected { border-color:var(--orange); background:rgba(244,124,32,0.1); }
+.avatar-card .av-emoji { font-size:32px; display:block; margin-bottom:4px; }
+.avatar-card .av-name { font-size:11px; color:var(--muted); }
+.btn-primary {
+  width:100%; padding:14px; border-radius:10px; border:none;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700;
+  font-size:18px; cursor:pointer; letter-spacing:1px;
+  transition: transform 0.1s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(41,182,212,0.3);
+  margin-top:8px;
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 25px rgba(41,182,212,0.4); }
+.btn-primary:active { transform:translateY(0); }
+.btn-primary:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+/* ===== INTRO SCREEN ===== */
+#screen-intro {
+  justify-content:center; align-items:center;
+  background: radial-gradient(ellipse at 70% 30%, #1a3a1a 0%, #0d1b2a 70%);
+  padding:20px;
+}
+.intro-card {
+  max-width:560px; width:100%;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; padding:32px; text-align:center;
+}
+.workshop-badge {
+  display:inline-block; background:var(--orange);
+  color:#fff; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:13px; letter-spacing:2px;
+  padding:4px 14px; border-radius:20px; margin-bottom:16px;
+}
+.intro-avatar-big { font-size:64px; margin:10px 0; }
+.intro-name { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:#fff; }
+.intro-workshop { color:var(--cyan); font-size:14px; margin-bottom:20px; }
+.day-timeline {
+  display:flex; gap:6px; margin:20px 0;
+  background:var(--bg); border-radius:10px; padding:12px;
+}
+.day-slot {
+  flex:1; text-align:center; padding:8px 4px;
+  border-radius:8px; border:1px solid var(--border);
+}
+.day-slot .ds-time { font-size:9px; color:var(--muted); text-transform:uppercase; }
+.day-slot .ds-icon { font-size:18px; margin:2px 0; }
+.day-slot .ds-diff { font-size:9px; font-weight:700; }
+.day-slot.easy .ds-diff { color:var(--green); }
+.day-slot.medium .ds-diff { color:var(--yellow); }
+.day-slot.hard .ds-diff { color:var(--orange); }
+.day-slot.complex .ds-diff { color:var(--red); }
+
+/* ===== CASE SCREEN ===== */
+#screen-case { padding:0; }
+.case-body { flex:1; display:flex; flex-direction:column; padding:16px; gap:14px; max-width:900px; margin:0 auto; width:100%; }
+
+.customer-panel {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:18px; display:flex; gap:14px; align-items:flex-start;
+  position:relative; overflow:hidden;
+}
+.customer-panel::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--orange), var(--cyan));
+}
+.customer-avatar { font-size:44px; flex-shrink:0; }
+.customer-info .customer-type {
+  font-size:11px; color:var(--orange); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:4px; font-weight:700;
+}
+.customer-info .customer-complaint {
+  font-size:15px; color:var(--text); line-height:1.5;
+  font-style:italic;
+}
+.customer-info .vehicle-info {
+  margin-top:8px; font-size:12px; color:var(--muted);
+  background:var(--bg); border-radius:6px; padding:6px 10px; display:inline-block;
+}
+
+.case-progress {
+  display:flex; align-items:center; gap:10px;
+  font-size:12px; color:var(--muted);
+}
+.case-number {
+  font-family:'Rajdhani',sans-serif; font-weight:700;
+  font-size:20px; color:var(--cyan);
+}
+.progress-bar {
+  flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden;
+}
+.progress-fill {
+  height:100%; border-radius:3px;
+  background:linear-gradient(90deg, var(--blue), var(--cyan));
+  transition: width 0.4s ease;
+}
+.case-timer {
+  font-family:'Share Tech Mono',monospace; font-size:16px; color:var(--yellow);
+}
+
+.diagnostic-area { display:flex; gap:14px; flex:1; }
+
+.systems-panel {
+  width:200px; flex-shrink:0;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:14px;
+}
+.systems-panel h3 {
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:12px;
+}
+.system-btn {
+  width:100%; padding:10px 12px; border-radius:8px;
+  border:1px solid var(--border); background:var(--bg);
+  color:var(--text); cursor:pointer; font-family:'Nunito',sans-serif;
+  font-size:13px; text-align:left; margin-bottom:6px;
+  display:flex; align-items:center; gap:8px;
+  transition:all 0.2s;
+}
+.system-btn:hover:not(:disabled) { border-color:var(--cyan); color:var(--cyan); }
+.system-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.system-btn.inspected { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.08); }
+.system-btn.wrong { border-color:var(--red); color:var(--red); background:rgba(229,57,53,0.08); }
+.system-btn .sys-icon { font-size:16px; }
+.credit-bar { margin-top:12px; }
+.credit-label { font-size:10px; color:var(--muted); margin-bottom:4px; }
+.credits { display:flex; gap:4px; }
+.credit-dot {
+  width:10px; height:10px; border-radius:50%;
+  background:var(--green); transition:background 0.3s;
+}
+.credit-dot.used { background:var(--border); }
+
+.checklist-panel {
+  flex:1; background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:16px; display:flex; flex-direction:column;
+}
+.checklist-panel h3 {
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:12px;
+}
+.checklist-empty {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  color:var(--muted); text-align:center;
+  border:2px dashed var(--border); border-radius:10px; padding:20px;
+}
+.checklist-empty .ce-icon { font-size:36px; margin-bottom:8px; opacity:0.5; }
+.checklist-items { list-style:none; flex:1; overflow-y:auto; }
+.checklist-item {
+  padding:10px 12px; border-radius:8px;
+  border-left:3px solid var(--border);
+  margin-bottom:8px; font-size:13px;
+  background:var(--bg); animation: slideIn 0.3s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+.checklist-item .ci-system {
+  font-size:10px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:3px;
+}
+.checklist-item.observation { border-left-color:var(--cyan); }
+.checklist-item.warning { border-left-color:var(--yellow); }
+.checklist-item.normal { border-left-color:var(--green); }
+
+.diagnosis-area {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:14px; padding:16px;
+}
+.diagnosis-area h3 {
+  font-size:11px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; margin-bottom:10px;
+}
+.diagnosis-input {
+  width:100%; background:var(--bg); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px; color:var(--text);
+  font-family:'Nunito',sans-serif; font-size:14px;
+  resize:none; min-height:70px;
+}
+.diagnosis-input:focus { outline:none; border-color:var(--cyan); }
+.fault-select-area { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+.fault-select {
+  flex:1; min-width:200px; background:var(--bg); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px; color:var(--text);
+  font-family:'Nunito',sans-serif; font-size:14px;
+}
+.fault-select:focus { outline:none; border-color:var(--cyan); }
+.btn-submit {
+  padding:10px 24px; border-radius:8px; border:none;
+  background:linear-gradient(135deg, var(--orange), #ff9800);
+  color:#fff; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:16px; cursor:pointer;
+  letter-spacing:1px; transition:all 0.2s;
+  white-space:nowrap;
+}
+.btn-submit:hover { transform:translateY(-1px); box-shadow:0 4px 15px rgba(244,124,32,0.4); }
+
+/* ===== RESULT OVERLAY ===== */
+.result-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.85);
+  display:flex; align-items:center; justify-content:center;
+  z-index:200; padding:20px; backdrop-filter:blur(4px);
+}
+.result-card {
+  background:var(--surface); border-radius:20px;
+  padding:32px; max-width:520px; width:100%; text-align:center;
+  border:1px solid var(--border); position:relative;
+}
+.result-icon { font-size:60px; margin-bottom:12px; }
+.result-title {
+  font-family:'Rajdhani',sans-serif; font-size:32px;
+  font-weight:700; margin-bottom:8px;
+}
+.result-title.correct { color:var(--green); }
+.result-title.wrong { color:var(--red); }
+.result-explanation {
+  color:var(--muted); font-size:14px; line-height:1.6;
+  margin-bottom:20px; background:var(--bg);
+  border-radius:8px; padding:12px; text-align:left;
+}
+.result-stats { display:flex; gap:16px; justify-content:center; margin-bottom:20px; }
+.rs-item { text-align:center; }
+.rs-value { font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:var(--cyan); }
+.rs-label { font-size:11px; color:var(--muted); }
+.btn-next {
+  padding:12px 32px; border-radius:10px; border:none;
+  background:linear-gradient(135deg, var(--blue), var(--cyan));
+  color:#fff; font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:18px; cursor:pointer; letter-spacing:1px;
+}
+
+/* ===== IDLE CUSTOMER ===== */
+.idle-overlay {
+  position:fixed; bottom:20px; right:20px;
+  background:var(--surface); border:2px solid var(--orange);
+  border-radius:16px; padding:16px 20px; z-index:150;
+  max-width:280px; display:none; animation:bounceIn 0.4s ease;
+}
+@keyframes bounceIn { from{transform:scale(0.5) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+.idle-customer { display:flex; gap:10px; align-items:flex-start; }
+.idle-avatar { font-size:32px; flex-shrink:0; }
+.idle-bubble { font-size:13px; color:var(--text); line-height:1.4; }
+.idle-close {
+  position:absolute; top:8px; right:10px;
+  background:none; border:none; color:var(--muted);
+  cursor:pointer; font-size:16px;
+}
+
+/* ===== SUMMARY SCREEN ===== */
+#screen-summary {
+  justify-content:center; align-items:center;
+  background: radial-gradient(ellipse at 50% 30%, #1a2d1a 0%, #0d1b2a 70%);
+  padding:20px;
+}
+.summary-card {
+  max-width:600px; width:100%;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:20px; overflow:hidden;
+}
+.summary-header {
+  background:linear-gradient(135deg, var(--navy), var(--blue));
+  padding:24px; text-align:center; position:relative;
+}
+.summary-header::after {
+  content:'';position:absolute;bottom:0;left:0;right:0;
+  height:3px; background:linear-gradient(90deg,var(--orange),var(--cyan),var(--green));
+}
+.summary-logo img { height:45px; margin-bottom:12px; }
+.summary-title {
+  font-family:'Rajdhani',sans-serif; font-size:28px;
+  font-weight:700; color:#fff;
+}
+.summary-subtitle { color:rgba(255,255,255,0.6); font-size:13px; }
+.summary-body { padding:24px; }
+.summary-avatar-row {
+  display:flex; align-items:center; gap:16px;
+  background:var(--bg); border-radius:12px; padding:16px;
+  margin-bottom:20px;
+}
+.summary-av { font-size:52px; }
+.summary-av-info { flex:1; }
+.summary-av-name { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:#fff; }
+.summary-av-workshop { color:var(--cyan); font-size:13px; }
+.mechanic-rating {
+  text-align:right;
+}
+.rating-badge {
+  display:inline-block; padding:6px 14px; border-radius:20px;
+  font-family:'Rajdhani',sans-serif; font-weight:700; font-size:14px;
+  letter-spacing:1px;
+}
+.rating-rookie { background:rgba(122,154,181,0.2); color:var(--muted); border:1px solid var(--muted); }
+.rating-technician { background:rgba(76,175,80,0.2); color:var(--green); border:1px solid var(--green); }
+.rating-expert { background:rgba(41,182,212,0.2); color:var(--cyan); border:1px solid var(--cyan); }
+.rating-master { background:rgba(244,124,32,0.2); color:var(--orange); border:1px solid var(--orange); }
+
+.cases-table { width:100%; border-collapse:collapse; margin-bottom:20px; }
+.cases-table th {
+  font-size:10px; color:var(--muted); text-transform:uppercase;
+  letter-spacing:1px; padding:6px 8px; text-align:left;
+  border-bottom:1px solid var(--border);
+}
+.cases-table td {
+  padding:10px 8px; font-size:13px;
+  border-bottom:1px solid rgba(42,63,85,0.5);
+}
+.cases-table tr:last-child td { border-bottom:none; }
+.status-solved { color:var(--green); font-weight:700; }
+.status-unsolved { color:var(--red); font-weight:700; }
+
+.summary-totals {
+  display:grid; grid-template-columns:repeat(3,1fr);
+  gap:12px; margin-bottom:20px;
+}
+.total-item {
+  background:var(--bg); border-radius:10px; padding:14px;
+  text-align:center;
+}
+.total-value {
+  font-family:'Rajdhani',sans-serif; font-size:26px;
+  font-weight:700; color:var(--cyan);
+}
+.total-label { font-size:11px; color:var(--muted); margin-top:2px; }
+
+.summary-actions { display:flex; gap:12px; }
+.btn-download {
+  flex:1; padding:13px; border-radius:10px; border:none;
+  background:linear-gradient(135deg,var(--orange),#ff9800);
+  color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700;
+  font-size:16px; cursor:pointer; letter-spacing:1px;
+}
+.btn-share {
+  padding:13px 20px; border-radius:10px;
+  border:1px solid var(--border); background:var(--bg);
+  color:var(--text); font-family:'Rajdhani',sans-serif;
+  font-weight:700; font-size:14px; cursor:pointer;
+}
+.btn-share:hover { border-color:var(--cyan); color:var(--cyan); }
+
+/* ===== UNSOLVED SHARE MODAL ===== */
+.share-modal {
+  position:fixed; inset:0; background:rgba(0,0,0,0.85);
+  display:flex; align-items:center; justify-content:center;
+  z-index:300; padding:20px; backdrop-filter:blur(4px);
+}
+.share-inner {
+  background:var(--surface); border-radius:20px;
+  padding:28px; max-width:480px; width:100%;
+  border:1px solid var(--border);
+}
+.share-inner h2 {
+  font-family:'Rajdhani',sans-serif; font-size:24px;
+  color:#fff; margin-bottom:8px;
+}
+.share-inner p { color:var(--muted); font-size:14px; margin-bottom:16px; }
+.unsolved-list { list-style:none; margin-bottom:20px; }
+.unsolved-item {
+  background:var(--bg); border-radius:8px; padding:12px;
+  margin-bottom:8px; border-left:3px solid var(--orange);
+}
+.unsolved-item .ui-case { font-size:11px; color:var(--orange); text-transform:uppercase; }
+.unsolved-item .ui-complaint { font-size:13px; color:var(--text); margin-top:3px; }
+.share-actions { display:flex; gap:10px; }
+.btn-copy {
+  flex:1; padding:11px; border-radius:8px; border:none;
+  background:var(--blue); color:#fff;
+  font-family:'Rajdhani',sans-serif; font-weight:700;
+  font-size:15px; cursor:pointer;
+}
+.btn-cancel {
+  padding:11px 20px; border-radius:8px;
+  border:1px solid var(--border); background:transparent;
+  color:var(--muted); cursor:pointer;
+  font-family:'Rajdhani',sans-serif; font-size:15px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .diagnostic-area { flex-direction:column; }
+  .systems-panel { width:100%; }
+  .avatar-grid { grid-template-columns:repeat(4,1fr); }
+  .day-timeline { flex-wrap:wrap; }
+  .summary-totals { grid-template-columns:repeat(3,1fr); }
+}
+
+/* ===== ANIMATIONS ===== */
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse {
+  0%,100%{box-shadow:0 0 0 0 rgba(41,182,212,0.4)}
+  50%{box-shadow:0 0 0 8px rgba(41,182,212,0)}
+}
+.shake { animation: shake 0.4s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== WELCOME SCREEN ===== -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-inner">
+    <div class="welcome-logo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/120px-Placeholder_view_vector.svg.png" alt="Logo" id="logo-img" style="display:none">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--muted);line-height:1.3;text-align:center">
+        <span style="color:var(--cyan);font-size:16px;font-weight:700;display:block">SKYY SKILL ACADEMY</span>
+        THANE CAMPUS
+      </div>
+    </div>
+    <div class="welcome-title">EV <span>MECHANIC</span><br>SIMULATOR</div>
+    <div class="welcome-sub">A Day in the Life — Diagnose real 48V EV faults</div>
+
+    <div class="welcome-form">
+      <div class="form-row">
+        <label class="form-label">Your Name</label>
+        <input type="text" class="form-input" id="input-name" placeholder="e.g. Rohan Sharma" maxlength="30">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Your Workshop Name</label>
+        <input type="text" class="form-input" id="input-workshop" placeholder="e.g. Voltage Garage" maxlength="30">
+      </div>
+      <div class="form-row">
+        <label class="form-label">Choose Your Mechanic</label>
+        <div class="avatar-grid" id="avatar-grid">
+          <div class="avatar-card selected" data-av="0" onclick="selectAvatar(0)">
+            <span class="av-emoji">🧑‍🔧</span><span class="av-name">Arjun</span>
+          </div>
+          <div class="avatar-card" data-av="1" onclick="selectAvatar(1)">
+            <span class="av-emoji">👩‍🔧</span><span class="av-name">Priya</span>
+          </div>
+          <div class="avatar-card" data-av="2" onclick="selectAvatar(2)">
+            <span class="av-emoji">🧔‍♂️</span><span class="av-name">Vikram</span>
+          </div>
+          <div class="avatar-card" data-av="3" onclick="selectAvatar(3)">
+            <span class="av-emoji">👱‍♀️</span><span class="av-name">Sneha</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Difficulty Level</label>
+        <div class="difficulty-row">
+          <button class="diff-btn selected" data-diff="apprentice" onclick="selectDiff('apprentice')">
+            <span class="diff-icon">🟢</span>Apprentice
+          </button>
+          <button class="diff-btn" data-diff="srtech" onclick="selectDiff('srtech')">
+            <span class="diff-icon">🟡</span>Sr. Technician
+          </button>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-start" onclick="startGame()">START YOUR SHIFT →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== INTRO SCREEN ===== -->
+<div id="screen-intro" class="screen">
+  <div class="intro-card">
+    <div class="workshop-badge">⚡ MORNING BRIEFING</div>
+    <div class="intro-avatar-big" id="intro-avatar-big">🧑‍🔧</div>
+    <div class="intro-name" id="intro-name">Rohan</div>
+    <div class="intro-workshop" id="intro-workshop">Voltage Garage — EV Specialist</div>
+    <p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px">
+      Today you have <strong style="color:#fff">5 cases</strong> waiting. Each customer will describe their problem in their own words — your job is to <strong style="color:var(--cyan)">diagnose the fault</strong> by inspecting the right systems.<br><br>
+      Work efficiently. Every wrong branch costs a <strong style="color:var(--orange)">diagnostic credit</strong>.
+    </p>
+    <div class="day-timeline" id="day-timeline"></div>
+    <button class="btn-primary" onclick="beginCases()">OPEN THE WORKSHOP →</button>
+  </div>
+</div>
+
+<!-- ===== CASE SCREEN ===== -->
+<div id="screen-case" class="screen">
+  <div class="game-header">
+    <div class="logo-area">
+      <div style="font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--muted);line-height:1.2">
+        <span style="color:var(--cyan);font-weight:700">SKYY SKILL</span><br>EV MECHANIC
+      </div>
+    </div>
+    <div class="hud">
+      <div class="hud-item">
+        <div class="hud-label">Case</div>
+        <div class="hud-value" id="hud-case">1/5</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Time</div>
+        <div class="hud-value orange" id="hud-time">00:00</div>
+      </div>
+      <div class="hud-item">
+        <div class="hud-label">Score</div>
+        <div class="hud-value green" id="hud-score">0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="case-body">
+    <!-- Customer complaint -->
+    <div class="customer-panel" id="customer-panel">
+      <div class="customer-avatar" id="customer-avatar">👴</div>
+      <div class="customer-info">
+        <div class="customer-type" id="customer-type">Nervous First-Timer</div>
+        <div class="customer-complaint" id="customer-complaint">"My EV isn't working properly..."</div>
+        <div class="vehicle-info" id="vehicle-info">🚗 48V BLDC EV — Odometer: 12,400 km</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="case-progress">
+      <span class="case-number" id="case-label">CASE 1 OF 5</span>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:20%"></div></div>
+      <span class="case-timer" id="case-timer">00:00</span>
+    </div>
+
+    <!-- Diagnostic area -->
+    <div class="diagnostic-area">
+      <!-- Systems to inspect -->
+      <div class="systems-panel">
+        <h3>🔍 Inspect System</h3>
+        <div id="systems-list"></div>
+        <div class="credit-bar">
+          <div class="credit-label">Diagnostic Credits</div>
+          <div class="credits" id="credits-display"></div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="checklist-panel">
+        <h3>📋 Observations Log</h3>
+        <div id="checklist-container">
+          <div class="checklist-empty">
+            <div class="ce-icon">🔌</div>
+            <div>Select a system to begin<br>your inspection</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diagnosis submission -->
+    <div class="diagnosis-area">
+      <h3>🩺 Your Diagnosis</h3>
+      <div class="fault-select-area">
+        <select class="fault-select" id="fault-select">
+          <option value="">— Select the primary fault —</option>
+        </select>
+        <textarea class="diagnosis-input" id="diagnosis-text" placeholder="Explain your reasoning in 1-2 sentences..." rows="2" style="flex:2;min-width:200px"></textarea>
+        <button class="btn-submit" onclick="submitDiagnosis()">SUBMIT →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SUMMARY SCREEN ===== -->
+<div id="screen-summary" class="screen">
+  <div class="summary-card" id="summary-card">
+    <div class="summary-header">
+      <div class="summary-logo">
+        <div style="font-family:'Rajdhani',sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px">SKYY SKILL ACADEMY</div>
+        <div style="color:rgba(255,255,255,0.5);font-size:12px;letter-spacing:3px">THANE CAMPUS</div>
+      </div>
+      <div class="summary-title">END OF DAY REPORT</div>
+      <div class="summary-subtitle" id="summary-date"></div>
+      <div style="margin-top:10px">
+        <span class="tier-badge" id="summary-tier-badge">APPRENTICE</span>
+      </div>
+    </div>
+    <div class="summary-tier-bar apprentice" id="summary-tier-bar"></div>
+    <div class="summary-body">
+      <div class="summary-avatar-row">
+        <div class="summary-av" id="summary-av-icon">🧑‍🔧</div>
+        <div class="summary-av-info">
+          <div class="summary-av-name" id="summary-av-name">Mechanic</div>
+          <div class="summary-av-workshop" id="summary-av-workshop">Workshop</div>
+        </div>
+        <div class="mechanic-rating">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">RATING</div>
+          <div class="rating-badge" id="rating-badge">ROOKIE</div>
+        </div>
+      </div>
+
+      <div class="summary-totals">
+        <div class="total-item">
+          <div class="total-value" id="total-solved">0/5</div>
+          <div class="total-label">Cases Solved</div>
+        </div>
+        <div class="total-item">
+          <div class="total-value" id="total-time">00:00</div>
+          <div class="total-label">Total Time</div>
+        </div>
+        <div class="total-item">
+          <div class="total-value" id="total-steps">0</div>
+          <div class="total-label">Total Steps</div>
+        </div>
+      </div>
+
+      <table class="cases-table" id="cases-table">
+        <thead>
+          <tr>
+            <th>Case</th><th>Complaint</th><th>Result</th><th>Time</th><th>Steps</th>
+          </tr>
+        </thead>
+        <tbody id="cases-tbody"></tbody>
+      </table>
+
+      <div class="summary-actions">
+        <button class="btn-download" onclick="downloadPDF()">⬇ DOWNLOAD REPORT</button>
+        <button class="btn-share" onclick="showShareModal()">📤 SHARE UNSOLVED</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== RESULT OVERLAY ===== -->
+<div class="result-overlay" id="result-overlay" style="display:none">
+  <div class="result-card">
+    <div class="result-icon" id="result-icon">✅</div>
+    <div class="result-title" id="result-title">CORRECT!</div>
+    <div class="result-explanation" id="result-explanation"></div>
+    <div class="result-stats">
+      <div class="rs-item">
+        <div class="rs-value" id="rs-time">0:00</div>
+        <div class="rs-label">Time Taken</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-value" id="rs-steps">0</div>
+        <div class="rs-label">Steps Used</div>
+      </div>
+      <div class="rs-item">
+        <div class="rs-value" id="rs-points">+0</div>
+        <div class="rs-label">Points</div>
+      </div>
+    </div>
+    <button class="btn-next" id="btn-next" onclick="nextCase()">NEXT CASE →</button>
+  </div>
+</div>
+
+<!-- ===== IDLE CUSTOMER ===== -->
+<div class="idle-overlay" id="idle-overlay">
+  <button class="idle-close" onclick="closeIdle()">✕</button>
+  <div class="idle-customer">
+    <div class="idle-avatar" id="idle-cust-av">😟</div>
+    <div class="idle-bubble" id="idle-cust-msg">Excuse me... any update on my vehicle? I'm getting late for work!</div>
+  </div>
+</div>
+
+<!-- ===== SHARE MODAL ===== -->
+<div class="share-modal" id="share-modal" style="display:none">
+  <div class="share-inner">
+    <h2>📤 Share Unsolved Cases</h2>
+    <p>These cases remain unsolved. Your instructor can review them with you.</p>
+    <ul class="unsolved-list" id="unsolved-list"></ul>
+    <div class="share-actions">
+      <button class="btn-copy" onclick="copyUnsolved()">📋 Copy to Clipboard</button>
+      <button class="btn-cancel" onclick="closeShareModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GAME DATA
+// ============================================================
+
+const AVATARS = [
+  { emoji:'🧑‍🔧', name:'Arjun' },
+  { emoji:'👩‍🔧', name:'Priya' },
+  { emoji:'🧔‍♂️', name:'Vikram' },
+  { emoji:'👱‍♀️', name:'Sneha' }
+];
+
+const CUSTOMERS = [
+  { emoji:'😰', type:'Nervous First-Timer', odometer:'2,100 km',
+    idle:["Umm... is it serious? I just bought this last month!", "Sorry to bother you, but should I be worried?"] },
+  { emoji:'👴', type:'Elderly Owner', odometer:'18,500 km',
+    idle:["Beta, please take your time, but I need to reach the temple by noon.", "My grandson said it's the battery... is it the battery?"] },
+  { emoji:'😤', type:'Impatient Businessman', odometer:'34,200 km',
+    idle:["I have a board meeting in an hour. What's the update?", "How long does this actually take?"] },
+  { emoji:'😎', type:'Teenager', odometer:'8,800 km',
+    idle:["Bro it's been ages. What even is going on?", "Can I get a loaner or something?"] },
+  { emoji:'😨', type:'Anxious Customer', odometer:'27,300 km',
+    idle:["I'm so worried — this never happened before!", "Please just tell me it's not the motor..."] }
+];
+
+// ============================================================
+// FAULT LIBRARY — based on 48V BLDC EV circuit
+// ============================================================
+
+const FAULTS_EASY = [
+  {
+    id:'F01',
+    complaint: "It just won't move at all! Everything looks fine but the vehicle doesn't budge.",
+    vehicle_detail: "All lights working. Key turned on.",
+    systems: ['Key & Fuse','Motor','Brake Switch','Battery'],
+    clues: {
+      'Key & Fuse': [{type:'observation', text:'5A fuse on key circuit appears discoloured and broken at the filament.'}, {type:'warning', text:'No continuity detected across fuse terminals.'}],
+      'Motor': [{type:'normal', text:'Motor windings appear intact with no visible burn marks.'}],
+      'Brake Switch': [{type:'normal', text:'Brake cut switch operates normally — click felt when pressed.'}],
+      'Battery': [{type:'normal', text:'Battery terminal voltage reads 48.2V. Appears healthy.'}]
+    },
+    correct_fault: 'Blown 5A Fuse on Key Circuit',
+    fault_options: ['Blown 5A Fuse on Key Circuit','Motor winding failure','Battery dead','Brake switch stuck open'],
+    explanation: 'The 5A fuse on the key circuit had blown, interrupting power to the controller. This is a simple protection component — when it fails, no signal reaches the BLDC controller regardless of battery or motor condition.',
+    wrong_systems: ['Motor','Battery'],
+    points_max: 100
+  },
+  {
+    id:'F02',
+    complaint: "The scooter charges but takes forever — even overnight it only shows 60%.",
+    vehicle_detail: "Using standard home charger. No error lights.",
+    systems: ['Charging Port','Battery SOC Meter','Battery','Wiring'],
+    clues: {
+      'Charging Port': [{type:'observation', text:'Charging port connector has slight corrosion on pin 2. Contact appears intermittent.'},{type:'warning', text:'Connector feels loose when charger is inserted.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC digital meter is displaying correctly — readings match multimeter measurement.'}],
+      'Battery': [{type:'normal', text:'Individual cell voltages balanced at 3.2V each. No swelling observed.'}],
+      'Wiring': [{type:'normal', text:'No visible damage on charging wiring harness.'}]
+    },
+    correct_fault: 'Corroded/Loose Charging Port Connector',
+    fault_options: ['Corroded/Loose Charging Port Connector','Battery cell failure','Faulty SOC meter','Motor drawing charge'],
+    explanation: 'Corrosion and a loose fit on the charging port connector causes high contact resistance, reducing charging current significantly. The battery itself is healthy — the fault is at the connection point before it.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 100
+  },
+  {
+    id:'F03',
+    complaint: "When I press the throttle nothing happens, but the display shows full charge!",
+    vehicle_detail: "Vehicle powers on. No movement when throttle pressed.",
+    systems: ['Throttle Sensor','Controller','Brake Switch','Battery'],
+    clues: {
+      'Throttle Sensor': [{type:'warning', text:'Linear Hall Effect throttle sensor output voltage stuck at 0.6V — below the 0.7V minimum operating threshold.'},{type:'observation', text:'Throttle signal wire shows a small nick near the handlebar.'}],
+      'Controller': [{type:'normal', text:'BLDC controller LEDs indicate standby mode — awaiting throttle signal above threshold.'}],
+      'Brake Switch': [{type:'normal', text:'Brake cut switch not engaged. Circuit is closed and ready.'}],
+      'Battery': [{type:'normal', text:'48V battery output confirmed. Sufficient to power controller.'}]
+    },
+    correct_fault: 'Throttle Sensor Signal Below Threshold (Damaged Wire)',
+    fault_options: ['Throttle Sensor Signal Below Threshold (Damaged Wire)','Controller failure','Brake switch stuck','Battery voltage drop'],
+    explanation: 'The Linear Hall Effect throttle sensor requires a signaling voltage of 0.7–5V to register input. A damaged wire is causing the signal to fall just below threshold, so the controller never receives a valid throttle command.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 100
+  },
+  {
+    id:'F04',
+    complaint: "My indicators are not blinking — they just stay on constantly when switched.",
+    vehicle_detail: "Head lamp and tail lamp work fine. Only indicators affected.",
+    systems: ['Flasher Unit','Indicators','Wiring','Battery'],
+    clues: {
+      'Flasher Unit': [{type:'warning', text:'Flasher relay unit produces no clicking sound. Internal mechanism appears seized.'},{type:'observation', text:'Flasher unit is the original unit — vehicle is 4 years old.'}],
+      'Indicators': [{type:'normal', text:'Both left and right indicator bulbs illuminate when powered directly — bulbs are functional.'}],
+      'Wiring': [{type:'normal', text:'Indicator wiring continuity confirmed on both sides.'}],
+      'Battery': [{type:'normal', text:'12V DC line from Buck converter reading 12.1V — within normal range.'}]
+    },
+    correct_fault: 'Faulty Flasher Unit (Relay Seized)',
+    fault_options: ['Faulty Flasher Unit (Relay Seized)','Both indicator bulbs blown','Wiring short circuit','12V converter failure'],
+    explanation: 'The flasher unit contains a relay that repeatedly opens and closes to create the blinking effect. When its internal mechanism seizes, it holds the circuit closed permanently, making indicators glow steady instead of blinking.',
+    wrong_systems: ['Indicators','Wiring'],
+    points_max: 100
+  },
+  {
+    id:'F05',
+    complaint: "The horn doesn't work at all. Pressed it many times — complete silence.",
+    vehicle_detail: "All other electricals working fine.",
+    systems: ['Horn','Wiring','Battery','Key & Fuse'],
+    clues: {
+      'Horn': [{type:'normal', text:'Horn unit buzzes faintly when 12V is applied directly to its terminals — horn is functional.'}],
+      'Wiring': [{type:'warning', text:'Horn supply wire has a clean break found near the handlebar routing point.'},{type:'observation', text:'Break appears to be from wire fatigue due to repeated handlebar movement.'}],
+      'Battery': [{type:'normal', text:'12V DC supply line reads 12.0V — normal.'}],
+      'Key & Fuse': [{type:'normal', text:'Key circuit and 5A fuse are intact. No issues found.'}]
+    },
+    correct_fault: 'Broken Horn Supply Wire (Wire Fatigue)',
+    fault_options: ['Broken Horn Supply Wire (Wire Fatigue)','Horn unit dead','Battery not supplying 12V','Fuse blown'],
+    explanation: 'The horn supply wire had developed a fatigue break at the handlebar due to repeated steering movement flexing the wire over time. The horn itself is fine — it just has no power reaching it.',
+    wrong_systems: ['Horn','Battery'],
+    points_max: 100
+  }
+];
+
+const FAULTS_UNDERGRAD = [
+  {
+    id:'U01',
+    complaint: "Vehicle runs fine for about 5 minutes, then suddenly loses power and slows down drastically.",
+    vehicle_detail: "48V BLDC. Happens consistently after warmup. Restarts fine after cooling.",
+    systems: ['Thermal / Motor','Controller','Battery','Wiring Harness'],
+    clues: {
+      'Thermal / Motor': [{type:'warning', text:'Motor casing temperature reaches 78°C within 5 minutes under load — exceeds the 70°C thermal threshold.'},{type:'observation', text:'Cooling vents on motor appear partially blocked with road debris.'}],
+      'Controller': [{type:'observation', text:'Controller enters thermal protection mode above motor threshold — this is by design, not a controller fault.'},{type:'normal', text:'Controller resumes normal operation once motor temperature drops.'}],
+      'Battery': [{type:'normal', text:'Battery discharge rate normal. Voltage sag under load within acceptable limits (46.8V min).'}],
+      'Wiring Harness': [{type:'normal', text:'No heat damage or insulation breakdown on harness.'}]
+    },
+    correct_fault: 'Motor Overheating — Blocked Cooling Vents Triggering Thermal Protection',
+    fault_options: ['Motor Overheating — Blocked Cooling Vents Triggering Thermal Protection','Controller failure','Battery capacity degradation','Wiring resistance buildup'],
+    explanation: 'Blocked motor cooling vents prevent heat dissipation, causing motor temperature to exceed 70°C. The controller correctly triggers thermal protection (power derating) as a safety response — this is expected behavior. Root cause is blocked vents, not controller or battery fault.',
+    wrong_systems: ['Battery','Wiring Harness'],
+    points_max: 150
+  },
+  {
+    id:'U02',
+    complaint: "Vehicle suddenly reverses instead of going forward. The reverse-forward switch position looks correct.",
+    vehicle_detail: "Issue appeared after a recent DIY repair job. Switch was disturbed.",
+    systems: ['Reverse-Forward Switch','Controller','Motor Phase Wires','Battery'],
+    clues: {
+      'Reverse-Forward Switch': [{type:'observation', text:'Toggle switch physically in forward position as reported.'},{type:'warning', text:'Internal contact continuity check shows switch contacts are inverted — possibly rewired incorrectly after DIY repair.'}],
+      'Controller': [{type:'normal', text:'BLDC controller responding correctly to switch input — it is receiving a reversed signal.'}],
+      'Motor Phase Wires': [{type:'normal', text:'Phase wire sequence B-G-Y matches controller output specification.'}],
+      'Battery': [{type:'normal', text:'48V supply stable.'}]
+    },
+    correct_fault: 'Reverse-Forward Switch Incorrectly Rewired After DIY Repair',
+    fault_options: ['Reverse-Forward Switch Incorrectly Rewired After DIY Repair','Controller direction logic fault','Motor phase sequence swapped','Battery polarity reversal'],
+    explanation: 'The two-way toggle switch was reconnected with its signal wires swapped during the DIY repair. The controller faithfully follows the signal — when it reads "forward", the incorrectly wired switch is actually sending a "reverse" signal. The controller and motor are both functioning correctly.',
+    wrong_systems: ['Motor Phase Wires','Battery'],
+    points_max: 150
+  },
+  {
+    id:'U03',
+    complaint: "Range has dropped from 60km to around 35km over the last few months. Charging is normal.",
+    vehicle_detail: "1.5 years old. 28,000km on odometer. Stored outdoors.",
+    systems: ['Battery','Battery SOC Meter','Throttle Sensor','Wiring'],
+    clues: {
+      'Battery': [{type:'warning', text:'Battery open circuit voltage 47.1V — slightly low. Under load at 5A, voltage sags to 43.2V, indicating increased internal resistance.'},{type:'warning', text:'Capacity test shows effective capacity at 68% of rated spec — consistent with moderate degradation at this mileage and outdoor storage conditions.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter correctly calibrated and displaying actual charge state.'}],
+      'Throttle Sensor': [{type:'normal', text:'Throttle operating within 0.7–4.8V range. No fault.'}],
+      'Wiring': [{type:'normal', text:'No resistance buildup in main power cables.'}]
+    },
+    correct_fault: 'Battery Capacity Degradation Due to Age, Mileage and Outdoor Storage',
+    fault_options: ['Battery Capacity Degradation Due to Age, Mileage and Outdoor Storage','Faulty SOC meter over-reporting','Throttle causing excess current draw','Wiring resistance loss'],
+    explanation: 'At 28,000km and 1.5 years of outdoor storage, the battery pack has degraded to approximately 68% of original capacity. Outdoor temperature cycling accelerates lithium cell degradation. The 25km range loss is proportional to this capacity reduction. No component failure — this is expected aging.',
+    wrong_systems: ['Throttle Sensor','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'U04',
+    complaint: "MCB keeps tripping every time I accelerate hard. Reset it and it trips again within seconds.",
+    vehicle_detail: "Issue started after heavy load carrying. MCB is 63A rated.",
+    systems: ['MCB','Battery','Motor & Controller','Wiring'],
+    clues: {
+      'MCB': [{type:'observation', text:'63A MCB shows correct trip threshold — it is tripping as designed, not malfunctioning.'},{type:'warning', text:'Trip current measured at 71A during hard acceleration — exceeds MCB rating.'}],
+      'Battery': [{type:'observation', text:'Battery internal resistance slightly elevated. Under heavy acceleration, instantaneous current draw spikes sharply.'}],
+      'Motor & Controller': [{type:'warning', text:'Controller current limit parameter shows it was adjusted upward from factory default of 60A to 75A — likely by a previous technician.'},{type:'observation', text:'Motor nameplate rating: 1000W continuous, peak 1500W.'}],
+      'Wiring': [{type:'normal', text:'Main power cables rated to 80A — wiring itself is not the issue.'}]
+    },
+    correct_fault: 'Controller Current Limit Over-Set Beyond MCB Rating',
+    fault_options: ['Controller Current Limit Over-Set Beyond MCB Rating','MCB undersized for this EV','Battery unable to supply rated current','Motor drawing excessive current due to fault'],
+    explanation: 'A previous technician increased the controller\'s current limit from 60A to 75A, likely seeking more performance. However the MCB is rated 63A. During hard acceleration, the controller now commands up to 71–75A, exceeding the MCB threshold and causing correct protection trips. Solution: restore controller current limit to within MCB rating.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'U05',
+    complaint: "Headlamp flickers badly at low speed but is stable at higher speed. Also horn sounds weak.",
+    vehicle_detail: "Recent service done. DC-DC Buck converter area was cleaned.",
+    systems: ['Buck/DC-DC Converter','Battery','Wiring','Head Lamp'],
+    clues: {
+      'Buck/DC-DC Converter': [{type:'warning', text:'Buck converter output voltage fluctuates between 10.8V and 12.4V at idle/low speed — output should be stable 12V DC.'},{type:'observation', text:'On close inspection, one output capacitor on the converter board shows slight bulging — sign of partial failure.'}],
+      'Battery': [{type:'normal', text:'48V main battery output stable. Input to Buck converter is clean 48V.'}],
+      'Wiring': [{type:'normal', text:'12V output wiring to lamp and horn has no resistance issues.'}],
+      'Head Lamp': [{type:'normal', text:'Headlamp bulb tests fine at stable 12V from external supply.'}],
+      // RED HERRING clue injected at runtime for case 5
+    },
+    correct_fault: 'Failing Buck/DC-DC Converter (Bulging Output Capacitor)',
+    fault_options: ['Failing Buck/DC-DC Converter (Bulging Output Capacitor)','Headlamp bulb intermittent fault','48V battery voltage fluctuation','Wiring earth connection loose'],
+    explanation: 'The Buck converter steps down 48V to 12V for auxiliary systems (lights, horn). A bulging capacitor on the output stage causes voltage instability — 10.8–12.4V instead of steady 12V. At higher speeds, the 48V input is more stable, slightly masking the issue. The headlamp and horn are both victims of this upstream converter fault.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 200,
+    red_herring: { system:'Head Lamp', clue: {type:'observation', text:'⚠ RED HERRING: Lamp socket shows slight heat discolouration — but this is from normal long-term operation, not a fault cause.'}}
+  }
+];
+
+// ============================================================
+// GAME STATE
+// ============================================================
+
+let G = {
+  playerName: '',
+  workshopName: '',
+  avatarIdx: 0,
+  difficulty: 'apprentice',
+  caseIdx: 0,
+  cases: [],
+  score: 0,
+  sessionStart: null,
+  caseStart: null,
+  caseResults: [],
+  currentSteps: 0,
+  currentCredits: 5,
+  inspectedSystems: [],
+  checklistItems: [],
+  caseTimer: null,
+  idleTimer: null,
+  wakeLock: null
+};
+
+// ============================================================
+// SETUP
+// ============================================================
+
+function selectAvatar(idx) {
+  document.querySelectorAll('.avatar-card').forEach(c=>c.classList.remove('selected'));
+  document.querySelector(`.avatar-card[data-av="${idx}"]`).classList.add('selected');
+  G.avatarIdx = idx;
+}
+
+function selectDiff(d) {
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelector(`.diff-btn[data-diff="${d}"]`).classList.add('selected');
+  G.difficulty = d;
+}
+
+function startGame() {
+  G.playerName = document.getElementById('input-name').value.trim() || 'Mechanic';
+  G.workshopName = document.getElementById('input-workshop').value.trim() || 'EV Workshop';
+  // Shuffle and pick 5 faults
+  const pool = G.difficulty === 'apprentice'
+    ? [...FAULTS_EASY]
+    : [...FAULTS_UNDERGRAD];
+  G.cases = shuffle(pool).slice(0,5);
+  // Pre-shuffle fault options with position spread anti-clustering
+  G.cases = G.cases.map((fault, idx) => {
+    return { ...fault, fault_options: shuffleWithPositionSpread(fault.fault_options, fault.correct_fault, idx) };
+  });
+  G.sessionStart = Date.now();
+  showIntro();
+}
+
+function shuffle(arr) {
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// Tracks correct answer positions used across cases to avoid clustering
+const usedPositions = [];
+
+function shuffleWithPositionSpread(options, correctAnswer, caseIndex) {
+  const opts = [...options];
+  let attempts = 0;
+  let shuffled;
+
+  do {
+    shuffled = shuffle([...opts]);
+    const correctPos = shuffled.indexOf(correctAnswer);
+    // Allow this position only if it hasn't been used in the last 2 cases
+    const recentPositions = usedPositions.slice(-2);
+    const posOk = !recentPositions.includes(correctPos);
+    if(posOk || attempts > 20) {
+      usedPositions.push(correctPos);
+      break;
+    }
+    attempts++;
+  } while(true);
+
+  return shuffled;
+}
+
+function showIntro() {
+  showScreen('intro');
+  const av = AVATARS[G.avatarIdx];
+  document.getElementById('intro-avatar-big').textContent = av.emoji;
+  document.getElementById('intro-name').textContent = G.playerName;
+  document.getElementById('intro-workshop').textContent = G.workshopName + ' — EV Specialist';
+
+  const timeline = document.getElementById('day-timeline');
+  const times = ['9 AM','11 AM','1 PM','3 PM','5 PM'];
+  const diffs = ['easy','easy','medium','hard','complex'];
+  const diffLabels = ['Easy','Easy','Medium','Hard','Complex'];
+  const icons = ['☀️','🔧','⚙️','🔥','⚡'];
+  timeline.innerHTML = G.cases.map((_,i)=>`
+    <div class="day-slot ${diffs[i]}">
+      <div class="ds-time">${times[i]}</div>
+      <div class="ds-icon">${icons[i]}</div>
+      <div class="ds-diff">Case ${i+1}</div>
+      <div class="ds-diff">${diffLabels[i]}</div>
+    </div>
+  `).join('');
+}
+
+function beginCases() {
+  G.caseIdx = 0;
+  loadCase();
+}
+
+// ============================================================
+// CASE LOADING
+// ============================================================
+
+function loadCase() {
+  showScreen('case');
+  requestWakeLock();
+
+  const fault = G.cases[G.caseIdx];
+  const customer = CUSTOMERS[G.caseIdx];
+  const maxCredits = G.caseIdx < 2 ? 5 : G.caseIdx < 4 ? 4 : 3;
+
+  G.currentSteps = 0;
+  G.currentCredits = maxCredits;
+  G.inspectedSystems = [];
+  G.checklistItems = [];
+  G.caseStart = Date.now();
+
+  // Header
+  document.getElementById('hud-case').textContent = `${G.caseIdx+1}/5`;
+  document.getElementById('hud-score').textContent = G.score;
+  document.getElementById('case-label').textContent = `CASE ${G.caseIdx+1} OF 5`;
+  document.getElementById('progress-fill').style.width = `${((G.caseIdx+1)/5)*100}%`;
+
+  // Customer
+  document.getElementById('customer-avatar').textContent = customer.emoji;
+  document.getElementById('customer-type').textContent = customer.type;
+  document.getElementById('customer-complaint').textContent = `"${fault.complaint}"`;
+  document.getElementById('vehicle-info').textContent = `🚗 48V BLDC EV — Odometer: ${customer.odometer}`;
+
+  // Systems
+  buildSystemButtons(fault, maxCredits);
+
+  // Checklist
+  document.getElementById('checklist-container').innerHTML = `
+    <div class="checklist-empty">
+      <div class="ce-icon">🔌</div>
+      <div>Select a system to begin<br>your inspection</div>
+    </div>`;
+
+  // Fault options - already position-spread shuffled at game start
+  const sel = document.getElementById('fault-select');
+  sel.innerHTML = '<option value="">— Select the primary fault —</option>';
+  fault.fault_options.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f; opt.textContent = f;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('diagnosis-text').value = '';
+
+  // Timers
+  clearInterval(G.caseTimer);
+  G.caseTimer = setInterval(updateCaseTimer, 1000);
+  resetIdleTimer();
+}
+
+function buildSystemButtons(fault, maxCredits) {
+  const list = document.getElementById('systems-list');
+  list.innerHTML = fault.systems.map(sys => `
+    <button class="system-btn" data-sys="${sys}" onclick="inspectSystem('${sys}')">
+      <span class="sys-icon">🔍</span> ${sys}
+    </button>
+  `).join('');
+
+  // Credits
+  const cd = document.getElementById('credits-display');
+  cd.innerHTML = Array.from({length:maxCredits}, (_,i) =>
+    `<div class="credit-dot" id="cred-${i}"></div>`
+  ).join('');
+}
+
+function inspectSystem(sysName) {
+  if(G.inspectedSystems.includes(sysName)) return;
+
+  const fault = G.cases[G.caseIdx];
+  const btn = document.querySelector(`.system-btn[data-sys="${sysName}"]`);
+  const isWrong = fault.wrong_systems && fault.wrong_systems.includes(sysName);
+
+  G.currentSteps++;
+  resetIdleTimer();
+
+  if(isWrong) {
+    // Use a credit
+    useCredit();
+    btn.classList.add('wrong');
+  } else {
+    btn.classList.add('inspected');
+  }
+
+  G.inspectedSystems.push(sysName);
+  btn.disabled = true;
+
+  // Get clues - handle red herring for case 5
+  let clues = fault.clues[sysName] || [];
+  if(fault.red_herring && sysName === fault.red_herring.system) {
+    clues = [...clues, fault.red_herring.clue];
+  }
+
+  // Add to checklist
+  addChecklistItems(sysName, clues);
+}
+
+function addChecklistItems(sysName, clues) {
+  const container = document.getElementById('checklist-container');
+
+  // Remove empty state
+  const empty = container.querySelector('.checklist-empty');
+  if(empty) {
+    container.innerHTML = '<ul class="checklist-items" id="checklist-list"></ul>';
+  }
+
+  const list = document.getElementById('checklist-list') || (() => {
+    const ul = document.createElement('ul');
+    ul.className = 'checklist-items';
+    ul.id = 'checklist-list';
+    container.appendChild(ul);
+    return ul;
+  })();
+
+  clues.forEach((clue, i) => {
+    setTimeout(() => {
+      const li = document.createElement('li');
+      li.className = `checklist-item ${clue.type}`;
+      li.innerHTML = `<div class="ci-system">${sysName}</div>${clue.text}`;
+      list.appendChild(li);
+      list.scrollTop = list.scrollHeight;
+    }, i * 300);
+  });
+}
+
+function useCredit() {
+  const dots = document.querySelectorAll('.credit-dot:not(.used)');
+  if(dots.length > 0) dots[0].classList.add('used');
+}
+
+// ============================================================
+// TIMERS
+// ============================================================
+
+function updateCaseTimer() {
+  const elapsed = Math.floor((Date.now() - G.caseStart) / 1000);
+  document.getElementById('case-timer').textContent = formatTime(elapsed);
+  document.getElementById('hud-time').textContent = formatTime(Math.floor((Date.now()-G.sessionStart)/1000));
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs/60).toString().padStart(2,'0');
+  const s = (secs%60).toString().padStart(2,'0');
+  return `${m}:${s}`;
+}
+
+function resetIdleTimer() {
+  clearTimeout(G.idleTimer);
+  document.getElementById('idle-overlay').style.display = 'none';
+  G.idleTimer = setTimeout(showIdleCustomer, 60000);
+}
+
+function showIdleCustomer() {
+  const customer = CUSTOMERS[G.caseIdx];
+  const msg = customer.idle[Math.floor(Math.random()*customer.idle.length)];
+  document.getElementById('idle-cust-av').textContent = customer.emoji;
+  document.getElementById('idle-cust-msg').textContent = msg;
+  document.getElementById('idle-overlay').style.display = 'block';
+}
+
+function closeIdle() {
+  document.getElementById('idle-overlay').style.display = 'none';
+  resetIdleTimer();
+}
+
+document.addEventListener('click', () => { if(G.caseTimer) resetIdleTimer(); });
+document.addEventListener('keydown', () => { if(G.caseTimer) resetIdleTimer(); });
+
+// Wake Lock
+async function requestWakeLock() {
+  try {
+    if('wakeLock' in navigator) {
+      G.wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch(e) { console.log('Wake lock not available'); }
+}
+
+// ============================================================
+// DIAGNOSIS SUBMISSION
+// ============================================================
+
+function submitDiagnosis() {
+  const selected = document.getElementById('fault-select').value;
+  const reasoning = document.getElementById('diagnosis-text').value.trim();
+
+  if(!selected) {
+    document.getElementById('fault-select').classList.add('shake');
+    setTimeout(()=>document.getElementById('fault-select').classList.remove('shake'),400);
+    return;
+  }
+  if(!reasoning || reasoning.length < 10) {
+    document.getElementById('diagnosis-text').classList.add('shake');
+    setTimeout(()=>document.getElementById('diagnosis-text').classList.remove('shake'),400);
+    return;
+  }
+
+  clearInterval(G.caseTimer);
+  clearTimeout(G.idleTimer);
+  document.getElementById('idle-overlay').style.display = 'none';
+
+  const fault = G.cases[G.caseIdx];
+  const elapsed = Math.floor((Date.now() - G.caseStart) / 1000);
+  const isCorrect = selected === fault.correct_fault;
+
+  // Calculate points
+  let points = 0;
+  if(isCorrect) {
+    const usedCredits = document.querySelectorAll('.credit-dot.used').length;
+    const creditBonus = Math.max(0, (G.currentCredits - usedCredits));
+    points = Math.round(fault.points_max * (creditBonus / G.currentCredits));
+    points = Math.max(points, 20); // minimum 20 if correct
+    G.score += points;
+  }
+
+  G.caseResults.push({
+    caseNum: G.caseIdx + 1,
+    complaint: fault.complaint.substring(0,50)+'...',
+    correct: isCorrect,
+    time: elapsed,
+    steps: G.currentSteps,
+    points,
+    selectedFault: selected,
+    correctFault: fault.correct_fault
+  });
+
+  // Show result
+  showResult(isCorrect, fault, elapsed, points);
+}
+
+function showResult(isCorrect, fault, elapsed, points) {
+  const overlay = document.getElementById('result-overlay');
+  document.getElementById('result-icon').textContent = isCorrect ? '✅' : '❌';
+  document.getElementById('result-title').textContent = isCorrect ? 'CORRECT DIAGNOSIS!' : 'INCORRECT';
+  document.getElementById('result-title').className = `result-title ${isCorrect?'correct':'wrong'}`;
+  document.getElementById('result-explanation').innerHTML =
+    `<strong>${fault.correct_fault}</strong><br><br>${fault.explanation}`;
+  document.getElementById('rs-time').textContent = formatTime(elapsed);
+  document.getElementById('rs-steps').textContent = G.currentSteps;
+  document.getElementById('rs-points').textContent = isCorrect ? `+${points}` : '+0';
+  document.getElementById('hud-score').textContent = G.score;
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.textContent = G.caseIdx < 4 ? 'NEXT CASE →' : 'END OF DAY →';
+  overlay.style.display = 'flex';
+}
+
+function nextCase() {
+  document.getElementById('result-overlay').style.display = 'none';
+  G.caseIdx++;
+  if(G.caseIdx >= 5) {
+    showSummary();
+  } else {
+    loadCase();
+  }
+}
+
+// ============================================================
+// SUMMARY
+// ============================================================
+
+function showSummary() {
+  if(G.wakeLock) G.wakeLock.release();
+  clearInterval(G.caseTimer);
+  showScreen('summary');
+
+  const av = AVATARS[G.avatarIdx];
+  const totalTime = Math.floor((Date.now()-G.sessionStart)/1000);
+  const solved = G.caseResults.filter(r=>r.correct).length;
+  const totalSteps = G.caseResults.reduce((s,r)=>s+r.steps,0);
+
+  document.getElementById('summary-av-icon').textContent = av.emoji;
+  document.getElementById('summary-av-name').textContent = G.playerName;
+  document.getElementById('summary-av-workshop').textContent = G.workshopName;
+  document.getElementById('summary-date').textContent = new Date().toLocaleDateString('en-IN', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('total-solved').textContent = `${solved}/5`;
+  document.getElementById('total-time').textContent = formatTime(totalTime);
+  document.getElementById('total-steps').textContent = totalSteps;
+
+  // Tier badge
+  const isApprentice = G.difficulty === 'apprentice';
+  const tierBadge = document.getElementById('summary-tier-badge');
+  const tierBar = document.getElementById('summary-tier-bar');
+  tierBadge.textContent = isApprentice ? '🟢 APPRENTICE LEVEL' : '🟡 SR. TECHNICIAN LEVEL';
+  tierBadge.className = `tier-badge ${isApprentice ? 'tier-apprentice' : 'tier-srtech'}`;
+  tierBar.className = `summary-tier-bar ${isApprentice ? 'apprentice' : 'srtech'}`;
+
+  // Rating
+  const pct = G.score / (G.difficulty==='apprentice'?500:750) * 100;
+  let rating, ratingClass;
+  if(pct >= 80){rating='⭐ MASTER';ratingClass='rating-master';}
+  else if(pct>=60){rating='🔵 EXPERT';ratingClass='rating-expert';}
+  else if(pct>=40){rating='🟢 TECHNICIAN';ratingClass='rating-technician';}
+  else{rating='⚪ ROOKIE';ratingClass='rating-rookie';}
+
+  const badge = document.getElementById('rating-badge');
+  badge.textContent = rating;
+  badge.className = `rating-badge ${ratingClass}`;
+
+  // Cases table
+  const tbody = document.getElementById('cases-tbody');
+  tbody.innerHTML = G.caseResults.map(r=>`
+    <tr>
+      <td>Case ${r.caseNum}</td>
+      <td style="color:var(--muted);font-size:12px">${r.complaint}</td>
+      <td class="${r.correct?'status-solved':'status-unsolved'}">${r.correct?'✅ Solved':'❌ Unsolved'}</td>
+      <td style="font-family:'Share Tech Mono',monospace">${formatTime(r.time)}</td>
+      <td>${r.steps}</td>
+    </tr>
+  `).join('');
+}
+
+// ============================================================
+// PDF DOWNLOAD
+// ============================================================
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const av = AVATARS[G.avatarIdx];
+  const solved = G.caseResults.filter(r=>r.correct).length;
+  const totalTime = Math.floor((Date.now()-G.sessionStart)/1000);
+  const totalSteps = G.caseResults.reduce((s,r)=>s+r.steps,0);
+
+  const isApprentice = G.difficulty === 'apprentice';
+  const tierLabel = isApprentice ? 'APPRENTICE LEVEL' : 'SR. TECHNICIAN LEVEL';
+  const tierRGB = isApprentice ? [0,200,150] : [245,166,35];
+
+  // Header background
+  doc.setFillColor(30,45,90);
+  doc.rect(0,0,210,45,'F');
+
+  // Tier colour bar under header
+  doc.setFillColor(...tierRGB);
+  doc.rect(0,43,210,2,'F');
+
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(20);
+  doc.setFont('helvetica','bold');
+  doc.text('SKYY SKILL ACADEMY', 105, 16, {align:'center'});
+  doc.setFontSize(10);
+  doc.setFont('helvetica','normal');
+  doc.text('THANE CAMPUS — EV MECHANIC SIMULATOR', 105, 24, {align:'center'});
+  doc.setFontSize(14);
+  doc.setFont('helvetica','bold');
+  doc.text('END OF DAY DIAGNOSTIC REPORT', 105, 36, {align:'center'});
+
+  // Avatar info box
+  doc.setFillColor(22,32,48);
+  doc.roundedRect(14,52,182,30,3,3,'F');
+  doc.setTextColor(41,182,212);
+  doc.setFontSize(18);
+  doc.text(av.name, 55,63);
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13);
+  doc.text(G.playerName, 55,72);
+  doc.setTextColor(150,180,200);
+  doc.setFontSize(10);
+  doc.text(G.workshopName + ' — EV Specialist', 55,79);
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(24);
+  doc.text(av.emoji.replace(/[\uD800-\uDFFF]/g,'?'), 30, 74);
+
+  // Tier badge pill in avatar box
+  doc.setFillColor(...tierRGB);
+  doc.roundedRect(140, 57, 50, 10, 2, 2, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica','bold');
+  doc.text(tierLabel, 165, 63.5, {align:'center'});
+
+  // Date
+  doc.setTextColor(150,180,200);
+  doc.setFontSize(9);
+  doc.text(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}), 190,79,{align:'right'});
+
+  // Stats row
+  const statsY = 92;
+  const statBoxes = [
+    {label:'Cases Solved', value:`${solved}/5`},
+    {label:'Total Time', value:formatTime(totalTime)},
+    {label:'Total Steps', value:String(totalSteps)},
+    {label:'Score', value:String(G.score)}
+  ];
+  statBoxes.forEach((sb,i)=>{
+    const x = 14 + i*47;
+    doc.setFillColor(22,32,48);
+    doc.roundedRect(x, statsY, 44, 20, 2, 2, 'F');
+    doc.setTextColor(41,182,212);
+    doc.setFontSize(16);
+    doc.setFont('helvetica','bold');
+    doc.text(sb.value, x+22, statsY+11, {align:'center'});
+    doc.setTextColor(120,160,180);
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.text(sb.label.toUpperCase(), x+22, statsY+17, {align:'center'});
+  });
+
+  // Cases table
+  const tableY = 122;
+  doc.setFillColor(30,45,90);
+  doc.rect(14,tableY,182,8,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(9);
+  doc.setFont('helvetica','bold');
+  ['#','COMPLAINT','RESULT','TIME','STEPS'].forEach((h,i)=>{
+    const xs=[18,30,130,160,178];
+    doc.text(h,xs[i],tableY+5.5);
+  });
+
+  G.caseResults.forEach((r,i)=>{
+    const rowY = tableY+8+(i*14);
+    doc.setFillColor(i%2===0?22:18, i%2===0?32:28, i%2===0?48:40);
+    doc.rect(14,rowY,182,14,'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(180,200,220);
+    doc.text(String(r.caseNum),18,rowY+5.5);
+    const comp = r.complaint.length>55?r.complaint.substring(0,55)+'...':r.complaint;
+    doc.text(comp,30,rowY+5.5);
+    doc.setTextColor(r.correct?[76,175,80]:[229,57,53]);
+    doc.text(r.correct?'SOLVED':'UNSOLVED',130,rowY+5.5);
+    doc.setTextColor(180,200,220);
+    doc.text(formatTime(r.time),160,rowY+5.5);
+    doc.text(String(r.steps),178,rowY+5.5);
+    // Fault line
+    doc.setTextColor(120,150,180);
+    doc.setFontSize(7);
+    doc.text(`Diagnosis: ${r.selectedFault.substring(0,65)}`,30,rowY+10.5);
+  });
+
+  // Rating bar — tier coloured
+  const ratingY = tableY+8+(5*14)+8;
+  const pct = G.score/(G.difficulty==='apprentice'?500:750)*100;
+  let ratingText = pct>=80?'MASTER MECHANIC':pct>=60?'EXPERT':pct>=40?'TECHNICIAN':'ROOKIE';
+  doc.setFillColor(...tierRGB);
+  doc.roundedRect(14,ratingY,182,16,3,3,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(13);
+  doc.setFont('helvetica','bold');
+  doc.text(`MECHANIC RATING: ${ratingText}`, 105, ratingY+10, {align:'center'});
+
+  // Footer
+  doc.setFillColor(14,27,42);
+  doc.rect(0,272,210,25,'F');
+  doc.setTextColor(...tierRGB);
+  doc.setFontSize(8);
+  doc.setFont('helvetica','normal');
+  doc.text('Skyy Skill Academy — Thane Campus | EV Mechanic Simulator', 105, 281, {align:'center'});
+  doc.text(`Level: ${tierLabel} | Generated: ${new Date().toLocaleString()}`, 105, 288, {align:'center'});
+
+  doc.save(`EV_Report_${G.playerName.replace(/\s/g,'_')}_${Date.now()}.pdf`);
+}
+
+// ============================================================
+// SHARE UNSOLVED
+// ============================================================
+
+function showShareModal() {
+  const unsolved = G.caseResults.filter(r=>!r.correct);
+  if(unsolved.length === 0) {
+    alert('All cases were solved! No unsolved cases to share.');
+    return;
+  }
+  const list = document.getElementById('unsolved-list');
+  list.innerHTML = unsolved.map(r=>`
+    <li class="unsolved-item">
+      <div class="ui-case">Case ${r.caseNum}</div>
+      <div class="ui-complaint">${r.complaint}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Your answer: ${r.selectedFault}</div>
+    </li>
+  `).join('');
+  document.getElementById('share-modal').style.display = 'flex';
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal').style.display = 'none';
+}
+
+function copyUnsolved() {
+  const unsolved = G.caseResults.filter(r=>!r.correct);
+  const tierLabel = G.difficulty === 'apprentice' ? 'Apprentice' : 'Sr. Technician';
+  const text = `EV Mechanic Simulator — Unsolved Cases\nStudent: ${G.playerName} | Workshop: ${G.workshopName} | Level: ${tierLabel}\nDate: ${new Date().toLocaleDateString()}\n\n` +
+    unsolved.map(r=>`Case ${r.caseNum}: ${r.complaint}\nStudent diagnosed: ${r.selectedFault}`).join('\n\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ Copied!';
+    setTimeout(()=>{ btn.textContent='📋 Copy to Clipboard'; },2000);
+  });
+}
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// Validate form on input
+['input-name','input-workshop'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', validateForm);
+});
+
+function validateForm() {
+  const name = document.getElementById('input-name').value.trim();
+  const workshop = document.getElementById('input-workshop').value.trim();
+  document.getElementById('btn-start').disabled = !(name && workshop);
+}
+validateForm();
+</script>
+</body>
+</html>
