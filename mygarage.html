@@ -8,23 +8,26 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
-  --navy: #1e2d5a;
-  --blue: #2176ae;
-  --cyan: #29b6d4;
-  --orange: #f47c20;
-  --green: #4caf50;
-  --red: #e53935;
-  --yellow: #ffc107;
-  --bg: #0d1b2a;
-  --surface: #162032;
-  --surface2: #1e2d40;
-  --border: #2a3f55;
-  --text: #e8f0fe;
-  --muted: #7a9ab5;
-  --success: #4caf50;
-  --danger: #e53935;
-  --apprentice: #00c896;
-  --sr-tech: #f5a623;
+  --navy: #1e3a5f;
+  --blue: #1a6eb5;
+  --cyan: #0e8fa8;
+  --orange: #d4650e;
+  --green: #1a9e48;
+  --red: #c42828;
+  --yellow: #b8960a;
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --surface2: #e8edf4;
+  --border: #d0dae8;
+  --border2: #b8c8dc;
+  --text: #1a2535;
+  --muted: #5a7a99;
+  --success: #1a9e48;
+  --danger: #c42828;
+  --apprentice: #009e70;
+  --sr-tech: #c87c10;
+  --orangeBg: #fff5ee;
+  --cyanBg: #edf8fb;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -39,8 +42,9 @@ body {
 
 /* ===== HEADER ===== */
 .game-header {
-  background: var(--surface);
-  border-bottom: 2px solid var(--border);
+  background: rgba(255,255,255,0.96);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
   padding: 10px 20px;
   display: flex;
   align-items: center;
@@ -50,18 +54,18 @@ body {
 .logo-area { display:flex; align-items:center; gap:10px; }
 .logo-area img { height:40px; }
 .logo-text { font-family:'Rajdhani',sans-serif; font-size:13px; color:var(--muted); line-height:1.2; }
-.logo-text strong { color:var(--cyan); display:block; font-size:15px; }
+.logo-text strong { color:var(--blue); display:block; font-size:15px; }
 .hud { display:flex; gap:16px; align-items:center; }
 .hud-item { text-align:center; }
 .hud-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
-.hud-value { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--cyan); }
+.hud-value { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--blue); }
 .hud-value.orange { color:var(--orange); }
 .hud-value.green { color:var(--green); }
 
 /* ===== WELCOME SCREEN ===== */
 #screen-welcome {
   justify-content: center; align-items: center;
-  background: radial-gradient(ellipse at 30% 50%, #162d50 0%, #0d1b2a 70%);
+  background: radial-gradient(ellipse at 30% 50%, rgba(26,110,181,0.08) 0%, var(--bg) 70%);
   padding: 20px;
 }
 .welcome-inner { max-width:600px; width:100%; text-align:center; }
@@ -71,22 +75,22 @@ body {
   font-family:'Rajdhani',sans-serif;
   font-size:clamp(32px,6vw,52px);
   font-weight:700;
-  color:#fff;
+  color:var(--text);
   line-height:1;
   margin-bottom:6px;
 }
 .welcome-title span { color:var(--cyan); }
 .welcome-sub { color:var(--muted); font-size:15px; margin-bottom:30px; }
-.welcome-form { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; text-align:left; }
+.welcome-form { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; text-align:left; box-shadow:0 4px 20px rgba(0,0,0,0.07); }
 .form-row { margin-bottom:18px; }
-.form-label { display:block; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.form-label { display:block; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:700; }
 .form-input {
-  width:100%; background:var(--bg); border:1px solid var(--border);
+  width:100%; background:var(--bg); border:1px solid var(--border2);
   border-radius:8px; padding:12px 14px; color:var(--text);
   font-family:'Nunito',sans-serif; font-size:15px;
   transition: border-color 0.2s;
 }
-.form-input:focus { outline:none; border-color:var(--cyan); }
+.form-input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(26,110,181,0.1); }
 .difficulty-row { display:flex; gap:12px; }
 .diff-btn {
   flex:1; padding:12px; border-radius:8px; border:2px solid var(--border);
@@ -94,10 +98,10 @@ body {
   font-family:'Rajdhani',sans-serif; font-weight:600; font-size:15px;
   transition:all 0.2s; text-align:center;
 }
-.diff-btn:hover { border-color:var(--cyan); color:var(--cyan); }
-.diff-btn.selected { border-color:var(--cyan); background:rgba(41,182,212,0.1); color:var(--cyan); }
-.diff-btn[data-diff="apprentice"].selected { border-color:var(--apprentice); background:rgba(0,200,150,0.1); color:var(--apprentice); }
-.diff-btn[data-diff="srtech"].selected { border-color:var(--sr-tech); background:rgba(245,166,35,0.1); color:var(--sr-tech); }
+.diff-btn:hover { border-color:var(--blue); color:var(--blue); }
+.diff-btn.selected { border-color:var(--blue); background:rgba(26,110,181,0.08); color:var(--blue); }
+.diff-btn[data-diff="apprentice"].selected { border-color:var(--apprentice); background:rgba(0,158,112,0.08); color:var(--apprentice); }
+.diff-btn[data-diff="srtech"].selected { border-color:var(--sr-tech); background:rgba(200,124,16,0.08); color:var(--sr-tech); }
 .diff-btn .diff-icon { font-size:22px; display:block; margin-bottom:4px; }
 
 /* Difficulty tier badges */
@@ -107,8 +111,8 @@ body {
   font-family:'Rajdhani',sans-serif; font-weight:700;
   font-size:12px; letter-spacing:1px;
 }
-.tier-apprentice { background:rgba(0,200,150,0.15); color:var(--apprentice); border:1px solid var(--apprentice); }
-.tier-srtech { background:rgba(245,166,35,0.15); color:var(--sr-tech); border:1px solid var(--sr-tech); }
+.tier-apprentice { background:rgba(0,158,112,0.1); color:var(--apprentice); border:1px solid var(--apprentice); }
+.tier-srtech { background:rgba(200,124,16,0.1); color:var(--sr-tech); border:1px solid var(--sr-tech); }
 .summary-tier-bar {
   height:4px; width:100%; border-radius:2px; margin-bottom:16px;
 }
@@ -117,36 +121,36 @@ body {
 .avatar-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
 .avatar-card {
   background:var(--bg); border:2px solid var(--border);
-  border-radius:10px; padding:12px 6px; text-align:center;
+  border-radius:10px; padding:14px 6px; text-align:center;
   cursor:pointer; transition:all 0.2s;
 }
-.avatar-card:hover { border-color:var(--cyan); }
-.avatar-card.selected { border-color:var(--orange); background:rgba(244,124,32,0.1); }
-.avatar-card .av-emoji { font-size:32px; display:block; margin-bottom:4px; }
-.avatar-card .av-name { font-size:11px; color:var(--muted); }
+.avatar-card:hover { border-color:var(--blue); background:rgba(26,110,181,0.04); }
+.avatar-card.selected { border-color:var(--orange); background:var(--orangeBg); box-shadow:0 0 0 3px rgba(212,101,14,0.12); }
+.avatar-card .av-emoji { font-size:32px; display:block; }
 .btn-primary {
   width:100%; padding:14px; border-radius:10px; border:none;
-  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  background: linear-gradient(135deg, var(--navy), var(--blue));
   color:#fff; font-family:'Rajdhani',sans-serif; font-weight:700;
   font-size:18px; cursor:pointer; letter-spacing:1px;
   transition: transform 0.1s, box-shadow 0.2s;
-  box-shadow: 0 4px 20px rgba(41,182,212,0.3);
+  box-shadow: 0 4px 16px rgba(26,110,181,0.3);
   margin-top:8px;
 }
-.btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 25px rgba(41,182,212,0.4); }
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 22px rgba(26,110,181,0.4); }
 .btn-primary:active { transform:translateY(0); }
 .btn-primary:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
 
 /* ===== INTRO SCREEN ===== */
 #screen-intro {
   justify-content:center; align-items:center;
-  background: radial-gradient(ellipse at 70% 30%, #1a3a1a 0%, #0d1b2a 70%);
+  background: radial-gradient(ellipse at 70% 30%, rgba(26,158,72,0.07) 0%, var(--bg) 70%);
   padding:20px;
 }
 .intro-card {
   max-width:560px; width:100%;
   background:var(--surface); border:1px solid var(--border);
   border-radius:20px; padding:32px; text-align:center;
+  box-shadow:0 4px 24px rgba(0,0,0,0.08);
 }
 .workshop-badge {
   display:inline-block; background:var(--orange);
@@ -155,11 +159,12 @@ body {
   padding:4px 14px; border-radius:20px; margin-bottom:16px;
 }
 .intro-avatar-big { font-size:64px; margin:10px 0; }
-.intro-name { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:#fff; }
-.intro-workshop { color:var(--cyan); font-size:14px; margin-bottom:20px; }
+.intro-name { font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--text); }
+.intro-workshop { color:var(--blue); font-size:14px; margin-bottom:20px; }
 .day-timeline {
   display:flex; gap:6px; margin:20px 0;
-  background:var(--bg); border-radius:10px; padding:12px;
+  background:var(--surface2); border-radius:10px; padding:12px;
+  border:1px solid var(--border);
 }
 .day-slot {
   flex:1; text-align:center; padding:8px 4px;
@@ -181,6 +186,7 @@ body {
   background:var(--surface); border:1px solid var(--border);
   border-radius:14px; padding:18px; display:flex; gap:14px; align-items:flex-start;
   position:relative; overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
 }
 .customer-panel::before {
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
@@ -197,7 +203,8 @@ body {
 }
 .customer-info .vehicle-info {
   margin-top:8px; font-size:12px; color:var(--muted);
-  background:var(--bg); border-radius:6px; padding:6px 10px; display:inline-block;
+  background:var(--surface2); border-radius:6px; padding:6px 10px; display:inline-block;
+  border:1px solid var(--border);
 }
 
 .case-progress {
@@ -206,18 +213,18 @@ body {
 }
 .case-number {
   font-family:'Rajdhani',sans-serif; font-weight:700;
-  font-size:20px; color:var(--cyan);
+  font-size:20px; color:var(--blue);
 }
 .progress-bar {
   flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden;
 }
 .progress-fill {
   height:100%; border-radius:3px;
-  background:linear-gradient(90deg, var(--blue), var(--cyan));
+  background:linear-gradient(90deg, var(--navy), var(--blue));
   transition: width 0.4s ease;
 }
 .case-timer {
-  font-family:'Share Tech Mono',monospace; font-size:16px; color:var(--yellow);
+  font-family:'Share Tech Mono',monospace; font-size:16px; color:var(--orange); font-weight:700;
 }
 
 .diagnostic-area { display:flex; gap:14px; flex:1; }
@@ -226,6 +233,7 @@ body {
   width:200px; flex-shrink:0;
   background:var(--surface); border:1px solid var(--border);
   border-radius:14px; padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
 }
 .systems-panel h3 {
   font-size:11px; color:var(--muted); text-transform:uppercase;
@@ -235,14 +243,15 @@ body {
   width:100%; padding:10px 12px; border-radius:8px;
   border:1px solid var(--border); background:var(--bg);
   color:var(--text); cursor:pointer; font-family:'Nunito',sans-serif;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
   font-size:13px; text-align:left; margin-bottom:6px;
   display:flex; align-items:center; gap:8px;
   transition:all 0.2s;
 }
-.system-btn:hover:not(:disabled) { border-color:var(--cyan); color:var(--cyan); }
+.system-btn:hover:not(:disabled) { border-color:var(--blue); color:var(--blue); background:var(--cyanBg); }
 .system-btn:disabled { opacity:0.35; cursor:not-allowed; }
-.system-btn.inspected { border-color:var(--green); color:var(--green); background:rgba(76,175,80,0.08); }
-.system-btn.wrong { border-color:var(--red); color:var(--red); background:rgba(229,57,53,0.08); }
+.system-btn.inspected { border-color:var(--green); color:var(--green); background:rgba(26,158,72,0.07); }
+.system-btn.wrong { border-color:var(--red); color:var(--red); background:rgba(196,40,40,0.06); }
 .system-btn .sys-icon { font-size:16px; }
 .credit-bar { margin-top:12px; }
 .credit-label { font-size:10px; color:var(--muted); margin-bottom:4px; }
@@ -251,11 +260,12 @@ body {
   width:10px; height:10px; border-radius:50%;
   background:var(--green); transition:background 0.3s;
 }
-.credit-dot.used { background:var(--border); }
+.credit-dot.used { background:var(--border2); }
 
 .checklist-panel {
   flex:1; background:var(--surface); border:1px solid var(--border);
   border-radius:14px; padding:16px; display:flex; flex-direction:column;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
 }
 .checklist-panel h3 {
   font-size:11px; color:var(--muted); text-transform:uppercase;
@@ -265,7 +275,7 @@ body {
   flex:1; display:flex; flex-direction:column;
   align-items:center; justify-content:center;
   color:var(--muted); text-align:center;
-  border:2px dashed var(--border); border-radius:10px; padding:20px;
+  border:2px dashed var(--border2); border-radius:10px; padding:20px;
 }
 .checklist-empty .ce-icon { font-size:36px; margin-bottom:8px; opacity:0.5; }
 .checklist-items { list-style:none; flex:1; overflow-y:auto; }
@@ -273,39 +283,40 @@ body {
   padding:10px 12px; border-radius:8px;
   border-left:3px solid var(--border);
   margin-bottom:8px; font-size:13px;
-  background:var(--bg); animation: slideIn 0.3s ease;
+  background:var(--surface2); animation: slideIn 0.3s ease;
 }
 @keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
 .checklist-item .ci-system {
   font-size:10px; color:var(--muted); text-transform:uppercase;
   letter-spacing:1px; margin-bottom:3px;
 }
-.checklist-item.observation { border-left-color:var(--cyan); }
+.checklist-item.observation { border-left-color:var(--blue); }
 .checklist-item.warning { border-left-color:var(--yellow); }
 .checklist-item.normal { border-left-color:var(--green); }
 
 .diagnosis-area {
   background:var(--surface); border:1px solid var(--border);
   border-radius:14px; padding:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
 }
 .diagnosis-area h3 {
   font-size:11px; color:var(--muted); text-transform:uppercase;
   letter-spacing:1px; margin-bottom:10px;
 }
 .diagnosis-input {
-  width:100%; background:var(--bg); border:1px solid var(--border);
+  width:100%; background:var(--bg); border:1px solid var(--border2);
   border-radius:8px; padding:10px 12px; color:var(--text);
   font-family:'Nunito',sans-serif; font-size:14px;
   resize:none; min-height:70px;
 }
-.diagnosis-input:focus { outline:none; border-color:var(--cyan); }
+.diagnosis-input:focus { outline:none; border-color:var(--blue); }
 .fault-select-area { margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
 .fault-select {
-  flex:1; min-width:200px; background:var(--bg); border:1px solid var(--border);
+  flex:1; min-width:200px; background:var(--bg); border:1px solid var(--border2);
   border-radius:8px; padding:10px 12px; color:var(--text);
   font-family:'Nunito',sans-serif; font-size:14px;
 }
-.fault-select:focus { outline:none; border-color:var(--cyan); }
+.fault-select:focus { outline:none; border-color:var(--blue); }
 .btn-submit {
   padding:10px 24px; border-radius:8px; border:none;
   background:linear-gradient(135deg, var(--orange), #ff9800);
@@ -318,14 +329,15 @@ body {
 
 /* ===== RESULT OVERLAY ===== */
 .result-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,0.85);
+  position:fixed; inset:0; background:rgba(20,35,55,0.75);
   display:flex; align-items:center; justify-content:center;
-  z-index:200; padding:20px; backdrop-filter:blur(4px);
+  z-index:200; padding:20px; backdrop-filter:blur(6px);
 }
 .result-card {
   background:var(--surface); border-radius:20px;
   padding:32px; max-width:520px; width:100%; text-align:center;
   border:1px solid var(--border); position:relative;
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
 }
 .result-icon { font-size:60px; margin-bottom:12px; }
 .result-title {
@@ -336,18 +348,20 @@ body {
 .result-title.wrong { color:var(--red); }
 .result-explanation {
   color:var(--muted); font-size:14px; line-height:1.6;
-  margin-bottom:20px; background:var(--bg);
+  margin-bottom:20px; background:var(--surface2);
   border-radius:8px; padding:12px; text-align:left;
+  border:1px solid var(--border);
 }
 .result-stats { display:flex; gap:16px; justify-content:center; margin-bottom:20px; }
 .rs-item { text-align:center; }
-.rs-value { font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:var(--cyan); }
+.rs-value { font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:var(--blue); }
 .rs-label { font-size:11px; color:var(--muted); }
 .btn-next {
   padding:12px 32px; border-radius:10px; border:none;
-  background:linear-gradient(135deg, var(--blue), var(--cyan));
+  background:linear-gradient(135deg, var(--navy), var(--blue));
   color:#fff; font-family:'Rajdhani',sans-serif;
   font-weight:700; font-size:18px; cursor:pointer; letter-spacing:1px;
+  box-shadow:0 3px 12px rgba(26,110,181,0.3);
 }
 
 /* ===== IDLE CUSTOMER ===== */
@@ -356,11 +370,12 @@ body {
   background:var(--surface); border:2px solid var(--orange);
   border-radius:16px; padding:16px 20px; z-index:150;
   max-width:280px; display:none; animation:bounceIn 0.4s ease;
+  box-shadow:0 6px 24px rgba(0,0,0,0.12);
 }
 @keyframes bounceIn { from{transform:scale(0.5) translateY(30px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
 .idle-customer { display:flex; gap:10px; align-items:flex-start; }
 .idle-avatar { font-size:32px; flex-shrink:0; }
-.idle-bubble { font-size:13px; color:var(--text); line-height:1.4; }
+.idle-bubble { font-size:13px; color:var(--text); line-height:1.4; font-weight:600; }
 .idle-close {
   position:absolute; top:8px; right:10px;
   background:none; border:none; color:var(--muted);
@@ -370,16 +385,17 @@ body {
 /* ===== SUMMARY SCREEN ===== */
 #screen-summary {
   justify-content:center; align-items:center;
-  background: radial-gradient(ellipse at 50% 30%, #1a2d1a 0%, #0d1b2a 70%);
+  background: radial-gradient(ellipse at 50% 30%, rgba(26,110,181,0.07) 0%, var(--bg) 70%);
   padding:20px;
 }
 .summary-card {
   max-width:600px; width:100%;
   background:var(--surface); border:1px solid var(--border);
   border-radius:20px; overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,0.1);
 }
 .summary-header {
-  background:linear-gradient(135deg, var(--navy), var(--blue));
+  background:linear-gradient(135deg, #1e3a5f, #1a6eb5);
   padding:24px; text-align:center; position:relative;
 }
 .summary-header::after {
@@ -392,16 +408,17 @@ body {
   font-weight:700; color:#fff;
 }
 .summary-subtitle { color:rgba(255,255,255,0.6); font-size:13px; }
-.summary-body { padding:24px; }
+.summary-body { padding:24px; background:var(--surface); }
 .summary-avatar-row {
   display:flex; align-items:center; gap:16px;
-  background:var(--bg); border-radius:12px; padding:16px;
+  background:var(--surface2); border-radius:12px; padding:16px;
   margin-bottom:20px;
+  border:1px solid var(--border);
 }
 .summary-av { font-size:52px; }
 .summary-av-info { flex:1; }
-.summary-av-name { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:#fff; }
-.summary-av-workshop { color:var(--cyan); font-size:13px; }
+.summary-av-name { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:var(--text); }
+.summary-av-workshop { color:var(--blue); font-size:13px; }
 .mechanic-rating {
   text-align:right;
 }
@@ -423,7 +440,7 @@ body {
 }
 .cases-table td {
   padding:10px 8px; font-size:13px;
-  border-bottom:1px solid rgba(42,63,85,0.5);
+  border-bottom:1px solid var(--border);
 }
 .cases-table tr:last-child td { border-bottom:none; }
 .status-solved { color:var(--green); font-weight:700; }
@@ -434,12 +451,13 @@ body {
   gap:12px; margin-bottom:20px;
 }
 .total-item {
-  background:var(--bg); border-radius:10px; padding:14px;
+  background:var(--surface2); border-radius:10px; padding:14px;
   text-align:center;
+  border:1px solid var(--border);
 }
 .total-value {
   font-family:'Rajdhani',sans-serif; font-size:26px;
-  font-weight:700; color:var(--cyan);
+  font-weight:700; color:var(--blue);
 }
 .total-label { font-size:11px; color:var(--muted); margin-top:2px; }
 
@@ -452,31 +470,32 @@ body {
 }
 .btn-share {
   padding:13px 20px; border-radius:10px;
-  border:1px solid var(--border); background:var(--bg);
+  border:1px solid var(--border2); background:var(--surface);
   color:var(--text); font-family:'Rajdhani',sans-serif;
   font-weight:700; font-size:14px; cursor:pointer;
 }
-.btn-share:hover { border-color:var(--cyan); color:var(--cyan); }
+.btn-share:hover { border-color:var(--blue); color:var(--blue); }
 
 /* ===== UNSOLVED SHARE MODAL ===== */
 .share-modal {
-  position:fixed; inset:0; background:rgba(0,0,0,0.85);
+  position:fixed; inset:0; background:rgba(20,35,55,0.75);
   display:flex; align-items:center; justify-content:center;
-  z-index:300; padding:20px; backdrop-filter:blur(4px);
+  z-index:300; padding:20px; backdrop-filter:blur(6px);
 }
 .share-inner {
   background:var(--surface); border-radius:20px;
   padding:28px; max-width:480px; width:100%;
   border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
 }
 .share-inner h2 {
   font-family:'Rajdhani',sans-serif; font-size:24px;
-  color:#fff; margin-bottom:8px;
+  color:var(--text); margin-bottom:8px;
 }
 .share-inner p { color:var(--muted); font-size:14px; margin-bottom:16px; }
 .unsolved-list { list-style:none; margin-bottom:20px; }
 .unsolved-item {
-  background:var(--bg); border-radius:8px; padding:12px;
+  background:var(--orangeBg); border-radius:8px; padding:12px;
   margin-bottom:8px; border-left:3px solid var(--orange);
 }
 .unsolved-item .ui-case { font-size:11px; color:var(--orange); text-transform:uppercase; }
@@ -490,7 +509,7 @@ body {
 }
 .btn-cancel {
   padding:11px 20px; border-radius:8px;
-  border:1px solid var(--border); background:transparent;
+  border:1px solid var(--border2); background:var(--surface);
   color:var(--muted); cursor:pointer;
   font-family:'Rajdhani',sans-serif; font-size:15px;
 }
@@ -507,8 +526,8 @@ body {
 /* ===== ANIMATIONS ===== */
 .pulse { animation: pulse 2s infinite; }
 @keyframes pulse {
-  0%,100%{box-shadow:0 0 0 0 rgba(41,182,212,0.4)}
-  50%{box-shadow:0 0 0 8px rgba(41,182,212,0)}
+  0%,100%{box-shadow:0 0 0 0 rgba(26,110,181,0.35)}
+  50%{box-shadow:0 0 0 8px rgba(26,110,181,0)}
 }
 .shake { animation: shake 0.4s ease; }
 @keyframes shake {
@@ -524,7 +543,7 @@ body {
     <div class="welcome-logo">
       <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Placeholder_view_vector.svg/120px-Placeholder_view_vector.svg.png" alt="Logo" id="logo-img" style="display:none">
       <div style="font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--muted);line-height:1.3;text-align:center">
-        <span style="color:var(--cyan);font-size:16px;font-weight:700;display:block">SKYY SKILL ACADEMY</span>
+        <span style="color:var(--blue);font-size:16px;font-weight:700;display:block">SKYY SKILL ACADEMY</span>
         THANE CAMPUS
       </div>
     </div>
@@ -544,16 +563,16 @@ body {
         <label class="form-label">Choose Your Mechanic</label>
         <div class="avatar-grid" id="avatar-grid">
           <div class="avatar-card selected" data-av="0" onclick="selectAvatar(0)">
-            <span class="av-emoji">🧑‍🔧</span><span class="av-name">Arjun</span>
+            <span class="av-emoji">🧑‍🔧</span>
           </div>
           <div class="avatar-card" data-av="1" onclick="selectAvatar(1)">
-            <span class="av-emoji">👩‍🔧</span><span class="av-name">Priya</span>
+            <span class="av-emoji">👩‍🔧</span>
           </div>
           <div class="avatar-card" data-av="2" onclick="selectAvatar(2)">
-            <span class="av-emoji">🧔‍♂️</span><span class="av-name">Vikram</span>
+            <span class="av-emoji">🧔‍♂️</span>
           </div>
           <div class="avatar-card" data-av="3" onclick="selectAvatar(3)">
-            <span class="av-emoji">👱‍♀️</span><span class="av-name">Sneha</span>
+            <span class="av-emoji">👩</span>
           </div>
         </div>
       </div>
@@ -594,7 +613,7 @@ body {
   <div class="game-header">
     <div class="logo-area">
       <div style="font-family:'Rajdhani',sans-serif;font-size:12px;color:var(--muted);line-height:1.2">
-        <span style="color:var(--cyan);font-weight:700">SKYY SKILL</span><br>EV MECHANIC
+        <span style="color:var(--blue);font-weight:700">SKYY SKILL</span><br>EV MECHANIC
       </div>
     </div>
     <div class="hud">
@@ -674,7 +693,7 @@ body {
   <div class="summary-card" id="summary-card">
     <div class="summary-header">
       <div class="summary-logo">
-        <div style="font-family:'Rajdhani',sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px">SKYY SKILL ACADEMY</div>
+        <div style="font-family:'Rajdhani',sans-serif;color:#fff;font-size:20px;font-weight:700;letter-spacing:2px;letter-spacing:2px">SKYY SKILL ACADEMY</div>
         <div style="color:rgba(255,255,255,0.5);font-size:12px;letter-spacing:3px">THANE CAMPUS</div>
       </div>
       <div class="summary-title">END OF DAY REPORT</div>
@@ -784,7 +803,7 @@ const AVATARS = [
   { emoji:'🧑‍🔧', name:'Arjun' },
   { emoji:'👩‍🔧', name:'Priya' },
   { emoji:'🧔‍♂️', name:'Vikram' },
-  { emoji:'👱‍♀️', name:'Sneha' }
+  { emoji:'👩‍🦫', name:'Sneha' }
 ];
 
 const CUSTOMERS = [
@@ -811,7 +830,7 @@ const FAULTS_EASY = [
     vehicle_detail: "All lights working. Key turned on.",
     systems: ['Key & Fuse','Motor','Brake Switch','Battery'],
     clues: {
-      'Key & Fuse': [{type:'observation', text:'5A fuse on key circuit appears discoloured and broken at the filament.'}, {type:'warning', text:'No continuity detected across fuse terminals.'}],
+      'Key & Fuse': [{type:'observation', text:'5A fuse on key circuit appears discoloured and broken at the filament.'},{type:'warning', text:'No continuity detected across fuse terminals.'}],
       'Motor': [{type:'normal', text:'Motor windings appear intact with no visible burn marks.'}],
       'Brake Switch': [{type:'normal', text:'Brake cut switch operates normally — click felt when pressed.'}],
       'Battery': [{type:'normal', text:'Battery terminal voltage reads 48.2V. Appears healthy.'}]
@@ -889,6 +908,346 @@ const FAULTS_EASY = [
     explanation: 'The horn supply wire had developed a fatigue break at the handlebar due to repeated steering movement flexing the wire over time. The horn itself is fine — it just has no power reaching it.',
     wrong_systems: ['Horn','Battery'],
     points_max: 100
+  },
+  {
+    id:'A06',
+    complaint: "The vehicle moves but keeps stopping suddenly every few minutes, then starts again after a short wait.",
+    vehicle_detail: "No warning lights. Happens on smooth and rough roads alike.",
+    systems: ['Battery Terminals','Wiring','Key & Fuse','Controller'],
+    clues: {
+      'Battery Terminals': [{type:'warning', text:'Positive battery terminal bolt is loose — can be wiggled by hand.'},{type:'observation', text:'Slight arc burn marks visible on terminal surface indicating intermittent contact loss.'}],
+      'Wiring': [{type:'normal', text:'Main harness wiring intact. No breaks or chafing found.'}],
+      'Key & Fuse': [{type:'normal', text:'5A fuse intact. Key circuit continuity confirmed.'}],
+      'Controller': [{type:'normal', text:'Controller shows no fault codes. Resets cleanly after each stop.'}]
+    },
+    correct_fault: 'Loose Battery Terminal Causing Intermittent Power Loss',
+    fault_options: ['Loose Battery Terminal Causing Intermittent Power Loss','Controller overheating cut-out','Fuse intermittent failure','Wiring harness chafing'],
+    explanation: 'A loose positive battery terminal causes momentary loss of contact under vibration, cutting power to the entire system. The arc marks confirm repeated sparking at the joint. Tightening and cleaning the terminal resolves this completely.',
+    wrong_systems: ['Wiring','Controller'],
+    points_max: 100
+  },
+  {
+    id:'A07',
+    complaint: "My headlamp works but is very dim, even on full beam setting.",
+    vehicle_detail: "Lamp was recently replaced by a roadside shop.",
+    systems: ['Head Lamp','Buck Converter','Wiring','Battery'],
+    clues: {
+      'Head Lamp': [{type:'warning', text:'Installed bulb is rated 5W. Original specification is 12W — wrong wattage bulb fitted by roadside shop.'},{type:'normal', text:'Bulb socket and connector are secure with no corrosion.'}],
+      'Buck Converter': [{type:'normal', text:'Buck converter output reading stable 12.1V — within spec.'}],
+      'Wiring': [{type:'normal', text:'No voltage drop on headlamp supply wire. Full 12V reaching socket.'}],
+      'Battery': [{type:'normal', text:'48V main battery healthy. 12V line from Buck converter normal.'}]
+    },
+    correct_fault: 'Wrong Wattage Bulb Fitted — 5W Instead of 12W',
+    fault_options: ['Wrong Wattage Bulb Fitted — 5W Instead of 12W','Buck converter under-voltage','Wiring resistance reducing voltage','Battery 12V line weak'],
+    explanation: 'The roadside shop installed a 5W bulb where a 12W is required. The electrical supply is perfectly normal — the fault is entirely in the wrong component choice. Fitting the correct 12W bulb restores full brightness.',
+    wrong_systems: ['Buck Converter','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A08',
+    complaint: "Vehicle makes a clicking sound from the rear when I press the throttle but doesn't move.",
+    vehicle_detail: "Sound started after a service. Vehicle was partially dismantled.",
+    systems: ['Motor Connector','Controller','Battery','Brake Switch'],
+    clues: {
+      'Motor Connector': [{type:'warning', text:'Motor phase connector at rear partially unseated — only 2 of 3 phase pins making contact.'},{type:'observation', text:'Connector clip is unlatched, consistent with incomplete reassembly after service.'}],
+      'Controller': [{type:'observation', text:'Controller is sending drive signal — clicking sound is relay attempting to engage motor with incomplete phase connection.'}],
+      'Battery': [{type:'normal', text:'48V supply confirmed at controller input. Battery is not the issue.'}],
+      'Brake Switch': [{type:'normal', text:'Brake cut switch releasing correctly. Not engaged.'}]
+    },
+    correct_fault: 'Motor Phase Connector Partially Disconnected After Service',
+    fault_options: ['Motor Phase Connector Partially Disconnected After Service','Controller relay failure','Battery insufficient current','Brake switch not releasing'],
+    explanation: 'With only 2 of 3 motor phase connections active, the BLDC motor cannot generate rotational torque. Reseating and latching the phase connector fully restores operation.',
+    wrong_systems: ['Battery','Brake Switch'],
+    points_max: 100
+  },
+  {
+    id:'A09',
+    complaint: "Brake feels fine mechanically but the brake light never comes on.",
+    vehicle_detail: "All other lights working. Brake was recently adjusted.",
+    systems: ['Brake Switch','Tail Lamp','Wiring','Battery'],
+    clues: {
+      'Brake Switch': [{type:'warning', text:'Brake cut switch signal wire to tail lamp circuit has been disconnected — likely disturbed during brake adjustment.'},{type:'observation', text:'Wire end is clean-cut — not a fatigue break. Appears to have been unplugged and not reconnected.'}],
+      'Tail Lamp': [{type:'normal', text:'Tail lamp illuminates correctly in running light mode. Bulb is functional.'}],
+      'Wiring': [{type:'normal', text:'12V supply to tail lamp assembly confirmed. No breaks in main wiring.'}],
+      'Battery': [{type:'normal', text:'12V DC Buck converter output normal at 12.0V.'}]
+    },
+    correct_fault: 'Brake Switch Signal Wire Disconnected During Brake Adjustment',
+    fault_options: ['Brake Switch Signal Wire Disconnected During Brake Adjustment','Tail lamp brake filament blown','Wiring short circuit','12V supply failure to lamp'],
+    explanation: 'The brake light trigger wire was accidentally unplugged during the brake adjustment. The lamp itself works fine in running light mode. Reconnecting the wire from the brake switch to the tail lamp circuit restores brake light function.',
+    wrong_systems: ['Tail Lamp','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A10',
+    complaint: "The reverse function stopped working completely — forward is perfectly fine.",
+    vehicle_detail: "No recent repairs. Issue appeared suddenly.",
+    systems: ['Reverse-Forward Switch','Controller','Motor','Battery'],
+    clues: {
+      'Reverse-Forward Switch': [{type:'warning', text:'Toggle switch physically moves to reverse position but internal contact does not switch — switch mechanism worn internally.'},{type:'observation', text:'Switch has visible wear on the toggle lever from frequent use.'}],
+      'Controller': [{type:'normal', text:'Controller reverse input pin shows no signal when switch is in reverse position — confirming switch is not sending signal.'}],
+      'Motor': [{type:'normal', text:'Motor runs correctly in forward direction. No motor fault.'}],
+      'Battery': [{type:'normal', text:'48V supply stable.'}]
+    },
+    correct_fault: 'Reverse-Forward Toggle Switch Internal Contact Worn — Reverse Position Faulty',
+    fault_options: ['Reverse-Forward Toggle Switch Internal Contact Worn — Reverse Position Faulty','Controller reverse logic failure','Motor unable to reverse direction','Battery voltage drop under reverse load'],
+    explanation: 'The two-way toggle switch has developed an internal wear fault specifically on the reverse contact. The lever moves physically but the electrical contact no longer closes in that position. Switch replacement resolves this.',
+    wrong_systems: ['Motor','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A11',
+    complaint: "SOC meter shows full charge but vehicle dies within 2km every time.",
+    vehicle_detail: "Battery is 2 years old. Never replaced.",
+    systems: ['Battery SOC Meter','Battery','Wiring','Controller'],
+    clues: {
+      'Battery SOC Meter': [{type:'warning', text:'SOC meter display reads 100% but multimeter at battery terminals reads only 46.1V — well below full charge of 54.6V.'},{type:'observation', text:'SOC meter calibration has drifted — it is no longer accurately reflecting actual battery state.'}],
+      'Battery': [{type:'warning', text:'Actual battery capacity test shows only 40% of rated capacity remaining. Significant degradation confirmed.'}],
+      'Wiring': [{type:'normal', text:'No wiring faults found. Connections secure.'}],
+      'Controller': [{type:'normal', text:'Controller is receiving correct voltage signals and operating normally.'}]
+    },
+    correct_fault: 'SOC Meter Calibration Drift Masking Severely Degraded Battery',
+    fault_options: ['SOC Meter Calibration Drift Masking Severely Degraded Battery','Controller cutting power early','Wiring causing voltage drop','Battery connection loose'],
+    explanation: 'Two faults are present together: the SOC meter has drifted out of calibration showing false full charge, and the underlying battery has degraded to 40% capacity. The meter fault masked the battery problem.',
+    wrong_systems: ['Wiring','Controller'],
+    points_max: 100
+  },
+  {
+    id:'A12',
+    complaint: "Left indicator works fine but right indicator doesn't come on at all.",
+    vehicle_detail: "Indicators were working yesterday. No recent repairs.",
+    systems: ['Indicators','Flasher Unit','Wiring','Battery'],
+    clues: {
+      'Indicators': [{type:'warning', text:'Right indicator bulb filament visibly broken when inspected — bulb is blown.'},{type:'normal', text:'Left indicator bulb intact and functioning normally.'}],
+      'Flasher Unit': [{type:'normal', text:'Flasher unit clicks correctly when left indicator is operated. Unit is functional.'}],
+      'Wiring': [{type:'normal', text:'12V supply confirmed at right indicator socket — power is reaching it correctly.'}],
+      'Battery': [{type:'normal', text:'12V auxiliary supply from Buck converter reading 12.1V. Normal.'}]
+    },
+    correct_fault: 'Right Indicator Bulb Blown',
+    fault_options: ['Right Indicator Bulb Blown','Flasher unit only driving one side','Wiring break on right indicator','12V supply fault on right side'],
+    explanation: 'The right indicator bulb filament has simply blown. Power is reaching the socket correctly and the flasher unit is working. The asymmetric failure (one side working) points to a single component rather than a system fault.',
+    wrong_systems: ['Flasher Unit','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A13',
+    complaint: "Horn works but sounds very weak and distorted — like it is struggling.",
+    vehicle_detail: "No recent repairs. Horn has always been loud before.",
+    systems: ['Buck Converter','Horn','Battery','Wiring'],
+    clues: {
+      'Buck Converter': [{type:'warning', text:'Buck converter 12V output measuring 10.2V — below the 12V specification.'},{type:'observation', text:'Converter casing is warm to touch. Possible internal component ageing.'}],
+      'Horn': [{type:'normal', text:'Horn produces correct loud sound when supplied 12V directly from external source — horn unit itself is fine.'}],
+      'Battery': [{type:'normal', text:'48V main battery input to Buck converter is healthy at 48.4V.'}],
+      'Wiring': [{type:'normal', text:'No resistance on 12V output wiring.'}]
+    },
+    correct_fault: 'Buck Converter Under-Voltage Output — Supplying 10.2V Instead of 12V',
+    fault_options: ['Buck Converter Under-Voltage Output — Supplying 10.2V Instead of 12V','Horn diaphragm worn out','Battery unable to supply 12V line','Wiring resistance reducing horn voltage'],
+    explanation: 'The Buck converter is outputting 10.2V instead of 12V. The horn operates but sounds weak because it is starved of voltage. The horn unit itself is fine — confirmed by direct 12V test.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 100
+  },
+  {
+    id:'A14',
+    complaint: "Vehicle charges fine but the SOC meter stays completely blank the whole time.",
+    vehicle_detail: "Meter was working last week. No repairs done.",
+    systems: ['Battery SOC Meter','Wiring','Battery','Key & Fuse'],
+    clues: {
+      'Battery SOC Meter': [{type:'observation', text:'SOC meter display is completely dark. Applying 12V directly to meter terminals causes it to display correctly — meter unit is functional.'},{type:'warning', text:'Meter supply wire at the rear connector has pulled out from its crimp terminal.'}],
+      'Wiring': [{type:'warning', text:'SOC meter power wire found disconnected at the meter connector — pulled out from crimp, not broken in harness.'}],
+      'Battery': [{type:'normal', text:'Battery charging normally. Voltage at main terminals 52.1V.'}],
+      'Key & Fuse': [{type:'normal', text:'Key circuit and fuse intact. Main system powered correctly.'}]
+    },
+    correct_fault: 'SOC Meter Power Wire Pulled Out at Crimp Terminal',
+    fault_options: ['SOC Meter Power Wire Pulled Out at Crimp Terminal','SOC meter display unit failed','Battery not supplying meter circuit','Fuse on meter circuit blown'],
+    explanation: 'The SOC meter power wire has pulled out of its crimp connector at the back of the meter — a common failure from vibration over time. The meter itself is fully functional when powered directly. Re-crimping the wire resolves this immediately.',
+    wrong_systems: ['Battery','Key & Fuse'],
+    points_max: 100
+  },
+  {
+    id:'A15',
+    complaint: "Key is turned on but absolutely nothing powers up — completely dead. No lights, nothing.",
+    vehicle_detail: "Was working fine yesterday. Stored overnight in garage.",
+    systems: ['MCB','Key & Fuse','Battery','Wiring'],
+    clues: {
+      'MCB': [{type:'warning', text:'63A MCB is in the tripped position — toggle is at midpoint, not fully ON.'},{type:'observation', text:'MCB can be reset manually by switching fully OFF then fully ON. System powers up immediately after reset.'}],
+      'Key & Fuse': [{type:'normal', text:'5A key fuse intact. Key switch functioning correctly.'}],
+      'Battery': [{type:'normal', text:'Battery terminal voltage 48.6V — fully charged. Battery is healthy.'}],
+      'Wiring': [{type:'normal', text:'Main wiring harness shows no damage or short circuit.'}]
+    },
+    correct_fault: 'MCB Tripped — Requires Manual Reset',
+    fault_options: ['MCB Tripped — Requires Manual Reset','Key switch failed','Battery completely discharged','Main wiring short circuit'],
+    explanation: 'The MCB tripped, disconnecting all power. Unlike a blown fuse, an MCB can be reset. Switching it fully off then on restores complete power. The underlying cause of the trip should be investigated to prevent recurrence.',
+    wrong_systems: ['Key & Fuse','Wiring'],
+    points_max: 100
+  },
+  {
+    id:'A16',
+    complaint: "Tail lamp doesn't work at night but whenever I brake, the brake light comes on fine.",
+    vehicle_detail: "Recently started. No repairs done.",
+    systems: ['Tail Lamp','Wiring','Buck Converter','Battery'],
+    clues: {
+      'Tail Lamp': [{type:'warning', text:'Dual-filament bulb inspection reveals running light filament is broken. Brake filament is intact and working.'},{type:'observation', text:'This is a dual-filament bulb — running light and brake light use separate filaments within the same bulb.'}],
+      'Wiring': [{type:'normal', text:'12V supply to tail lamp assembly confirmed. Both circuits have correct voltage.'}],
+      'Buck Converter': [{type:'normal', text:'Buck converter output 12.1V — normal.'}],
+      'Battery': [{type:'normal', text:'12V auxiliary supply healthy.'}]
+    },
+    correct_fault: 'Tail Lamp Running Light Filament Blown — Brake Filament Intact',
+    fault_options: ['Tail Lamp Running Light Filament Blown — Brake Filament Intact','Wiring fault on running light circuit only','Buck converter not supplying running light','Battery 12V line intermittent'],
+    explanation: 'Dual-filament bulbs have two separate filaments. Only the running light filament has blown. A simple bulb replacement is all that is needed.',
+    wrong_systems: ['Wiring','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A17',
+    complaint: "Vehicle runs fine but the SOC meter reading keeps jumping erratically — bouncing up and down.",
+    vehicle_detail: "Noticed over the past few days. No repairs done.",
+    systems: ['Battery SOC Meter','Wiring','Battery','Controller'],
+    clues: {
+      'Battery SOC Meter': [{type:'observation', text:'SOC meter display jumps between readings when meter connector is wiggled — strongly suggests a connection issue rather than meter fault.'}],
+      'Wiring': [{type:'warning', text:'SOC meter signal wire found loose at the battery monitoring tap point — intermittent contact causing fluctuating readings.'},{type:'observation', text:'Wire insulation shows minor chafing from routing near a sharp edge.'}],
+      'Battery': [{type:'normal', text:'Battery voltage stable at 49.2V. No actual charge fluctuation occurring.'}],
+      'Controller': [{type:'normal', text:'Controller operating normally. No fault codes.'}]
+    },
+    correct_fault: 'SOC Meter Signal Wire Loose at Battery Monitoring Tap',
+    fault_options: ['SOC Meter Signal Wire Loose at Battery Monitoring Tap','SOC meter internal fault','Battery charge fluctuating due to cell issue','Controller sending incorrect signal to meter'],
+    explanation: 'The SOC meter signal wire has a loose connection at the battery monitoring tap. Intermittent contact causes erratic readings. The battery itself is perfectly stable — securing the wire resolves it.',
+    wrong_systems: ['Battery','Controller'],
+    points_max: 100
+  },
+  {
+    id:'A18',
+    complaint: "The charging port gets very hot during every charge session — hot enough to be uncomfortable to touch.",
+    vehicle_detail: "Using original charger. Charging time seems slightly longer than before.",
+    systems: ['Charging Port','Wiring','Battery','Buck Converter'],
+    clues: {
+      'Charging Port': [{type:'warning', text:'Charging port pin 1 is visibly bent and making partial contact with charger plug — significantly reduced contact area.'},{type:'warning', text:'Contact resistance measured at 0.8 ohms — should be below 0.05 ohms. High resistance is generating heat.'}],
+      'Wiring': [{type:'normal', text:'Charging cable and internal wiring show no damage or resistance issues.'}],
+      'Battery': [{type:'normal', text:'Battery accepting charge normally. Cell voltages balanced.'}],
+      'Buck Converter': [{type:'normal', text:'Buck converter not involved in charging path. No fault here.'}]
+    },
+    correct_fault: 'Bent Charging Port Pin Causing High Contact Resistance and Heat',
+    fault_options: ['Bent Charging Port Pin Causing High Contact Resistance and Heat','Charger supplying excess current','Battery rejecting charge and generating heat','Internal wiring resistance buildup'],
+    explanation: 'A bent pin in the charging port drastically reduces contact area, causing high resistance and significant heat generation. Left unattended this is a fire risk. The port needs replacement or pin straightening.',
+    wrong_systems: ['Battery','Buck Converter'],
+    points_max: 100
+  },
+  {
+    id:'A19',
+    complaint: "Both indicators flash but very slowly — about once every 3 seconds instead of normal speed.",
+    vehicle_detail: "Indicators worked normally until about a month ago.",
+    systems: ['Flasher Unit','Indicators','Wiring','Battery'],
+    clues: {
+      'Flasher Unit': [{type:'warning', text:'Flasher unit timing is severely reduced — measured at 0.33Hz (once per 3 seconds) vs normal 1.5Hz.'},{type:'observation', text:'Flasher unit is original to the vehicle — approximately 4 years old. Internal timing capacitor has degraded with age.'}],
+      'Indicators': [{type:'normal', text:'Both indicator bulbs illuminate correctly at full brightness — bulbs are fine.'}],
+      'Wiring': [{type:'normal', text:'No wiring resistance issues on indicator circuits.'}],
+      'Battery': [{type:'normal', text:'12V supply to flasher unit confirmed at 12.0V.'}]
+    },
+    correct_fault: 'Flasher Unit Ageing — Internal Timing Capacitor Degraded',
+    fault_options: ['Flasher Unit Ageing — Internal Timing Capacitor Degraded','Both indicator bulbs partially failed','Wiring resistance slowing circuit','Low 12V supply reducing flasher speed'],
+    explanation: 'The flasher unit capacitor has degraded after 4 years, slowing flash rate from 1.5Hz to 0.33Hz. The bulbs and wiring are fine. Replacing the flasher unit restores normal flash rate.',
+    wrong_systems: ['Indicators','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A20',
+    complaint: "Vehicle runs fine but makes a loud continuous beeping sound from under the seat area.",
+    vehicle_detail: "Started beeping after a long ride in hot weather.",
+    systems: ['Controller','Motor','Wiring','Battery'],
+    clues: {
+      'Controller': [{type:'warning', text:'Controller internal temperature sensor reading 82 degrees C — above the 75 degree C warning threshold, triggering the audible alert.'},{type:'observation', text:'Controller is mounted in a sealed under-seat compartment with no ventilation gap — heat cannot escape.'}],
+      'Motor': [{type:'normal', text:'Motor temperature normal at 58 degrees C. Motor is not the source of the alarm.'}],
+      'Wiring': [{type:'normal', text:'No wiring faults. All connections intact.'}],
+      'Battery': [{type:'normal', text:'Battery temperature 34 degrees C — normal operating range.'}]
+    },
+    correct_fault: 'Controller Over-Temperature Warning — Inadequate Ventilation in Under-Seat Bay',
+    fault_options: ['Controller Over-Temperature Warning — Inadequate Ventilation in Under-Seat Bay','Motor overheating triggering alarm','Battery thermal alarm activated','Wiring short circuit causing beep'],
+    explanation: 'The controller is in a fully sealed compartment. Once internal temperature hits 82 degrees C, the built-in alarm activates. Adding ventilation prevents recurrence. The alarm is working correctly as designed.',
+    wrong_systems: ['Motor','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A21',
+    complaint: "Throttle works but the vehicle only ever reaches about half its normal top speed — like it is capped.",
+    vehicle_detail: "Top speed issue started after a minor drop of the scooter.",
+    systems: ['Throttle Sensor','Controller','Motor','Battery'],
+    clues: {
+      'Throttle Sensor': [{type:'warning', text:'Throttle sensor maximum output voltage is 2.6V when fully twisted — normal maximum should be 4.5 to 5V.'},{type:'observation', text:'The Hall effect magnet inside the throttle body has shifted position from the drop — limiting the maximum magnetic field the sensor detects.'}],
+      'Controller': [{type:'normal', text:'Controller is correctly interpreting the throttle signal — receives 2.6V max and commands proportional speed.'}],
+      'Motor': [{type:'normal', text:'Motor responds correctly to controller commands. No motor fault.'}],
+      'Battery': [{type:'normal', text:'Battery voltage healthy at 48.8V. Sufficient for full speed operation.'}]
+    },
+    correct_fault: 'Throttle Sensor Magnet Displaced — Maximum Output Voltage Limited to 2.6V',
+    fault_options: ['Throttle Sensor Magnet Displaced — Maximum Output Voltage Limited to 2.6V','Controller speed limiter activated','Motor not reaching full RPM','Battery voltage sag limiting speed'],
+    explanation: 'The internal Hall effect magnet shifted during the drop, limiting maximum sensor output to 2.6V. The controller caps speed proportionally. Realigning or replacing the throttle assembly restores full speed range.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A22',
+    complaint: "Vehicle suddenly stopped mid-ride and will not restart. Was working perfectly just before.",
+    vehicle_detail: "Stopped abruptly. No warning. Lights still work.",
+    systems: ['Key & Fuse','Battery','Controller','Wiring'],
+    clues: {
+      'Key & Fuse': [{type:'warning', text:'5A key circuit fuse has blown — no continuity across fuse terminals.'},{type:'observation', text:'Fuse wire has a sharp clean break consistent with a brief high-current spike.'}],
+      'Battery': [{type:'normal', text:'Battery voltage 48.1V. Healthy — lights working confirms battery is fine.'}],
+      'Controller': [{type:'normal', text:'Controller shows no damage. Powers up correctly once fuse is replaced.'}],
+      'Wiring': [{type:'observation', text:'Minor chafing found on a wire near the frame that may have caused a momentary short — potential root cause of the spike.'}]
+    },
+    correct_fault: 'Key Circuit Fuse Blown by Momentary Short from Chafed Wiring',
+    fault_options: ['Key Circuit Fuse Blown by Momentary Short from Chafed Wiring','Battery sudden failure','Controller internal short','Key switch failure'],
+    explanation: 'A chafed wire caused a momentary short, blowing the 5A fuse. Lights still work because they run on a separate 12V circuit. Replacing the fuse restores operation, but the chafed wire must also be repaired.',
+    wrong_systems: ['Battery','Controller'],
+    points_max: 100
+  },
+  {
+    id:'A23',
+    complaint: "Head lamp flickers and occasionally goes off completely — only when going over bumps.",
+    vehicle_detail: "Recently started. No repairs done.",
+    systems: ['Head Lamp','Wiring','Buck Converter','Battery'],
+    clues: {
+      'Head Lamp': [{type:'warning', text:'Headlamp connector at the lamp housing is loose — can be pulled away slightly by hand. Vibration is breaking the contact intermittently.'},{type:'normal', text:'Lamp bulb itself is intact and functions correctly when connector is held firmly in place.'}],
+      'Wiring': [{type:'normal', text:'Headlamp supply wire has no breaks. Full 12V at the connector when held in position.'}],
+      'Buck Converter': [{type:'normal', text:'Buck converter output stable at 12.0V. Not the source of flickering.'}],
+      'Battery': [{type:'normal', text:'12V auxiliary supply normal.'}]
+    },
+    correct_fault: 'Headlamp Connector Loose — Vibration Causing Intermittent Contact',
+    fault_options: ['Headlamp Connector Loose — Vibration Causing Intermittent Contact','Headlamp bulb intermittent failure','Buck converter output unstable on rough roads','Battery vibration causing voltage fluctuation'],
+    explanation: 'The headlamp connector has worked itself loose over time. Road vibration repeatedly breaks the electrical contact. The lamp and supply are both fine. Securing the connector resolves it.',
+    wrong_systems: ['Buck Converter','Battery'],
+    points_max: 100
+  },
+  {
+    id:'A24',
+    complaint: "Charging always stops exactly at 80% no matter how long I leave it plugged in. Is it broken?",
+    vehicle_detail: "Bought 3 months ago. Has done this since new. Charger is original.",
+    systems: ['Battery','Battery SOC Meter','Charging Port','Wiring'],
+    clues: {
+      'Battery': [{type:'normal', text:'Battery cell voltages balanced and healthy. BMS log shows charging stops at 80% by programmed instruction — not due to a fault condition.'},{type:'observation', text:'This is a common BMS protective setting on some EV models to extend long-term battery life by avoiding full charge stress.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter accurately showing actual charge state. No calibration issue.'}],
+      'Charging Port': [{type:'normal', text:'Charging port clean and making good contact. No resistance or damage.'}],
+      'Wiring': [{type:'normal', text:'All charging circuit wiring normal.'}]
+    },
+    correct_fault: 'No Fault — BMS Programmed to Stop Charging at 80% to Protect Battery Life',
+    fault_options: ['No Fault — BMS Programmed to Stop Charging at 80% to Protect Battery Life','Charging port fault interrupting charge','Battery BMS malfunction','SOC meter incorrectly reading 80% as full'],
+    explanation: 'This is not a fault. Many EV manufacturers program the BMS to stop at 80% to reduce stress on lithium cells. The customer should be informed this is by design. Full 100% charging can be enabled via settings if needed for long journeys.',
+    wrong_systems: ['Charging Port','Wiring'],
+    points_max: 100
+  },
+  {
+    id:'A25',
+    complaint: "Horn and both indicators stopped working at exactly the same time. Nothing else is affected.",
+    vehicle_detail: "Stopped simultaneously yesterday. Head lamp and tail lamp still work.",
+    systems: ['Buck Converter','Horn','Indicators','Battery'],
+    clues: {
+      'Buck Converter': [{type:'warning', text:'Buck/DC-DC converter output has failed completely — measuring 0V on the 12V output rail.'},{type:'observation', text:'Input side of converter shows healthy 48V. Internal converter failure — no output.'}],
+      'Horn': [{type:'normal', text:'Horn unit produces sound when supplied 12V directly from external battery — horn itself is fine.'}],
+      'Indicators': [{type:'normal', text:'Both indicator bulbs intact and light up when supplied 12V directly.'}],
+      'Battery': [{type:'normal', text:'48V main battery healthy. Head and tail lamps work because they run directly off 48V through their own circuit.'}]
+    },
+    correct_fault: 'Buck/DC-DC Converter Output Failed — No 12V Supply to Auxiliary Systems',
+    fault_options: ['Buck/DC-DC Converter Output Failed — No 12V Supply to Auxiliary Systems','Horn and flasher unit both failed simultaneously','Wiring common ground lost for horn and indicators','Battery 12V line disconnected'],
+    explanation: 'The Buck converter has failed internally, producing no 12V output. Horn and indicators are both 12V devices — losing this supply simultaneously explains the coincident failure. Head and tail lamps run on a separate 48V circuit and are unaffected.',
+    wrong_systems: ['Horn','Indicators'],
+    points_max: 100
   }
 ];
 
@@ -899,14 +1258,14 @@ const FAULTS_UNDERGRAD = [
     vehicle_detail: "48V BLDC. Happens consistently after warmup. Restarts fine after cooling.",
     systems: ['Thermal / Motor','Controller','Battery','Wiring Harness'],
     clues: {
-      'Thermal / Motor': [{type:'warning', text:'Motor casing temperature reaches 78°C within 5 minutes under load — exceeds the 70°C thermal threshold.'},{type:'observation', text:'Cooling vents on motor appear partially blocked with road debris.'}],
+      'Thermal / Motor': [{type:'warning', text:'Motor casing temperature reaches 78 degrees C within 5 minutes under load — exceeds the 70 degree C thermal threshold.'},{type:'observation', text:'Cooling vents on motor appear partially blocked with road debris.'}],
       'Controller': [{type:'observation', text:'Controller enters thermal protection mode above motor threshold — this is by design, not a controller fault.'},{type:'normal', text:'Controller resumes normal operation once motor temperature drops.'}],
       'Battery': [{type:'normal', text:'Battery discharge rate normal. Voltage sag under load within acceptable limits (46.8V min).'}],
       'Wiring Harness': [{type:'normal', text:'No heat damage or insulation breakdown on harness.'}]
     },
     correct_fault: 'Motor Overheating — Blocked Cooling Vents Triggering Thermal Protection',
     fault_options: ['Motor Overheating — Blocked Cooling Vents Triggering Thermal Protection','Controller failure','Battery capacity degradation','Wiring resistance buildup'],
-    explanation: 'Blocked motor cooling vents prevent heat dissipation, causing motor temperature to exceed 70°C. The controller correctly triggers thermal protection (power derating) as a safety response — this is expected behavior. Root cause is blocked vents, not controller or battery fault.',
+    explanation: 'Blocked motor cooling vents prevent heat dissipation, causing motor temperature to exceed 70 degrees C. The controller correctly triggers thermal protection as a safety response. Root cause is blocked vents, not controller or battery fault.',
     wrong_systems: ['Battery','Wiring Harness'],
     points_max: 150
   },
@@ -923,7 +1282,7 @@ const FAULTS_UNDERGRAD = [
     },
     correct_fault: 'Reverse-Forward Switch Incorrectly Rewired After DIY Repair',
     fault_options: ['Reverse-Forward Switch Incorrectly Rewired After DIY Repair','Controller direction logic fault','Motor phase sequence swapped','Battery polarity reversal'],
-    explanation: 'The two-way toggle switch was reconnected with its signal wires swapped during the DIY repair. The controller faithfully follows the signal — when it reads "forward", the incorrectly wired switch is actually sending a "reverse" signal. The controller and motor are both functioning correctly.',
+    explanation: 'The two-way toggle switch was reconnected with signal wires swapped during the DIY repair. The controller faithfully follows the signal — when it reads "forward", the switch is actually sending a "reverse" signal.',
     wrong_systems: ['Motor Phase Wires','Battery'],
     points_max: 150
   },
@@ -933,14 +1292,14 @@ const FAULTS_UNDERGRAD = [
     vehicle_detail: "1.5 years old. 28,000km on odometer. Stored outdoors.",
     systems: ['Battery','Battery SOC Meter','Throttle Sensor','Wiring'],
     clues: {
-      'Battery': [{type:'warning', text:'Battery open circuit voltage 47.1V — slightly low. Under load at 5A, voltage sags to 43.2V, indicating increased internal resistance.'},{type:'warning', text:'Capacity test shows effective capacity at 68% of rated spec — consistent with moderate degradation at this mileage and outdoor storage conditions.'}],
+      'Battery': [{type:'warning', text:'Battery open circuit voltage 47.1V — slightly low. Under load at 5A, voltage sags to 43.2V, indicating increased internal resistance.'},{type:'warning', text:'Capacity test shows effective capacity at 68% of rated spec — consistent with moderate degradation at this mileage and outdoor storage.'}],
       'Battery SOC Meter': [{type:'normal', text:'SOC meter correctly calibrated and displaying actual charge state.'}],
-      'Throttle Sensor': [{type:'normal', text:'Throttle operating within 0.7–4.8V range. No fault.'}],
+      'Throttle Sensor': [{type:'normal', text:'Throttle operating within 0.7 to 4.8V range. No fault.'}],
       'Wiring': [{type:'normal', text:'No resistance buildup in main power cables.'}]
     },
     correct_fault: 'Battery Capacity Degradation Due to Age, Mileage and Outdoor Storage',
     fault_options: ['Battery Capacity Degradation Due to Age, Mileage and Outdoor Storage','Faulty SOC meter over-reporting','Throttle causing excess current draw','Wiring resistance loss'],
-    explanation: 'At 28,000km and 1.5 years of outdoor storage, the battery pack has degraded to approximately 68% of original capacity. Outdoor temperature cycling accelerates lithium cell degradation. The 25km range loss is proportional to this capacity reduction. No component failure — this is expected aging.',
+    explanation: 'At 28,000km and 1.5 years of outdoor storage, the battery pack has degraded to approximately 68% of original capacity. Outdoor temperature cycling accelerates lithium cell degradation. The 25km range loss is proportional to this capacity reduction.',
     wrong_systems: ['Throttle Sensor','Wiring'],
     points_max: 150
   },
@@ -957,7 +1316,7 @@ const FAULTS_UNDERGRAD = [
     },
     correct_fault: 'Controller Current Limit Over-Set Beyond MCB Rating',
     fault_options: ['Controller Current Limit Over-Set Beyond MCB Rating','MCB undersized for this EV','Battery unable to supply rated current','Motor drawing excessive current due to fault'],
-    explanation: 'A previous technician increased the controller\'s current limit from 60A to 75A, likely seeking more performance. However the MCB is rated 63A. During hard acceleration, the controller now commands up to 71–75A, exceeding the MCB threshold and causing correct protection trips. Solution: restore controller current limit to within MCB rating.',
+    explanation: 'A previous technician increased the controller current limit from 60A to 75A. The MCB is rated 63A. During hard acceleration, the controller now commands up to 71-75A, exceeding the MCB threshold. Restore controller current limit to within MCB rating.',
     wrong_systems: ['Battery','Wiring'],
     points_max: 150
   },
@@ -970,17 +1329,358 @@ const FAULTS_UNDERGRAD = [
       'Buck/DC-DC Converter': [{type:'warning', text:'Buck converter output voltage fluctuates between 10.8V and 12.4V at idle/low speed — output should be stable 12V DC.'},{type:'observation', text:'On close inspection, one output capacitor on the converter board shows slight bulging — sign of partial failure.'}],
       'Battery': [{type:'normal', text:'48V main battery output stable. Input to Buck converter is clean 48V.'}],
       'Wiring': [{type:'normal', text:'12V output wiring to lamp and horn has no resistance issues.'}],
-      'Head Lamp': [{type:'normal', text:'Headlamp bulb tests fine at stable 12V from external supply.'}],
-      // RED HERRING clue injected at runtime for case 5
+      'Head Lamp': [{type:'normal', text:'Headlamp bulb tests fine at stable 12V from external supply.'}]
     },
     correct_fault: 'Failing Buck/DC-DC Converter (Bulging Output Capacitor)',
     fault_options: ['Failing Buck/DC-DC Converter (Bulging Output Capacitor)','Headlamp bulb intermittent fault','48V battery voltage fluctuation','Wiring earth connection loose'],
-    explanation: 'The Buck converter steps down 48V to 12V for auxiliary systems (lights, horn). A bulging capacitor on the output stage causes voltage instability — 10.8–12.4V instead of steady 12V. At higher speeds, the 48V input is more stable, slightly masking the issue. The headlamp and horn are both victims of this upstream converter fault.',
+    explanation: 'The Buck converter capacitor causes voltage instability — 10.8 to 12.4V instead of steady 12V. At higher speeds the 48V input is more stable, slightly masking the issue. The headlamp and horn are both victims of this upstream converter fault.',
     wrong_systems: ['Battery','Wiring'],
     points_max: 200,
-    red_herring: { system:'Head Lamp', clue: {type:'observation', text:'⚠ RED HERRING: Lamp socket shows slight heat discolouration — but this is from normal long-term operation, not a fault cause.'}}
+    red_herring: { system:'Head Lamp', clue: {type:'observation', text:'Note: Lamp socket shows slight heat discolouration — but this is from normal long-term operation, not a fault cause.'}}
+  },
+  {
+    id:'S06',
+    complaint: "Vehicle performs normally in the morning but loses significant power by afternoon on hot days only.",
+    vehicle_detail: "Only noticed in summer. Fine in cooler months.",
+    systems: ['Battery','Controller','Thermal Management','Wiring'],
+    clues: {
+      'Battery': [{type:'warning', text:'Battery pack temperature reaches 47 degrees C by afternoon in direct sun — BMS log confirms current derating activates above 45 degrees C.'},{type:'observation', text:'Battery is mounted in an exposed under-seat position with no thermal insulation from solar radiation.'}],
+      'Controller': [{type:'normal', text:'Controller temperature normal. Derating is being commanded by BMS, not controller thermal protection.'}],
+      'Thermal Management': [{type:'warning', text:'No thermal insulation or shading present on battery bay. Direct solar exposure on metal casing raises pack temperature significantly above ambient.'}],
+      'Wiring': [{type:'normal', text:'All connections secure. No wiring faults.'}]
+    },
+    correct_fault: 'Battery Thermal Derating — BMS Reducing Output Current Due to High Pack Temperature',
+    fault_options: ['Battery Thermal Derating — BMS Reducing Output Current Due to High Pack Temperature','Controller overheating in afternoon heat','Wiring resistance increasing with temperature','Battery cells failing under heat'],
+    explanation: 'The BMS correctly reduces maximum current output to protect cells once pack temperature exceeds 45 degrees C. This is a safety feature, not a fault. Adding insulation or shading to the battery bay prevents the temperature reaching the derating threshold.',
+    wrong_systems: ['Controller','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S07',
+    complaint: "After a collision repair, regenerative braking no longer works but everything else is fine.",
+    vehicle_detail: "Regen braking worked before the repair. Motor was removed and refitted.",
+    systems: ['Motor Phase Wires','Controller','Battery','Brake Switch'],
+    clues: {
+      'Motor Phase Wires': [{type:'warning', text:'Motor phase wires reconnected in sequence B-Y-G instead of original B-G-Y — two phases are transposed.'},{type:'observation', text:'Forward motion still works because the controller adapts, but regenerative braking direction logic is broken by the transposition.'}],
+      'Controller': [{type:'normal', text:'Controller regen braking function is active and sending correct signals — the fault is not in the controller logic.'}],
+      'Battery': [{type:'normal', text:'Battery is accepting charge normally in other circumstances. Not rejecting regen current.'}],
+      'Brake Switch': [{type:'normal', text:'Brake cut switch correctly triggers regen braking signal when pressed.'}]
+    },
+    correct_fault: 'Motor Phase Wires Transposed During Repair — Regen Braking Direction Logic Broken',
+    fault_options: ['Motor Phase Wires Transposed During Repair — Regen Braking Direction Logic Broken','Controller regen parameter disabled during repair','Battery refusing regenerative charge current','Brake switch not triggering regen signal'],
+    explanation: 'Two motor phase wires were swapped during reassembly. BLDC motors are direction-sensitive — forward motion can still work with minor transposition, but regenerative braking fails. Correcting the phase sequence restores regen function.',
+    wrong_systems: ['Battery','Brake Switch'],
+    points_max: 150
+  },
+  {
+    id:'S08',
+    complaint: "Vehicle charges to 100% overnight but shows only 72% when first switched on in the morning.",
+    vehicle_detail: "Has done this for the past 2 months. Battery is 1 year old.",
+    systems: ['Battery','Battery SOC Meter','Controller','Wiring'],
+    clues: {
+      'Battery': [{type:'observation', text:'BMS startup log shows cell voltage spread of 82mV across the pack at rest — above the 50mV rebalancing threshold.'},{type:'observation', text:'During charging, BMS completed passive balancing but one cell group charged faster. On startup self-check, BMS recalculates SOC based on actual cell voltages, correcting the reading downward.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter is accurately displaying the BMS-calculated state of charge. The meter itself is not at fault.'}],
+      'Controller': [{type:'normal', text:'Controller operating normally. No parameter faults.'}],
+      'Wiring': [{type:'normal', text:'All connections secure and clean.'}]
+    },
+    correct_fault: 'BMS SOC Recalibration on Startup — Cell Imbalance Causing Corrected Reading After Charge',
+    fault_options: ['BMS SOC Recalibration on Startup — Cell Imbalance Causing Corrected Reading After Charge','Charger not charging to 100% accurately','SOC meter losing memory overnight','Controller resetting SOC on power-up'],
+    explanation: 'The BMS charges to what it believes is 100%, but cell imbalance means one group has lower actual energy. On startup, the BMS corrects the SOC reading to 72% based on open-circuit cell voltages. This is the BMS working correctly. Active balancing would address the root cause.',
+    wrong_systems: ['Controller','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S09',
+    complaint: "Heavy acceleration causes lights to dim momentarily and power drops for half a second.",
+    vehicle_detail: "Vehicle is 2 years old, 22,000km. Issue gradually worsened over months.",
+    systems: ['Battery','Wiring','Controller','Buck Converter'],
+    clues: {
+      'Battery': [{type:'warning', text:'Battery internal resistance measured at 180mOhm — significantly above the healthy value of 60mOhm for this pack size.'},{type:'warning', text:'Under 30A instantaneous load, battery terminal voltage sags to 41.8V — a 6.4V drop indicating high internal resistance.'}],
+      'Wiring': [{type:'normal', text:'Main power cable resistance within spec. No significant wiring resistance found.'}],
+      'Controller': [{type:'normal', text:'Controller operating correctly. Current demand profile is appropriate for the throttle input.'}],
+      'Buck Converter': [{type:'observation', text:'Buck converter output dips momentarily when main voltage sags — this is why lights dim. Root cause is upstream battery voltage sag.'}]
+    },
+    correct_fault: 'Battery Internal Resistance Elevated — Voltage Sag Under High Current Draw',
+    fault_options: ['Battery Internal Resistance Elevated — Voltage Sag Under High Current Draw','Controller pulling excess current on acceleration','Buck converter failing under load','Wiring resistance causing voltage drop on acceleration'],
+    explanation: 'Aged battery cells have elevated internal resistance. Under hard acceleration, high instantaneous current through this resistance causes a large voltage sag on the 48V bus, causing the Buck converter to briefly drop its 12V output and dim the lights. Battery reconditioning or replacement is the solution.',
+    wrong_systems: ['Controller','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S10',
+    complaint: "Controller cooling fan runs continuously even when vehicle is parked and switched off.",
+    vehicle_detail: "Started after a firmware update was applied at a service centre.",
+    systems: ['Controller','Key & Fuse','Wiring','Battery'],
+    clues: {
+      'Controller': [{type:'warning', text:'Controller firmware parameter for sleep mode delay has been reset to factory default of 0 minutes — sleep mode is effectively disabled.'},{type:'observation', text:'Previous setting was 5 minutes post-shutdown. Service centre firmware update reset all parameters to factory defaults.'}],
+      'Key & Fuse': [{type:'normal', text:'Key switch and fuse operating correctly. The controller is being correctly signalled to power down but is not entering sleep mode.'}],
+      'Wiring': [{type:'normal', text:'Fan wiring and supply are normal. Fan is receiving power as commanded by controller.'}],
+      'Battery': [{type:'observation', text:'Battery is slowly draining from continuous fan operation — parasitic draw of approximately 2A confirmed.'}]
+    },
+    correct_fault: 'Controller Sleep Mode Parameter Reset to 0 by Firmware Update — Fan Runs Continuously',
+    fault_options: ['Controller Sleep Mode Parameter Reset to 0 by Firmware Update — Fan Runs Continuously','Fan relay stuck closed','Wiring fault keeping fan circuit energised','Battery short circuit through fan'],
+    explanation: 'The firmware update reset all controller parameters to factory defaults, including the sleep mode timer set to 0 (disabled). Re-programming the sleep mode delay parameter to 5 minutes post-shutdown resolves this.',
+    wrong_systems: ['Wiring','Battery'],
+    points_max: 150
+  },
+  {
+    id:'S11',
+    complaint: "Vehicle pulls slightly to one side under hard acceleration despite perfectly straight handlebars.",
+    vehicle_detail: "Only noticeable under load. Steering checked mechanically — no issues.",
+    systems: ['Motor Phase Wires','Controller','Wiring','Battery'],
+    clues: {
+      'Motor Phase Wires': [{type:'warning', text:'Phase wire B shows resistance of 0.4 ohms at a crimp joint near the motor exit — other phases measure 0.02 ohms.'},{type:'observation', text:'Uneven phase resistance causes asymmetric torque production across the motor poles under high current.'}],
+      'Controller': [{type:'normal', text:'Controller current output balanced across all three phases. No controller fault.'}],
+      'Wiring': [{type:'warning', text:'Crimp joint on phase B wire has oxidised internally — high resistance confirmed at this point.'}],
+      'Battery': [{type:'normal', text:'Battery supply stable. No current imbalance from supply side.'}]
+    },
+    correct_fault: 'Phase Wire B High Resistance at Oxidised Crimp — Asymmetric Torque Under Load',
+    fault_options: ['Phase Wire B High Resistance at Oxidised Crimp — Asymmetric Torque Under Load','Controller outputting unequal phase currents','Battery voltage imbalance across phases','Motor internal winding resistance fault'],
+    explanation: 'A corroded crimp joint on phase B wire has 20x the resistance of the other phases. Under high current, this reduces torque contribution from those motor poles, creating a pull to one side. Re-crimping with fresh terminals resolves this.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 150
+  },
+  {
+    id:'S12',
+    complaint: "Range is normal in summer but drops by nearly 40% every winter without any other changes.",
+    vehicle_detail: "Seasonal pattern for 2 years. Battery is otherwise healthy.",
+    systems: ['Battery','Battery SOC Meter','Thermal Management','Controller'],
+    clues: {
+      'Battery': [{type:'observation', text:'At 10 degrees C ambient, lithium cell internal resistance increases from 60mOhm to approximately 140mOhm — this is expected chemistry behaviour.'},{type:'observation', text:'Effective capacity at 10 degrees C is approximately 78% of rated capacity at 25 degrees C. At 0 degrees C this drops to around 60%. No cell damage — purely temperature effect.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter accurately reflecting actual available charge at current temperature. No calibration fault.'}],
+      'Thermal Management': [{type:'observation', text:'No battery heating system fitted to this vehicle — pack operates at ambient temperature with no thermal conditioning.'}],
+      'Controller': [{type:'normal', text:'Controller operating correctly within the reduced power envelope BMS is providing at low temperature.'}]
+    },
+    correct_fault: 'No Fault — Lithium Cell Capacity Reduction at Low Temperature is Normal Electrochemistry',
+    fault_options: ['No Fault — Lithium Cell Capacity Reduction at Low Temperature is Normal Electrochemistry','Battery cells damaged by cold temperature','BMS incorrectly limiting output in winter','Controller not compensating for temperature'],
+    explanation: 'This is normal lithium battery behaviour, not a fault. At low temperatures, lithium ions move more slowly, increasing internal resistance and reducing available capacity. Without active battery heating (not fitted), this is expected. The customer should be advised to accept reduced winter range.',
+    wrong_systems: ['Battery SOC Meter','Controller'],
+    points_max: 150
+  },
+  {
+    id:'S13',
+    complaint: "MCB trips only when I charge and then drive immediately after — never on charging alone or driving alone.",
+    vehicle_detail: "Pattern consistent. MCB rated 63A. Battery bay is enclosed.",
+    systems: ['MCB','Battery','Wiring','Charging Port'],
+    clues: {
+      'MCB': [{type:'observation', text:'MCB is tripping correctly at its rated threshold — it is not faulty.'},{type:'warning', text:'Thermal imaging shows MCB temperature at 71 degrees C when combined charge-then-drive is attempted — MCB thermal element still elevated from charging current when drive current is added.'}],
+      'Battery': [{type:'observation', text:'Charging current: 18A. Drive current: 48A. Combined thermal load in the enclosed bay exceeds what the MCB thermal element can dissipate before it trips.'}],
+      'Wiring': [{type:'normal', text:'All wiring within current rating. No resistance issues.'}],
+      'Charging Port': [{type:'normal', text:'Charging port clean and making good contact. Charging current normal.'}]
+    },
+    correct_fault: 'Cumulative Thermal Load on MCB — Combined Charge and Drive Heat Causes Thermal Trip',
+    fault_options: ['Cumulative Thermal Load on MCB — Combined Charge and Drive Heat Causes Thermal Trip','MCB rating too low for this vehicle','Battery discharging too rapidly after charging','Wiring resistance adding heat to circuit'],
+    explanation: 'The MCB thermal element responds to sustained heat. After a charge cycle the MCB is already thermally elevated. When drive current is immediately added, the combined thermal load in the enclosed bay pushes the MCB above its thermal trip threshold. Adding ventilation or waiting a few minutes between charging and riding resolves this.',
+    wrong_systems: ['Wiring','Charging Port'],
+    points_max: 150
+  },
+  {
+    id:'S14',
+    complaint: "New replacement controller fitted but vehicle now draws noticeably more current than before at the same speed.",
+    vehicle_detail: "Replacement done last week. Original controller was damaged.",
+    systems: ['Controller','Battery','Motor','Wiring'],
+    clues: {
+      'Controller': [{type:'warning', text:'Replacement controller current limit parameter is set to 75A — original specification for this vehicle is 55A.'},{type:'observation', text:'Controller is a generic replacement unit. Default parameters from the manufacturer do not match this vehicle specs.'}],
+      'Battery': [{type:'observation', text:'Battery discharge current now consistently 15 to 20A higher than logged data from before controller replacement at equivalent speeds.'}],
+      'Motor': [{type:'normal', text:'Motor operating correctly and efficiently within its specification.'}],
+      'Wiring': [{type:'normal', text:'All wiring intact. No resistance issues.'}]
+    },
+    correct_fault: 'Replacement Controller Current Limit Not Matched to Vehicle Specification — Set Too High',
+    fault_options: ['Replacement Controller Current Limit Not Matched to Vehicle Specification — Set Too High','Motor winding fault after controller change','Battery being over-drawn by new controller','Wiring added resistance requiring more current'],
+    explanation: 'Generic replacement controllers ship with default parameters that may not suit every vehicle. The current limit of 75A is 36% higher than the original 55A specification, drawing more current than necessary. Re-programming the controller to match original specifications is required.',
+    wrong_systems: ['Motor','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S15',
+    complaint: "Throttle response feels normal but vehicle hesitates for exactly 1 second every time from standstill.",
+    vehicle_detail: "Started after controller was reprogrammed at a service centre.",
+    systems: ['Controller','Throttle Sensor','Motor','Battery'],
+    clues: {
+      'Controller': [{type:'warning', text:'Controller soft-start ramp parameter set to 1000ms (1 second) — this is the time taken to ramp from 0 to commanded current on every standstill departure.'},{type:'observation', text:'Factory default for this model is 200ms. The service centre set it to 1000ms, likely as an overcautious anti-wheelie setting.'}],
+      'Throttle Sensor': [{type:'normal', text:'Throttle sensor responding immediately and correctly to input — signal reaches controller with no delay.'}],
+      'Motor': [{type:'normal', text:'Motor responds correctly once current ramp completes. No motor fault.'}],
+      'Battery': [{type:'normal', text:'Battery supply healthy. No voltage sag at standstill.'}]
+    },
+    correct_fault: 'Controller Soft-Start Ramp Parameter Set to 1000ms — Excessive Standstill Delay',
+    fault_options: ['Controller Soft-Start Ramp Parameter Set to 1000ms — Excessive Standstill Delay','Throttle sensor delayed response','Motor reluctance under standstill load','Battery voltage sag on initial current draw'],
+    explanation: 'The soft-start ramp parameter controls how quickly current increases from standstill. At 1000ms it creates an intentional 1-second delay. Reducing it to 200ms factory default restores normal crisp acceleration.',
+    wrong_systems: ['Throttle Sensor','Battery'],
+    points_max: 150
+  },
+  {
+    id:'S16',
+    complaint: "Battery was replaced with a higher capacity unit but range only improved by 5% instead of expected 30%.",
+    vehicle_detail: "New battery has 30% more Ah capacity. Same voltage. Installed 2 weeks ago.",
+    systems: ['Battery','Controller','Wiring','MCB'],
+    clues: {
+      'Battery': [{type:'observation', text:'New battery capacity confirmed at rated Ah. Cell voltages balanced and healthy.'},{type:'warning', text:'New battery C-rating is 0.5C maximum continuous discharge. Original battery was rated 1C. At 0.5C, maximum continuous current is 20A — significantly below what the controller requests at normal riding speeds.'}],
+      'Controller': [{type:'warning', text:'Controller is requesting 35 to 45A during normal riding — BMS is limiting output to 20A (0.5C) to protect the lower C-rated cells. Vehicle is running on the BMS current limit, not the battery capacity.'}],
+      'Wiring': [{type:'normal', text:'All wiring normal. No resistance issues.'}],
+      'MCB': [{type:'normal', text:'MCB not tripping — current is being limited below MCB threshold by BMS.'}]
+    },
+    correct_fault: 'New Battery C-Rating Too Low — BMS Current Limiting Preventing Full Capacity Utilisation',
+    fault_options: ['New Battery C-Rating Too Low — BMS Current Limiting Preventing Full Capacity Utilisation','Battery not fully charged before testing','Controller not recognising new battery capacity','Wiring insufficient for higher capacity battery'],
+    explanation: 'Capacity (Ah) and discharge rate (C-rating) are independent specifications. A higher Ah battery with a lower C-rating cannot deliver the current the controller needs — the BMS caps output at 20A regardless of available capacity. A replacement battery with both higher Ah AND adequate C-rating is needed.',
+    wrong_systems: ['Wiring','MCB'],
+    points_max: 150
+  },
+  {
+    id:'S17',
+    complaint: "Vehicle operates normally but controller display shows a cell voltage mismatch warning intermittently.",
+    vehicle_detail: "Warning appears during charging and disappears after a few minutes.",
+    systems: ['Battery','Battery SOC Meter','Controller','Wiring'],
+    clues: {
+      'Battery': [{type:'observation', text:'During charging, one cell group reaches 4.18V while others are at 3.95V — a 230mV spread triggers the imbalance flag.'},{type:'observation', text:'After charging completes and passive balancing runs for approximately 8 minutes, spread reduces to 18mV — within acceptable range. Warning clears.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter correctly reflecting charge state. No fault.'}],
+      'Controller': [{type:'normal', text:'Controller correctly flagging the imbalance as per BMS programming. Warning behaviour is correct.'}],
+      'Wiring': [{type:'normal', text:'Cell monitoring wiring intact. Readings are accurate, not a wiring fault.'}]
+    },
+    correct_fault: 'Passive Cell Balancing Incomplete During Charge — Imbalance Flag Clears After Balancing Finishes',
+    fault_options: ['Passive Cell Balancing Incomplete During Charge — Imbalance Flag Clears After Balancing Finishes','Cell group failing and permanently out of balance','Cell monitoring wiring fault causing false reading','Controller BMS algorithm fault generating false warning'],
+    explanation: 'One cell group charges slightly faster — normal variation in passive balancing systems. The BMS correctly flags this during charging. Passive balancing resolves the imbalance within 8 minutes. This is expected behaviour. Active balancing would eliminate the warning entirely.',
+    wrong_systems: ['Battery SOC Meter','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S18',
+    complaint: "After riding through heavy rain, vehicle powers on fine but throttle has absolutely no response.",
+    vehicle_detail: "Rode through 20 minutes of heavy rain. Issue appeared immediately after.",
+    systems: ['Throttle Sensor','Controller','Wiring','Battery'],
+    clues: {
+      'Throttle Sensor': [{type:'warning', text:'Throttle sensor output voltage reads 0V regardless of throttle position — should read 0.7 to 5V.'},{type:'warning', text:'Opening the throttle housing reveals water ingress. Hall effect sensor output pin is shorted to ground through water film.'}],
+      'Controller': [{type:'normal', text:'Controller receiving 0V throttle signal — interprets this as below minimum threshold (0.7V) and correctly does not drive motor.'}],
+      'Wiring': [{type:'normal', text:'Main wiring harness shows no water ingress. Sealed connectors intact.'}],
+      'Battery': [{type:'normal', text:'Battery unaffected by rain. 48V supply stable.'}]
+    },
+    correct_fault: 'Water Ingress into Throttle Sensor — Hall Effect Output Shorted to Ground',
+    fault_options: ['Water Ingress into Throttle Sensor — Hall Effect Output Shorted to Ground','Controller water damage disabling throttle input','Wiring short circuit from water shorting throttle wire','Battery management shutting down throttle in rain'],
+    explanation: 'Water entered the throttle sensor housing, creating a short to ground and forcing the signal to 0V. The controller correctly refuses to drive the motor below 0.7V threshold. The throttle assembly requires drying, cleaning, and resealing or replacement.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 150
+  },
+  {
+    id:'S19',
+    complaint: "Charging time has doubled over 6 months despite using the same charger and same daily routine.",
+    vehicle_detail: "Gradual onset over months. Charger checked and working correctly.",
+    systems: ['Charging Port','Battery','Wiring','Battery SOC Meter'],
+    clues: {
+      'Charging Port': [{type:'warning', text:'Charging port pin contact resistance has increased to 0.6 ohms from a baseline of 0.02 ohms — measured over 6 months of service records.'},{type:'observation', text:'Microscopic oxidation layer on pin surfaces confirmed. Gradual buildup from daily plug-in cycles with ambient humidity exposure.'}],
+      'Battery': [{type:'normal', text:'Battery accepts charge normally when supplied correct current. Cell health is good.'}],
+      'Wiring': [{type:'normal', text:'Internal charging wiring resistance unchanged from installation.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter accurately reflecting charging progress. No fault.'}]
+    },
+    correct_fault: 'Progressive Oxidation on Charging Port Pins Increasing Resistance and Reducing Charge Current',
+    fault_options: ['Progressive Oxidation on Charging Port Pins Increasing Resistance and Reducing Charge Current','Battery capacity reducing causing longer charge times','Charger output current gradually decreasing','Wiring resistance increasing over time from heat cycling'],
+    explanation: 'Daily plug-in cycling gradually oxidises charging port pin surfaces, increasing contact resistance from 0.02 to 0.6 ohms. At 15A charge current this dissipates significant heat at the port and reduces available charging voltage to the battery. The gradual onset over months distinguishes this from sudden connector damage.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S20',
+    complaint: "Vehicle was briefly submerged in a flood. Now starts fine but cuts out randomly under load.",
+    vehicle_detail: "Submerged for approximately 5 minutes. Dried for 2 days before use.",
+    systems: ['Controller','Wiring','Motor','Battery'],
+    clues: {
+      'Controller': [{type:'warning', text:'Controller MOSFET gate driver board shows micro-corrosion on PCB traces — visible under inspection lamp as white residue along signal traces.'},{type:'warning', text:'Under load, thermal expansion of PCB causes intermittent open circuit on corroded gate signal trace, dropping MOSFET drive — motor loses power momentarily.'}],
+      'Wiring': [{type:'observation', text:'Main power wiring dried successfully. No corrosion on high-current cables. Insulation intact.'}],
+      'Motor': [{type:'normal', text:'Motor windings dry and undamaged. Motor operates correctly when controller signal is present.'}],
+      'Battery': [{type:'normal', text:'Battery sealed and undamaged by flood. Voltage and capacity normal.'}]
+    },
+    correct_fault: 'Flood Water Micro-Corrosion on Controller Gate Driver PCB — Intermittent MOSFET Dropout Under Load',
+    fault_options: ['Flood Water Micro-Corrosion on Controller Gate Driver PCB — Intermittent MOSFET Dropout Under Load','Motor winding moisture causing short under load','Battery internal water damage causing voltage collapse','Wiring insulation breakdown under load current'],
+    explanation: 'Water deposited minerals and caused micro-corrosion on the controller PCB gate driver traces. Under load, thermal expansion causes the corroded trace to open intermittently. External drying does not reach PCB-level corrosion. The controller requires professional cleaning or replacement.',
+    wrong_systems: ['Motor','Battery'],
+    points_max: 200,
+    red_herring: { system:'Wiring', clue: {type:'observation', text:'Note: Main power cables show surface moisture marks but resistance is within spec — this is cosmetic, not a fault cause.'}}
+  },
+  {
+    id:'S21',
+    complaint: "Brake cut switch was bypassed by a previous owner. Vehicle now creeps forward very slowly when stationary with throttle released.",
+    vehicle_detail: "Bypass was done before purchase. Customer says it was always like this.",
+    systems: ['Brake Switch','Throttle Sensor','Controller','Battery'],
+    clues: {
+      'Brake Switch': [{type:'warning', text:'Brake cut switch circuit is bypassed — permanently closed signal sent to controller regardless of brake lever position.'},{type:'observation', text:'Without the brake cut switch acting as a zero-reference point, the controller cannot verify true zero throttle state.'}],
+      'Throttle Sensor': [{type:'warning', text:'Throttle sensor resting output voltage measured at 0.74V — just above the 0.7V minimum threshold. Without brake cut reference the controller treats this as a small throttle input.'},{type:'observation', text:'With brake switch functioning, the controller uses brake input to confirm zero throttle intent and suppresses this marginal signal.'}],
+      'Controller': [{type:'observation', text:'Controller is correctly responding to the 0.74V signal it receives — it has no way to know this is a resting throttle without the brake cut reference.'}],
+      'Battery': [{type:'normal', text:'Battery supply normal. Not a power issue.'}]
+    },
+    correct_fault: 'Bypassed Brake Switch Removing Zero-Throttle Reference — Controller Responding to Resting Throttle Drift',
+    fault_options: ['Bypassed Brake Switch Removing Zero-Throttle Reference — Controller Responding to Resting Throttle Drift','Throttle sensor calibration offset causing false input','Controller zero-throttle threshold set too high','Battery voltage variation causing throttle signal drift'],
+    explanation: 'The brake cut switch serves dual purpose — it cuts motor power on braking AND provides a zero-throttle reference. Without it, the controller sees normal at-rest throttle drift of 0.74V as a valid throttle input and commands a small creep speed. Restoring the brake switch circuit resolves both the creep and restores the original safety braking function.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 200
+  },
+  {
+    id:'S22',
+    complaint: "Two identical vehicles from the same batch — one consistently has 15% less range than the other.",
+    vehicle_detail: "Same age, same usage pattern, same rider weight, same routes.",
+    systems: ['Battery','Battery SOC Meter','Controller','Wiring'],
+    clues: {
+      'Battery': [{type:'warning', text:'Lower-range vehicle battery pack shows cell voltage spread of 180mV at end of discharge — much higher than the 40mV spread in the normal vehicle.'},{type:'warning', text:'Internal inspection reveals 4 replacement cells fitted into the pack — different chemistry and age from original cells. Mixed cell packs discharge unevenly.'}],
+      'Battery SOC Meter': [{type:'normal', text:'SOC meter on both vehicles calibrated identically. Both accurate.'}],
+      'Controller': [{type:'normal', text:'Both controllers have identical parameters. No difference.'}],
+      'Wiring': [{type:'normal', text:'Both vehicles have identical wiring resistance. No fault.'}]
+    },
+    correct_fault: 'Mixed Old and New Cells in Battery Pack — Imbalanced Discharge Reducing Effective Range',
+    fault_options: ['Mixed Old and New Cells in Battery Pack — Imbalanced Discharge Reducing Effective Range','Controller on lower-range vehicle drawing more current','SOC meter on lower-range vehicle over-reporting consumption','Wiring resistance higher on lower-range vehicle'],
+    explanation: 'Replacing individual cells with cells of different chemistry or age creates a weak-link problem. The older cells reach the BMS cutoff voltage first, triggering end-of-discharge for the entire pack regardless of remaining charge in other cells. A full pack replacement with matched cells is the correct fix.',
+    wrong_systems: ['Controller','Wiring'],
+    points_max: 150
+  },
+  {
+    id:'S23',
+    complaint: "Vehicle runs perfectly but fails its electrical safety inspection every time it is tested.",
+    vehicle_detail: "No performance issues. Fails specifically on earth bonding test.",
+    systems: ['Motor','Wiring','Controller','Battery'],
+    clues: {
+      'Motor': [{type:'warning', text:'Earth continuity test between motor casing and vehicle chassis shows open circuit — no earth bond present.'},{type:'observation', text:'Earth bonding wire between motor casing and chassis has corroded through at the chassis mounting point. Visually easy to miss as it looks intact externally.'}],
+      'Wiring': [{type:'observation', text:'Earth bonding wire insulation intact but internal conductor has corroded through — zero conductivity despite appearing normal.'}],
+      'Controller': [{type:'normal', text:'Controller earth bonding confirmed intact. No fault here.'}],
+      'Battery': [{type:'normal', text:'Battery earth connections secure and low resistance.'}]
+    },
+    correct_fault: 'Earth Bonding Wire Between Motor Casing and Chassis Corroded Through — Chassis Floating',
+    fault_options: ['Earth Bonding Wire Between Motor Casing and Chassis Corroded Through — Chassis Floating','Controller earth fault causing inspection failure','Battery earth connection broken','Motor winding insulation failure causing earth fault'],
+    explanation: 'The earth bonding wire has corroded internally while appearing intact externally. Without this bond, the motor casing and chassis are electrically floating — any insulation fault in the motor could make the chassis live. This is a serious latent safety issue. The bonding wire must be replaced immediately.',
+    wrong_systems: ['Controller','Battery'],
+    points_max: 150
+  },
+  {
+    id:'S24',
+    complaint: "After fitting a higher capacity battery, MCB trips within seconds at full throttle but not at moderate speed.",
+    vehicle_detail: "Upgrade done last month. Old battery never caused MCB trips.",
+    systems: ['MCB','Battery','Controller','Motor'],
+    clues: {
+      'MCB': [{type:'observation', text:'63A MCB is tripping correctly — trip current confirmed at 65A. MCB is not faulty.'},{type:'observation', text:'Original battery had internal resistance of 120mOhm which naturally limited peak current. New battery has 35mOhm internal resistance.'}],
+      'Battery': [{type:'warning', text:'New higher-capacity battery has significantly lower internal resistance (35mOhm vs 120mOhm original). Under full throttle, this allows instantaneous current to reach 65A — previously the old battery naturally capped peak current at approximately 52A.'},{type:'observation', text:'The battery upgrade effectively removed a natural current limiting factor.'}],
+      'Controller': [{type:'normal', text:'Controller current limit is set to 60A. However, instantaneous peak demand before the controller loop responds can briefly exceed this during step throttle application.'}],
+      'Motor': [{type:'normal', text:'Motor accepting current correctly. No motor fault.'}]
+    },
+    correct_fault: 'Higher Capacity Battery Lower Internal Resistance Allowing Peak Current to Exceed MCB Rating',
+    fault_options: ['Higher Capacity Battery Lower Internal Resistance Allowing Peak Current to Exceed MCB Rating','MCB now undersized after battery upgrade','Controller sending excess current with new battery','Motor drawing more current from higher capacity battery'],
+    explanation: 'The original battery high internal resistance (120mOhm) naturally limited peak current to approximately 52A. The new battery lower resistance (35mOhm) allows the same voltage to push 65A during step throttle — exceeding the 63A MCB. Adding a soft-start setting in the controller or upgrading to an 80A MCB with appropriate wiring assessment resolves this.',
+    wrong_systems: ['Controller','Motor'],
+    points_max: 200
+  },
+  {
+    id:'S25',
+    complaint: "Headlamp, horn and indicators all work but at noticeably lower intensity and volume than when the vehicle was new.",
+    vehicle_detail: "Gradual decline over 18 months. No single component replaced.",
+    systems: ['Buck Converter','Battery','Wiring','Head Lamp'],
+    clues: {
+      'Buck Converter': [{type:'warning', text:'Buck converter output voltage measured at 10.4V — should be 12V. Output has drifted 1.6V below specification.'},{type:'warning', text:'Converter feedback resistor R12 measured at 14.2kOhm — original value 12kOhm. Resistor value has drifted upward with age and heat cycling, shifting the voltage regulation setpoint downward.'}],
+      'Battery': [{type:'normal', text:'48V main battery healthy. Input to Buck converter confirmed at 48.2V.'}],
+      'Wiring': [{type:'normal', text:'No resistance change on 12V distribution wiring.'}],
+      'Head Lamp': [{type:'normal', text:'Headlamp produces correct brightness when supplied 12V from external source. Lamp itself is fine.'}]
+    },
+    correct_fault: 'Buck Converter Feedback Resistor Drifted — Output Voltage Reduced from 12V to 10.4V',
+    fault_options: ['Buck Converter Feedback Resistor Drifted — Output Voltage Reduced from 12V to 10.4V','All 12V loads degrading simultaneously with age','Battery 12V line degrading over time','Wiring resistance increasing across all 12V circuits'],
+    explanation: 'The Buck converter feedback resistor drifted from 12kOhm to 14.2kOhm over 18 months, shifting output from 12V to 10.4V. All 12V devices are affected equally — the key diagnostic clue. Replacing the feedback resistor restores 12V output.',
+    wrong_systems: ['Battery','Wiring'],
+    points_max: 150
   }
 ];
+
 
 // ============================================================
 // GAME STATE
