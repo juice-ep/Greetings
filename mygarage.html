@@ -481,18 +481,21 @@ body {
   position:fixed; inset:0; background:rgba(20,35,55,0.75);
   display:flex; align-items:center; justify-content:center;
   z-index:300; padding:20px; backdrop-filter:blur(6px);
+  overflow-y:auto;
 }
 .share-inner {
   background:var(--surface); border-radius:20px;
-  padding:28px; max-width:480px; width:100%;
+  padding:24px; max-width:560px; width:100%;
   border:1px solid var(--border);
   box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  position:relative;
+  max-height:90vh; overflow-y:auto;
 }
 .share-inner h2 {
   font-family:'Rajdhani',sans-serif; font-size:24px;
-  color:var(--text); margin-bottom:8px;
+  color:var(--text); margin-bottom:6px;
 }
-.share-inner p { color:var(--muted); font-size:14px; margin-bottom:16px; }
+.share-inner p { color:var(--muted); font-size:14px; margin-bottom:14px; }
 .unsolved-list { list-style:none; margin-bottom:20px; }
 .unsolved-item {
   background:var(--orangeBg); border-radius:8px; padding:12px;
@@ -783,13 +786,16 @@ body {
 
 <!-- ===== SHARE MODAL ===== -->
 <div class="share-modal" id="share-modal" style="display:none">
-  <div class="share-inner" style="max-width:540px">
-    <h2>📤 Unsolved Cases Card</h2>
-    <p>Download this card to share with your instructor for review.</p>
+  <div class="share-inner" style="max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h2>📤 Unsolved Cases Card</h2>
+      <button onclick="closeShareModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+    <p id="share-status">Generating card...</p>
     <canvas id="share-canvas" style="width:100%;border-radius:10px;border:1px solid var(--border);margin-bottom:14px;display:block"></canvas>
     <div class="share-actions">
-      <button class="btn-copy" onclick="downloadShareCard()">⬇ Download Image Card</button>
-      <button class="btn-cancel" onclick="closeShareModal()">Cancel</button>
+      <button class="btn-copy" id="btn-dl-card" onclick="downloadShareCard()" disabled>⬇ Download Image Card</button>
+      <button class="btn-cancel" onclick="closeShareModal()">← Back to Results</button>
     </div>
   </div>
 </div>
@@ -2157,12 +2163,14 @@ function downloadPDF() {
     doc.setDrawColor(208,218,232);
     doc.roundedRect(14,52,182,28,3,3,'S');
 
-    // Avatar emoji area
-    doc.setFillColor(30,58,95);
-    doc.roundedRect(14,52,28,28,3,3,'F');
+    // Avatar circle with initial (emoji not supported in jsPDF)
+    doc.setFillColor(...tierRGB);
+    doc.circle(28, 66, 10, 'F');
     doc.setTextColor(255,255,255);
-    doc.setFontSize(18);
-    doc.text(av.emoji.length > 2 ? '🔧' : av.emoji, 28, 70, {align:'center'});
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(13);
+    const initial = G.playerName ? G.playerName.charAt(0).toUpperCase() : 'M';
+    doc.text(initial, 28, 70, {align:'center'});
 
     // Name & workshop
     doc.setTextColor(26,37,53);
@@ -2308,8 +2316,12 @@ function showShareModal() {
     alert('All cases were solved! Nothing unsolved to share.');
     return;
   }
+  // Reset state
+  document.getElementById('share-status').textContent = 'Generating card...';
+  document.getElementById('btn-dl-card').disabled = true;
   document.getElementById('share-modal').style.display = 'flex';
-  setTimeout(()=>drawShareCard(unsolved), 60);
+  // Draw after modal is visible so canvas has dimensions
+  setTimeout(()=>drawShareCard(unsolved), 80);
 }
 
 function closeShareModal() {
@@ -2321,17 +2333,15 @@ function drawShareCard(unsolved) {
   const isApp = G.difficulty === 'apprentice';
   const tierLabel = isApp ? 'APPRENTICE' : 'SR. TECHNICIAN';
   const tierCol = isApp ? '#009e70' : '#c87c10';
-  const av = AVATARS[G.avatarIdx];
   const W = 600;
   const H = 210 + unsolved.length * 120;
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // Background
   ctx.fillStyle = '#f0f4f8';
   ctx.fillRect(0, 0, W, H);
 
-  // Header
+  // Header band
   ctx.fillStyle = '#1e3a5f';
   ctx.fillRect(0, 0, W, 72);
   ctx.fillStyle = tierCol;
@@ -2347,7 +2357,7 @@ function drawShareCard(unsolved) {
   ctx.fillStyle = '#ffffff';
   ctx.fillText('UNSOLVED CASES — FOR INSTRUCTOR REVIEW', 20, 62);
 
-  // Tier pill top-right
+  // Tier pill
   ctx.fillStyle = tierCol;
   rcFill(ctx, W-138, 14, 118, 22, 11);
   ctx.fillStyle = '#ffffff';
@@ -2356,14 +2366,19 @@ function drawShareCard(unsolved) {
   ctx.fillText(tierLabel, W-79, 29);
   ctx.textAlign = 'left';
 
-  // Student card
+  // Student row
   ctx.fillStyle = '#ffffff';
   rcFill(ctx, 16, 84, W-32, 52, 8);
   ctx.strokeStyle = '#d0dae8'; ctx.lineWidth = 1; ctx.stroke();
 
-  ctx.font = '26px sans-serif';
-  ctx.fillStyle = '#000';
-  ctx.fillText(av.emoji, 28, 118);
+  // Avatar circle with first initial (no emoji — avoids rendering issues)
+  ctx.fillStyle = tierCol;
+  ctx.beginPath(); ctx.arc(42, 110, 16, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 15px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(G.playerName.charAt(0).toUpperCase(), 42, 115);
+  ctx.textAlign = 'left';
 
   ctx.fillStyle = '#1a2535';
   ctx.font = 'bold 15px sans-serif';
@@ -2372,13 +2387,13 @@ function drawShareCard(unsolved) {
   ctx.font = '11px sans-serif';
   ctx.fillText(G.workshopName + '  ·  ' + new Date().toLocaleDateString('en-IN'), 70, 124);
 
-  // Unsolved badge
+  // Unsolved count badge
   ctx.fillStyle = '#c42828';
   rcFill(ctx, W-114, 92, 98, 26, 6);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 11px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText(unsolved.length + (unsolved.length===1?' UNSOLVED':' UNSOLVED'), W-65, 109);
+  ctx.fillText(unsolved.length + ' UNSOLVED', W-65, 109);
   ctx.textAlign = 'left';
 
   // Case cards
@@ -2388,23 +2403,19 @@ function drawShareCard(unsolved) {
     rcFill(ctx, 16, cy, W-32, 108, 8);
     ctx.strokeStyle = '#d0dae8'; ctx.lineWidth=1; ctx.stroke();
 
-    // Red left bar
     ctx.fillStyle = '#c42828';
     rcFill(ctx, 16, cy, 4, 108, 2);
 
-    // Case label
     ctx.fillStyle = '#c42828';
     ctx.font = 'bold 9px sans-serif';
     ctx.fillText('CASE ' + r.caseNum, 30, cy+18);
 
-    // Complaint
     ctx.fillStyle = '#1a2535';
     ctx.font = 'italic 12px sans-serif';
-    const lines = wrapLines(ctx, '"' + r.complaint + '"', W-60, 28);
+    const lines = wrapLines(ctx, '"' + r.complaint + '"', W-64, 28);
     let ty = cy+34;
     lines.forEach(l => { ctx.fillText(l, 30, ty); ty+=16; });
 
-    // Answer
     ctx.fillStyle = '#6b7f99';
     ctx.font = '9px sans-serif';
     ctx.fillText('STUDENT DIAGNOSED:', 30, ty+6);
@@ -2414,16 +2425,23 @@ function drawShareCard(unsolved) {
     ctx.fillText(dx, 30, ty+20);
   });
 
-  // Footer
+  // Footer strip
   ctx.fillStyle = '#e8edf4';
   ctx.fillRect(0, H-30, W, 30);
-  ctx.strokeStyle = '#d0dae8'; ctx.beginPath();
-  ctx.moveTo(0, H-30); ctx.lineTo(W, H-30); ctx.stroke();
+  ctx.strokeStyle = '#d0dae8';
+  ctx.beginPath(); ctx.moveTo(0, H-30); ctx.lineTo(W, H-30); ctx.stroke();
   ctx.fillStyle = '#8a9ab5';
   ctx.font = '9px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText('EV Mechanic Simulator  ·  Generated: ' + new Date().toLocaleString(), W/2, H-11);
   ctx.textAlign = 'left';
+
+  // Enable button + auto-download
+  document.getElementById('share-status').textContent = 'Card ready — saving to your downloads now.';
+  const dlBtn = document.getElementById('btn-dl-card');
+  dlBtn.disabled = false;
+  dlBtn.textContent = '⬇ Download Again';
+  setTimeout(()=>downloadShareCard(), 150);
 }
 
 function rcFill(ctx, x, y, w, h, r) {
