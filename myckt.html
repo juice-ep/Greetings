@@ -783,6 +783,44 @@ body::before{
 .wire-sig{stroke:var(--cyan);stroke-width:1.5;fill:none;stroke-dasharray:6 3;opacity:0.8;}
 .node-label{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#1a2535;}
 .node-sublabel{font-family:'JetBrains Mono',monospace;font-size:8px;fill:#6b7f99;}
+
+/* ===== SHARE MODAL ===== */
+.share-modal{
+  position:fixed;inset:0;background:rgba(20,35,55,0.75);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500;padding:20px;backdrop-filter:blur(6px);
+  overflow-y:auto;
+}
+.share-inner{
+  background:var(--surface);border-radius:16px;
+  padding:24px;max-width:560px;width:100%;
+  border:1px solid var(--border);
+  box-shadow:0 8px 40px rgba(0,0,0,0.15);
+  max-height:90vh;overflow-y:auto;
+}
+.share-inner h2{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:20px;color:var(--text);margin-bottom:6px;
+}
+.share-inner p{color:var(--muted);font-size:13px;margin-bottom:14px;}
+.share-actions{display:flex;gap:10px;margin-top:14px;}
+.btn-share-dl{
+  flex:1;padding:11px;border-radius:8px;border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:14px;letter-spacing:1px;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-share-dl:hover{background:var(--amber2);}
+.btn-share-dl:disabled{opacity:0.4;cursor:not-allowed;}
+.btn-share-cancel{
+  padding:11px 18px;border-radius:8px;
+  border:1px solid var(--border2);background:var(--surface);
+  color:var(--muted);cursor:pointer;font-size:13px;
+  font-family:'Exo 2',sans-serif;font-weight:600;
+  transition:all 0.2s;
+}
+.btn-share-cancel:hover{border-color:var(--amber);color:var(--amber);}
 </style>
 </head>
 <body>
@@ -803,7 +841,7 @@ body::before{
         <div class="av-opt selected" data-av="0" onclick="pickAv(0)"><span class="av-em">🧑‍🔧</span></div>
         <div class="av-opt" data-av="1" onclick="pickAv(1)"><span class="av-em">👩‍🔧</span></div>
         <div class="av-opt" data-av="2" onclick="pickAv(2)"><span class="av-em">🧔‍♂️</span></div>
-        <div class="av-opt" data-av="3" onclick="pickAv(3)"><span class="av-em">👱‍♀️</span></div>
+        <div class="av-opt" data-av="3" onclick="pickAv(3)"><span class="av-em">👩</span></div>
       </div>
       <label class="field-label">Level</label>
       <div class="diff-row">
@@ -891,6 +929,7 @@ body::before{
       <div class="stage-scores" id="comp-scores"></div>
       <div class="complete-actions">
         <button class="btn-dl" onclick="downloadReport()">⬇ DOWNLOAD REPORT</button>
+        <button class="btn-dl" style="background:var(--green)" onclick="showShareModal()">📤 SHARE CARD</button>
         <button class="btn-sec" onclick="location.reload()">RESTART</button>
       </div>
     </div>
@@ -1852,78 +1891,229 @@ function showComplete(){
 }
 
 function downloadReport(){
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  try {
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const isApp=G.diff==='apprentice';
+    const tierRGB=isApp?[0,158,112]:[200,124,16];
+    const tierLabel=isApp?'APPRENTICE LEVEL':'SR. TECHNICIAN LEVEL';
+    const maxScore=isApp?300:400;
+    const pct=Math.min(100,Math.round((G.score/maxScore)*100));
+
+    // ── Header (dark band for contrast) ──
+    doc.setFillColor(30,58,95);doc.rect(0,0,210,48,'F');
+    doc.setFillColor(...tierRGB);doc.rect(0,46,210,2,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold');doc.setFontSize(18);
+    doc.text('SKYY SKILL ACADEMY',105,16,{align:'center'});
+    doc.setFontSize(10);doc.setFont('helvetica','normal');
+    doc.setTextColor(180,210,240);
+    doc.text('THANE CAMPUS — 48V BLDC CIRCUIT EXPLORER',105,26,{align:'center'});
+    doc.setFontSize(13);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+    doc.text('CIRCUIT MASTERY REPORT',105,38,{align:'center'});
+
+    // ── Tier pill ──
+    doc.setFillColor(...tierRGB);doc.roundedRect(14,54,58,10,2,2,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','bold');
+    doc.text(tierLabel,43,61,{align:'center'});
+
+    // ── Date ──
+    doc.setTextColor(90,122,148);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),196,61,{align:'right'});
+
+    // ── Student info box (light) ──
+    doc.setFillColor(240,244,248);doc.roundedRect(14,70,182,30,3,3,'F');
+    doc.setDrawColor(208,218,232);doc.roundedRect(14,70,182,30,3,3,'S');
+
+    // Avatar circle with initial
+    doc.setFillColor(...tierRGB);doc.circle(28,85,9,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text(G.name.charAt(0).toUpperCase(),28,89,{align:'center'});
+
+    doc.setTextColor(26,37,53);doc.setFont('helvetica','bold');doc.setFontSize(13);
+    doc.text(G.name,42,80);
+    doc.setFont('helvetica','normal');doc.setFontSize(9);
+    doc.setTextColor(90,122,153);
+    doc.text(G.workshop+' — Circuit Explorer',42,89);
+
+    doc.setTextColor(...tierRGB);doc.setFont('helvetica','bold');doc.setFontSize(20);
+    doc.text(pct+'%',190,83,{align:'right'});
+    doc.setTextColor(130,150,170);doc.setFontSize(7);
+    doc.text('MASTERY',190,90,{align:'right'});
+
+    // ── Stage score table ──
+    const stageNames=['Read the Blueprint','Understand the Systems','Connect the Circuit','Trace the Power','Quick Fire Round'];
+    const tableY=108;
+    doc.setFillColor(30,58,95);doc.rect(14,tableY,182,8,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text('STAGE',18,tableY+5.5);doc.text('EXERCISE',40,tableY+5.5);doc.text('SCORE',185,tableY+5.5,{align:'right'});
+
+    G.stageScores.forEach((s,i)=>{
+      const ry=tableY+8+(i*13);
+      doc.setFillColor(i%2===0?248:240,i%2===0?250:244,i%2===0?253:248);
+      doc.rect(14,ry,182,13,'F');
+      doc.setDrawColor(220,228,238);doc.line(14,ry+13,196,ry+13);
+      doc.setTextColor(90,122,153);doc.setFontSize(8);doc.setFont('helvetica','normal');
+      doc.text('Stage '+(i+1),18,ry+9);
+      doc.setTextColor(26,37,53);
+      doc.text(stageNames[i],40,ry+9);
+      doc.setTextColor(...tierRGB);doc.setFont('helvetica','bold');
+      doc.text(s+' pts',185,ry+9,{align:'right'});
+    });
+
+    // ── Total bar ──
+    const totalY=tableY+8+(5*13)+5;
+    doc.setFillColor(...tierRGB);doc.roundedRect(14,totalY,182,14,2,2,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont('helvetica','bold');
+    doc.text('TOTAL SCORE: '+G.score+' points — '+pct+'% Mastery',105,totalY+9,{align:'center'});
+
+    // ── Footer ──
+    doc.setFillColor(240,244,248);doc.rect(0,270,210,27,'F');
+    doc.setDrawColor(208,218,232);doc.line(0,270,210,270);
+    doc.setTextColor(...tierRGB);doc.setFontSize(8);doc.setFont('helvetica','bold');
+    doc.text('Skyy Skill Academy — Thane Campus | 48V BLDC Circuit Explorer',105,279,{align:'center'});
+    doc.setFont('helvetica','normal');doc.setTextColor(130,150,170);
+    doc.text('Level: '+tierLabel+' | Generated: '+new Date().toLocaleString(),105,286,{align:'center'});
+
+    doc.save('Circuit_Report_'+G.name.replace(/\s+/g,'_')+'_'+Date.now()+'.pdf');
+  } catch(e) {
+    console.error('PDF error:',e);
+    alert('Could not generate PDF: '+e.message);
+  }
+}
+
+
+function showShareModal(){
+  showScreen('complete'); // ensure we stay on complete screen
+  document.getElementById('share-status').textContent='Generating card...';
+  document.getElementById('btn-share-dl').disabled=true;
+  document.getElementById('share-modal').style.display='flex';
+  setTimeout(()=>drawMasteryCard(),80);
+}
+
+function closeShareModal(){
+  document.getElementById('share-modal').style.display='none';
+}
+
+function drawMasteryCard(){
+  const canvas=document.getElementById('share-canvas');
   const isApp=G.diff==='apprentice';
-  const tierRGB=isApp?[0,200,150]:[245,166,35];
-  const tierLabel=isApp?'APPRENTICE LEVEL':'SR. TECHNICIAN LEVEL';
+  const tierLabel=isApp?'APPRENTICE':'SR. TECHNICIAN';
+  const tierCol=isApp?'#009e70':'#c87c10';
   const maxScore=isApp?300:400;
   const pct=Math.min(100,Math.round((G.score/maxScore)*100));
+  const W=600,H=520;
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
 
-  // Header
-  doc.setFillColor(10,15,20);doc.rect(0,0,210,50,'F');
-  doc.setFillColor(...tierRGB);doc.rect(0,48,210,2,'F');
-  doc.setTextColor(255,255,255);
-  doc.setFont('helvetica','bold');doc.setFontSize(18);
-  doc.text('SKYY SKILL ACADEMY',105,16,{align:'center'});
-  doc.setFontSize(10);doc.setFont('helvetica','normal');
-  doc.setTextColor(90,122,148);
-  doc.text('THANE CAMPUS — 48V BLDC CIRCUIT EXPLORER',105,24,{align:'center'});
-  doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
-  doc.text('CIRCUIT MASTERY REPORT',105,38,{align:'center'});
+  // Background
+  ctx.fillStyle='#f0f4f8';ctx.fillRect(0,0,W,H);
+
+  // Header band
+  ctx.fillStyle='#1e3a5f';ctx.fillRect(0,0,W,72);
+  ctx.fillStyle=tierCol;ctx.fillRect(0,70,W,4);
+
+  ctx.fillStyle='#ffffff';ctx.font='bold 17px sans-serif';
+  ctx.fillText('SKYY SKILL ACADEMY',20,26);
+  ctx.font='10px sans-serif';ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.fillText('THANE CAMPUS — 48V BLDC CIRCUIT EXPLORER',20,43);
+  ctx.font='bold 12px sans-serif';ctx.fillStyle='#ffffff';
+  ctx.fillText('CIRCUIT MASTERY REPORT',20,62);
 
   // Tier pill
-  doc.setFillColor(...tierRGB);doc.roundedRect(14,56,55,10,2,2,'F');
-  doc.setTextColor(0,0,0);doc.setFontSize(8);doc.setFont('helvetica','bold');
-  doc.text(tierLabel,41,63,{align:'center'});
+  ctx.fillStyle=tierCol;
+  rcFillC(ctx,W-138,14,118,22,11);
+  ctx.fillStyle='#ffffff';ctx.font='bold 9px sans-serif';
+  ctx.textAlign='center';ctx.fillText(tierLabel,W-79,29);ctx.textAlign='left';
 
-  // Date
-  doc.setTextColor(90,122,148);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),196,63,{align:'right'});
+  // Student card
+  ctx.fillStyle='#ffffff';
+  rcFillC(ctx,16,84,W-32,60,8);
+  ctx.strokeStyle='#d0dae8';ctx.lineWidth=1;ctx.stroke();
 
-  // Student box
-  doc.setFillColor(17,24,32);doc.roundedRect(14,72,182,28,3,3,'F');
-  doc.setTextColor(...tierRGB);doc.setFontSize(16);doc.setFont('helvetica','bold');
-  doc.text(G.name,55,84);
-  doc.setTextColor(255,255,255);doc.setFontSize(11);
-  doc.text(G.workshop+' — Circuit Explorer',55,93);
-  doc.setTextColor(...tierRGB);doc.setFontSize(22);
-  doc.text(pct+'%',185,90,{align:'right'});
-  doc.setTextColor(90,122,148);doc.setFontSize(8);
-  doc.text('MASTERY',185,96,{align:'right'});
+  // Avatar initial circle
+  ctx.fillStyle=tierCol;
+  ctx.beginPath();ctx.arc(44,114,18,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#ffffff';ctx.font='bold 17px sans-serif';
+  ctx.textAlign='center';ctx.fillText(G.name.charAt(0).toUpperCase(),44,120);ctx.textAlign='left';
 
-  // Stage scores
+  ctx.fillStyle='#1a2535';ctx.font='bold 16px sans-serif';
+  ctx.fillText(G.name,76,108);
+  ctx.fillStyle='#5a7a99';ctx.font='11px sans-serif';
+  ctx.fillText(G.workshop+' — Circuit Explorer',76,124);
+  ctx.fillStyle='#8a9ab5';ctx.font='10px sans-serif';
+  ctx.fillText(new Date().toLocaleDateString('en-IN'),76,138);
+
+  // Mastery % badge
+  ctx.fillStyle=tierCol;
+  rcFillC(ctx,W-110,92,94,40,8);
+  ctx.fillStyle='#ffffff';ctx.font='bold 26px sans-serif';
+  ctx.textAlign='center';ctx.fillText(pct+'%',W-63,117);
+  ctx.font='bold 8px sans-serif';ctx.fillText('MASTERY',W-63,128);ctx.textAlign='left';
+
+  // Stage score rows
   const stageNames=['Read the Blueprint','Understand the Systems','Connect the Circuit','Trace the Power','Quick Fire Round'];
-  const tableY=108;
-  doc.setFillColor(24,32,48);doc.rect(14,tableY,182,8,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
-  doc.text('STAGE',18,tableY+5.5);doc.text('EXERCISE',40,tableY+5.5);doc.text('SCORE',185,tableY+5.5,{align:'right'});
+  const rowH=38,startY=162;
+  stageNames.forEach((name,i)=>{
+    const ry=startY+i*rowH;
+    ctx.fillStyle=i%2===0?'#ffffff':'#f6f8fb';
+    rcFillC(ctx,16,ry,W-32,rowH-2,4);
+    if(i===0){ctx.strokeStyle='#d0dae8';ctx.lineWidth=1;ctx.stroke();}
 
-  G.stageScores.forEach((s,i)=>{
-    const ry=tableY+8+(i*12);
-    doc.setFillColor(i%2===0?17:14,i%2===0?24:20,i%2===0?32:28);
-    doc.rect(14,ry,182,12,'F');
-    doc.setTextColor(90,122,148);doc.setFontSize(8);doc.setFont('helvetica','normal');
-    doc.text(`Stage ${i+1}`,18,ry+8);
-    doc.setTextColor(180,200,220);
-    doc.text(stageNames[i],40,ry+8);
-    doc.setTextColor(...tierRGB);doc.setFont('helvetica','bold');
-    doc.text(s+' pts',185,ry+8,{align:'right'});
+    // Stage number pill
+    ctx.fillStyle=tierCol;
+    rcFillC(ctx,24,ry+9,52,18,6);
+    ctx.fillStyle='#ffffff';ctx.font='bold 9px sans-serif';
+    ctx.textAlign='center';ctx.fillText('STAGE '+(i+1),50,ry+21);ctx.textAlign='left';
+
+    ctx.fillStyle='#1a2535';ctx.font='12px sans-serif';
+    ctx.fillText(name,88,ry+22);
+
+    ctx.fillStyle=tierCol;ctx.font='bold 13px sans-serif';
+    ctx.textAlign='right';ctx.fillText(G.stageScores[i]+' pts',W-24,ry+22);ctx.textAlign='left';
   });
 
-  // Total bar
-  const totalY=tableY+8+(5*12)+4;
-  doc.setFillColor(...tierRGB);doc.roundedRect(14,totalY,182,14,2,2,'F');
-  doc.setTextColor(0,0,0);doc.setFontSize(12);doc.setFont('helvetica','bold');
-  doc.text(`TOTAL SCORE: ${G.score} points — ${pct}% Mastery`,105,totalY+9,{align:'center'});
+  // Total score bar
+  ctx.fillStyle=tierCol;
+  rcFillC(ctx,16,startY+5*rowH+6,W-32,36,8);
+  ctx.fillStyle='#ffffff';ctx.font='bold 14px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('TOTAL: '+G.score+' pts — '+pct+'% Mastery',W/2,startY+5*rowH+28);
+  ctx.textAlign='left';
 
   // Footer
-  doc.setFillColor(10,15,20);doc.rect(0,268,210,29,'F');
-  doc.setTextColor(...tierRGB);doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text('Skyy Skill Academy — Thane Campus | 48V BLDC Circuit Explorer',105,277,{align:'center'});
-  doc.text(`Level: ${tierLabel} | Generated: ${new Date().toLocaleString()}`,105,284,{align:'center'});
+  ctx.fillStyle='#e8edf4';ctx.fillRect(0,H-30,W,30);
+  ctx.strokeStyle='#d0dae8';ctx.beginPath();ctx.moveTo(0,H-30);ctx.lineTo(W,H-30);ctx.stroke();
+  ctx.fillStyle='#8a9ab5';ctx.font='9px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText('EV Circuit Explorer  ·  Generated: '+new Date().toLocaleString(),W/2,H-11);
+  ctx.textAlign='left';
 
-  doc.save(`Circuit_Report_${G.name.replace(/\s/g,'_')}_${Date.now()}.pdf`);
+  document.getElementById('share-status').textContent='Card ready — saving to your downloads now.';
+  const dlBtn=document.getElementById('btn-share-dl');
+  dlBtn.disabled=false;dlBtn.textContent='⬇ Download Again';
+  setTimeout(()=>downloadShareCard(),150);
+}
+
+function rcFillC(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function downloadShareCard(){
+  const canvas=document.getElementById('share-canvas');
+  const a=document.createElement('a');
+  a.download='Circuit_Card_'+G.name.replace(/\s+/g,'_')+'_'+Date.now()+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
 }
 
 // ============================================================
@@ -1944,5 +2134,21 @@ function showToast(msg,type='info'){
   toastTimer=setTimeout(()=>t.className='toast',2000);
 }
 </script>
+
+<!-- ===== SHARE MODAL ===== -->
+<div class="share-modal" id="share-modal" style="display:none">
+  <div class="share-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h2>📤 Circuit Mastery Card</h2>
+      <button onclick="closeShareModal()" style="background:none;border:none;font-size:22px;color:var(--muted);cursor:pointer;line-height:1;padding:4px">✕</button>
+    </div>
+    <p id="share-status">Generating card...</p>
+    <canvas id="share-canvas" style="width:100%;border-radius:10px;border:1px solid var(--border);margin-bottom:14px;display:block"></canvas>
+    <div class="share-actions">
+      <button class="btn-share-dl" id="btn-share-dl" onclick="downloadShareCard()" disabled>⬇ Download Image Card</button>
+      <button class="btn-share-cancel" onclick="closeShareModal()">← Back to Results</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
