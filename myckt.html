@@ -1,0 +1,1948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV Circuit Explorer — Skyy Skill Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface2: #eef1f6;
+  --border: #dde3ed;
+  --border2: #c8d2e0;
+  --text: #1a2535;
+  --muted: #6b7f99;
+  --amber: #c87c10;
+  --amber2: #e09020;
+  --amberBg: #fff8ed;
+  --cyan: #0e8fa8;
+  --green: #1a9e48;
+  --red: #c42828;
+  --yellow: #b8960a;
+  --blue: #1a50b0;
+  --volt48: #c87c10;
+  --volt12: #1a9e48;
+  --signal: #0e8fa8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Barlow',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* Grid texture overlay */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(180,195,215,0.35) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(180,195,215,0.35) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;z-index:0;
+}
+
+.screen{display:none;min-height:100vh;position:relative;z-index:1;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ===== TYPOGRAPHY ===== */
+.mono{font-family:'JetBrains Mono',monospace;}
+.exo{font-family:'Exo 2',sans-serif;}
+
+/* ===== HEADER ===== */
+.top-bar{
+  background:rgba(255,255,255,0.96);
+  border-bottom:1px solid var(--border);
+  padding:10px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  backdrop-filter:blur(10px);
+  box-shadow:0 1px 8px rgba(0,0,0,0.06);
+}
+.top-brand{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:13px;letter-spacing:2px;color:var(--amber);
+  text-transform:uppercase;
+}
+.top-brand span{color:var(--muted);font-weight:400;}
+.top-meta{display:flex;gap:20px;align-items:center;}
+.top-stage{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--muted);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  padding:4px 10px;border-radius:4px;
+}
+.top-stage span{color:var(--amber);}
+.top-user{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--text);
+}
+.top-av{font-size:20px;}
+
+/* ===== WELCOME SCREEN ===== */
+#screen-welcome{
+  justify-content:center;align-items:center;
+  background:radial-gradient(ellipse at 20% 60%, rgba(200,124,16,0.07) 0%, transparent 60%),
+             radial-gradient(ellipse at 80% 20%, rgba(14,143,168,0.06) 0%, transparent 50%);
+  padding:20px;
+}
+.welcome-wrap{max-width:620px;width:100%;}
+.welcome-eyebrow{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--amber);
+  letter-spacing:3px;text-transform:uppercase;
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:10px;
+}
+.welcome-eyebrow::before{
+  content:'';display:block;width:30px;height:1px;background:var(--amber);
+}
+.welcome-title{
+  font-family:'Exo 2',sans-serif;
+  font-size:clamp(36px,6vw,58px);
+  font-weight:800;line-height:1;
+  color:var(--text);margin-bottom:8px;
+  letter-spacing:-1px;
+}
+.welcome-title em{
+  font-style:normal;color:var(--amber);
+}
+.welcome-sub{
+  color:var(--muted);font-size:15px;
+  line-height:1.6;margin-bottom:32px;
+  max-width:480px;
+}
+.welcome-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;padding:28px;
+  position:relative;overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,0.07);
+}
+.welcome-panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--amber),var(--amber2),transparent);
+}
+.field-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--amber);
+  letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:8px;display:block;
+}
+.field-input{
+  width:100%;background:var(--bg);
+  border:1px solid var(--border2);
+  border-radius:6px;padding:11px 14px;
+  color:var(--text);font-family:'Barlow',sans-serif;
+  font-size:15px;margin-bottom:20px;
+  transition:border-color 0.2s;
+}
+.field-input:focus{outline:none;border-color:var(--amber);box-shadow:0 0 0 3px rgba(200,124,16,0.1);}
+.avatar-row{display:flex;gap:10px;margin-bottom:24px;}
+.av-opt{
+  flex:1;background:var(--bg);
+  border:2px solid var(--border);
+  border-radius:8px;padding:14px 8px;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s;
+}
+.av-opt:hover{border-color:var(--amber);background:var(--amberBg);}
+.av-opt.selected{
+  border-color:var(--amber);
+  background:var(--amberBg);
+  box-shadow:0 0 0 3px rgba(200,124,16,0.12);
+}
+.av-opt .av-em{font-size:28px;display:block;}
+.diff-row{display:flex;gap:10px;margin-bottom:24px;}
+.diff-opt{
+  flex:1;background:var(--bg);
+  border:2px solid var(--border);
+  border-radius:8px;padding:12px;
+  cursor:pointer;transition:all 0.2s;text-align:center;
+}
+.diff-opt .diff-tier{
+  font-family:'Exo 2',sans-serif;font-weight:700;
+  font-size:14px;margin-bottom:2px;
+}
+.diff-opt .diff-desc{font-size:11px;color:var(--muted);}
+.diff-opt[data-d="apprentice"]:hover,
+.diff-opt[data-d="apprentice"].selected{
+  border-color:#009e70;background:rgba(0,158,112,0.06);
+}
+.diff-opt[data-d="apprentice"] .diff-tier{color:#009e70;}
+.diff-opt[data-d="srtech"]:hover,
+.diff-opt[data-d="srtech"].selected{
+  border-color:#c87c10;background:rgba(200,124,16,0.07);
+}
+.diff-opt[data-d="srtech"] .diff-tier{color:#c87c10;}
+.btn-launch{
+  width:100%;padding:14px;border-radius:8px;border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:16px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+  box-shadow:0 3px 12px rgba(200,124,16,0.3);
+}
+.btn-launch:hover{background:var(--amber2);transform:translateY(-1px);box-shadow:0 5px 18px rgba(200,124,16,0.35);}
+.btn-launch:disabled{opacity:0.35;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* ===== BRIEFING SCREEN ===== */
+#screen-briefing{
+  justify-content:center;align-items:center;
+  background:radial-gradient(ellipse at 70% 30%, rgba(200,124,16,0.05) 0%, transparent 60%);
+  padding:20px;
+}
+.briefing-card{
+  max-width:640px;width:100%;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,0.07);
+}
+.briefing-header{
+  background:linear-gradient(135deg,#1a2535,#2a3a50);
+  padding:24px 28px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;
+}
+.senior-av{font-size:48px;}
+.briefing-header-text .tag{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;color:var(--amber2);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;
+}
+.briefing-header-text .name{
+  font-family:'Exo 2',sans-serif;font-weight:700;
+  font-size:20px;color:#fff;
+}
+.briefing-header-text .role{font-size:13px;color:rgba(255,255,255,0.55);}
+.briefing-body{padding:28px;}
+.dialogue-box{
+  background:var(--amberBg);border-left:3px solid var(--amber);
+  border-radius:0 8px 8px 0;padding:16px 18px;
+  margin-bottom:20px;font-size:15px;
+  line-height:1.7;color:var(--text);
+  font-style:italic;
+}
+.stage-overview{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.stage-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;
+}
+.stage-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--amber);
+  background:rgba(200,124,16,0.1);
+  border:1px solid rgba(200,124,16,0.25);
+  border-radius:4px;padding:2px 8px;
+  white-space:nowrap;
+}
+.stage-name{font-weight:600;font-size:14px;flex:1;color:var(--text);}
+.stage-type{
+  font-size:11px;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;
+}
+.btn-begin{
+  width:100%;padding:13px;border-radius:8px;border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:15px;letter-spacing:2px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+  box-shadow:0 3px 12px rgba(200,124,16,0.25);
+}
+.btn-begin:hover{background:var(--amber2);}
+
+/* ===== STAGE SCREENS ===== */
+#screen-stage{flex:1;display:none;flex-direction:column;}
+#screen-stage.active{display:flex;}
+
+.stage-header{
+  background:rgba(255,255,255,0.96);
+  border-bottom:1px solid var(--border);
+  padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  backdrop-filter:blur(10px);position:sticky;top:0;z-index:50;
+  box-shadow:0 1px 6px rgba(0,0,0,0.05);
+}
+.stage-info{display:flex;align-items:center;gap:14px;}
+.stage-badge{
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:11px;letter-spacing:1px;padding:4px 10px;
+  border-radius:4px;text-transform:uppercase;
+}
+.stage-title-text{
+  font-family:'Exo 2',sans-serif;font-weight:700;
+  font-size:16px;color:var(--text);
+}
+.stage-progress-wrap{display:flex;align-items:center;gap:10px;}
+.stage-progress-track{
+  width:140px;height:4px;background:var(--border);
+  border-radius:2px;overflow:hidden;
+}
+.stage-progress-fill{
+  height:100%;background:var(--amber);
+  border-radius:2px;transition:width 0.4s ease;
+}
+.stage-score-display{
+  font-family:'JetBrains Mono',monospace;
+  font-size:13px;color:var(--amber);font-weight:600;
+}
+
+.stage-body{flex:1;padding:20px 24px;max-width:1000px;margin:0 auto;width:100%;}
+
+/* Dialogue strip */
+.mentor-strip{
+  background:var(--amberBg);border:1px solid rgba(200,124,16,0.2);
+  border-radius:10px;padding:14px 16px;
+  display:flex;gap:12px;align-items:flex-start;
+  margin-bottom:20px;position:relative;overflow:hidden;
+}
+.mentor-strip::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--amber);
+}
+.mentor-em{font-size:28px;flex-shrink:0;}
+.mentor-text{font-size:14px;line-height:1.5;color:var(--text);}
+.mentor-text strong{color:var(--amber);}
+
+/* ===== STAGE 1 — LABELLING ===== */
+.circuit-diagram-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:20px;
+  position:relative;
+  box-shadow:0 2px 12px rgba(0,0,0,0.05);
+}
+.circuit-svg-container{
+  width:100%;overflow-x:auto;
+}
+.circuit-svg{width:100%;min-width:600px;max-width:800px;display:block;margin:0 auto;}
+
+/* Component label spots */
+.label-spot{
+  position:absolute;
+  background:#fff;
+  border:2px dashed var(--border2);
+  border-radius:6px;
+  padding:4px 10px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--muted);
+  cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+  user-select:none;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+.label-spot:hover{border-color:var(--amber);color:var(--amber);background:var(--amberBg);}
+.label-spot.correct{
+  border-color:var(--green);color:var(--green);
+  border-style:solid;background:rgba(26,158,72,0.07);
+}
+.label-spot.wrong{
+  border-color:var(--red);color:var(--red);
+  border-style:solid;
+  animation:shake 0.3s ease;
+}
+.label-spot.answered{pointer-events:none;}
+
+/* Answer bank */
+.answer-bank{
+  display:flex;flex-wrap:wrap;gap:8px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.answer-chip{
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:6px;padding:7px 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  cursor:pointer;transition:all 0.2s;color:var(--text);
+  user-select:none;
+}
+.answer-chip:hover:not(.used){
+  border-color:var(--amber);color:var(--amber);
+  background:var(--amberBg);
+}
+.answer-chip.selected{
+  border-color:var(--cyan);color:var(--cyan);
+  background:rgba(14,143,168,0.07);
+}
+.answer-chip.used{
+  opacity:0.25;cursor:not-allowed;
+  text-decoration:line-through;
+}
+
+/* ===== STAGE 2 — EXPLORE ===== */
+.explore-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:14px;margin-bottom:20px;
+}
+@media(max-width:640px){.explore-grid{grid-template-columns:1fr;}}
+
+.component-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;padding:16px;cursor:pointer;
+  transition:all 0.2s;position:relative;overflow:hidden;
+  box-shadow:0 1px 6px rgba(0,0,0,0.04);
+}
+.component-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--border2);transition:background 0.2s;
+}
+.component-card:hover{border-color:var(--border2);box-shadow:0 3px 14px rgba(0,0,0,0.08);}
+.component-card:hover::before{background:var(--amber);}
+.component-card.unlocked{
+  border-color:rgba(26,158,72,0.35);
+}
+.component-card.unlocked::before{background:var(--green);}
+.component-card.active-card{
+  border-color:var(--amber);box-shadow:0 3px 14px rgba(200,124,16,0.12);
+}
+.component-card.active-card::before{background:var(--amber);}
+.cc-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.cc-icon{font-size:22px;}
+.cc-name{
+  font-family:'Exo 2',sans-serif;font-weight:700;
+  font-size:14px;color:var(--text);
+}
+.cc-voltage{
+  margin-left:auto;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;padding:2px 8px;border-radius:3px;
+  font-weight:600;
+}
+.v48{background:rgba(200,124,16,0.1);color:var(--amber);border:1px solid rgba(200,124,16,0.25);}
+.v12{background:rgba(26,158,72,0.1);color:var(--green);border:1px solid rgba(26,158,72,0.25);}
+.vsig{background:rgba(14,143,168,0.1);color:var(--cyan);border:1px solid rgba(14,143,168,0.25);}
+.cc-desc{font-size:12px;color:var(--muted);line-height:1.4;}
+.cc-status{
+  margin-top:8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--muted);letter-spacing:1px;
+}
+.cc-status.done{color:var(--green);}
+
+/* Explore detail panel */
+.explore-detail{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;margin-bottom:20px;
+  display:none;
+  box-shadow:0 3px 16px rgba(0,0,0,0.07);
+}
+.explore-detail.visible{display:block;}
+.ed-header{
+  background:linear-gradient(135deg,#1a2535,#2a3a50);
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+}
+.ed-icon{font-size:32px;}
+.ed-title{
+  font-family:'Exo 2',sans-serif;font-weight:700;
+  font-size:18px;color:#fff;
+}
+.ed-voltage-tag{
+  margin-left:auto;padding:4px 12px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+}
+.ed-body{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px;background:var(--surface);}
+@media(max-width:640px){.ed-body{grid-template-columns:1fr;}}
+.ed-section-title{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--amber);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.ed-text{font-size:13px;color:var(--text);line-height:1.6;}
+.ed-flow{
+  background:var(--bg);border-radius:8px;padding:14px;
+  border:1px solid var(--border);
+}
+.flow-step{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:8px;font-size:12px;
+}
+.flow-arrow{color:var(--amber);font-family:'JetBrains Mono',monospace;}
+.flow-comp{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:3px 8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);
+}
+.flow-comp.highlight{
+  border-color:var(--amber);color:var(--amber);
+  background:var(--amberBg);
+}
+
+/* Mini quiz */
+.mini-quiz{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:8px;padding:16px;margin-top:16px;
+}
+.mq-question{
+  font-size:14px;color:var(--text);margin-bottom:12px;font-weight:600;
+}
+.mq-options{display:flex;flex-direction:column;gap:6px;}
+.mq-opt{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:6px;padding:10px 14px;cursor:pointer;
+  font-size:13px;transition:all 0.2s;color:var(--text);
+}
+.mq-opt:hover{border-color:var(--amber);color:var(--amber);background:var(--amberBg);}
+.mq-opt.correct{border-color:var(--green);color:var(--green);background:rgba(26,158,72,0.07);}
+.mq-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(196,40,40,0.06);}
+
+/* ===== STAGE 3 — CONNECT ===== */
+.connect-canvas-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;margin-bottom:16px;
+  position:relative;min-height:300px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.connect-canvas{position:relative;width:100%;min-height:320px;}
+
+.cn-node{
+  position:absolute;
+  background:#fff;border:2px solid var(--border2);
+  border-radius:8px;padding:10px 14px;
+  font-family:'Exo 2',sans-serif;font-weight:600;font-size:13px;
+  cursor:pointer;transition:all 0.2s;user-select:none;
+  white-space:nowrap;z-index:10;color:var(--text);
+  box-shadow:0 1px 6px rgba(0,0,0,0.07);
+}
+.cn-node:hover{border-color:var(--amber);box-shadow:0 2px 10px rgba(200,124,16,0.2);}
+.cn-node.source-active{border-color:var(--cyan);color:var(--cyan);box-shadow:0 0 0 3px rgba(14,143,168,0.15);}
+.cn-node.connected{border-color:var(--green);color:var(--green);background:rgba(26,158,72,0.06);}
+.cn-node.wrong-flash{border-color:var(--red);color:var(--red);}
+
+.connect-instructions{
+  font-size:13px;color:var(--muted);margin-bottom:14px;
+  font-family:'JetBrains Mono',monospace;
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:10px 14px;
+}
+
+.wire-legend{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;}
+.wire-key{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text);
+}
+.wire-key-line{width:24px;height:3px;border-radius:2px;}
+.wk-48{background:var(--amber);}
+.wk-12{background:var(--green);}
+.wk-sig{background:var(--cyan);}
+
+/* ===== STAGE 4 — TRACE ===== */
+.trace-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;margin-bottom:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.trace-header{
+  background:var(--surface2);padding:14px 18px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.symptom-badge{
+  background:rgba(196,40,40,0.1);color:var(--red);
+  border:1px solid rgba(196,40,40,0.25);
+  border-radius:4px;padding:3px 10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+}
+.symptom-text{font-size:14px;color:var(--text);font-style:italic;}
+
+.trace-nodes{
+  padding:20px;
+  display:flex;flex-wrap:wrap;gap:10px;
+}
+.trace-node{
+  background:#fff;border:2px solid var(--border2);
+  border-radius:8px;padding:10px 16px;cursor:pointer;
+  font-family:'Exo 2',sans-serif;font-weight:600;font-size:13px;
+  transition:all 0.2s;display:flex;align-items:center;gap:8px;
+  color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.06);
+}
+.trace-node:hover:not(.locked):not(.done){border-color:var(--amber);box-shadow:0 2px 8px rgba(200,124,16,0.15);}
+.trace-node.selected{border-color:var(--cyan);color:var(--cyan);background:rgba(14,143,168,0.06);}
+.trace-node.correct-path{border-color:var(--green);color:var(--green);background:rgba(26,158,72,0.07);}
+.trace-node.wrong-path{border-color:var(--red);color:var(--red);animation:shake 0.3s ease;}
+.trace-node.locked{opacity:0.3;cursor:not-allowed;}
+.trace-seq{
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;
+  padding:14px 20px;border-top:1px solid var(--border);
+  min-height:52px;background:var(--bg);
+}
+.seq-item{
+  background:#fff;border:1px solid var(--border2);
+  border-radius:4px;padding:4px 10px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  display:flex;align-items:center;gap:6px;color:var(--text);
+}
+.seq-item.ok{border-color:var(--green);color:var(--green);}
+.seq-arrow{color:var(--amber);font-size:14px;}
+
+/* ===== STAGE 5 — QUICK FIRE ===== */
+.qf-counter{
+  text-align:center;margin-bottom:20px;
+}
+.qf-num{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:48px;color:var(--amber);line-height:1;
+}
+.qf-of{font-size:14px;color:var(--muted);margin-top:4px;}
+.qf-timer-bar{
+  width:100%;height:6px;background:var(--border);
+  border-radius:3px;overflow:hidden;margin-bottom:20px;
+}
+.qf-timer-fill{
+  height:100%;background:var(--amber);
+  border-radius:3px;transition:width 0.1s linear;
+}
+.qf-question-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:24px;margin-bottom:16px;
+  position:relative;overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.qf-question-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--amber);
+}
+.qf-q-type{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  color:var(--amber);letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:10px;
+}
+.qf-q-text{
+  font-family:'Exo 2',sans-serif;font-size:18px;
+  font-weight:600;color:var(--text);line-height:1.4;
+}
+.qf-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+@media(max-width:500px){.qf-options{grid-template-columns:1fr;}}
+.qf-opt{
+  background:#fff;border:2px solid var(--border2);
+  border-radius:8px;padding:12px 16px;cursor:pointer;
+  font-size:14px;font-weight:500;transition:all 0.15s;
+  text-align:left;color:var(--text);
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+}
+.qf-opt:hover{border-color:var(--amber);color:var(--amber);background:var(--amberBg);}
+.qf-opt.correct{border-color:var(--green);color:var(--green);background:rgba(26,158,72,0.07);}
+.qf-opt.wrong{border-color:var(--red);color:var(--red);background:rgba(196,40,40,0.06);}
+
+/* ===== COMPLETION SCREEN ===== */
+#screen-complete{
+  justify-content:center;align-items:center;
+  background:radial-gradient(ellipse at 50% 30%, rgba(200,124,16,0.07) 0%, transparent 60%);
+  padding:20px;
+}
+.complete-card{
+  max-width:580px;width:100%;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 6px 32px rgba(0,0,0,0.1);
+}
+.complete-header{
+  background:linear-gradient(135deg,#1a2535,#2a3a50);
+  padding:28px;text-align:center;position:relative;
+}
+.complete-header::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,transparent,var(--amber2),transparent);
+}
+.complete-badge{
+  font-size:52px;margin-bottom:12px;
+}
+.complete-title{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:28px;color:#fff;letter-spacing:-0.5px;
+}
+.complete-sub{color:rgba(255,255,255,0.5);font-size:13px;margin-top:4px;}
+.tier-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  margin-top:12px;padding:5px 14px;border-radius:20px;
+  font-family:'JetBrains Mono',monospace;font-weight:600;font-size:11px;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.tier-app{background:rgba(0,158,112,0.2);color:#00c896;border:1px solid #00c896;}
+.tier-srt{background:rgba(200,124,16,0.2);color:#f5a623;border:1px solid #f5a623;}
+.complete-body{padding:24px;}
+.player-row{
+  display:flex;align-items:center;gap:14px;
+  background:var(--bg);border-radius:10px;padding:14px 16px;
+  margin-bottom:20px;border:1px solid var(--border);
+}
+.player-av{font-size:44px;}
+.player-name-text{
+  font-family:'Exo 2',sans-serif;font-weight:700;font-size:20px;color:var(--text);
+}
+.player-workshop{color:var(--amber);font-size:13px;}
+.mastery-pct{
+  margin-left:auto;text-align:center;
+}
+.mastery-num{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:32px;color:var(--amber);
+}
+.mastery-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+
+.stage-scores{margin-bottom:20px;}
+.ss-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--border);
+  font-size:13px;
+}
+.ss-row:last-child{border-bottom:none;}
+.ss-name{color:var(--muted);}
+.ss-val{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--amber);font-weight:600;
+}
+.complete-actions{display:flex;gap:10px;}
+.btn-dl{
+  flex:1;padding:12px;border-radius:8px;border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:14px;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+  box-shadow:0 3px 12px rgba(200,124,16,0.25);
+}
+.btn-dl:hover{background:var(--amber2);}
+.btn-sec{
+  padding:12px 18px;border-radius:8px;
+  border:1px solid var(--border2);background:#fff;
+  color:var(--muted);cursor:pointer;font-size:13px;
+  font-family:'Exo 2',sans-serif;font-weight:600;
+  transition:all 0.2s;
+}
+.btn-sec:hover{border-color:var(--amber);color:var(--amber);}
+
+/* ===== STAGE TRANSITION ===== */
+.stage-transition{
+  position:fixed;inset:0;background:rgba(244,246,249,0.96);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500;opacity:0;pointer-events:none;
+  transition:opacity 0.3s;
+}
+.stage-transition.show{opacity:1;pointer-events:all;}
+.st-inner{text-align:center;}
+.st-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--amber);letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:8px;
+}
+.st-title{
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:36px;color:var(--text);
+}
+
+/* ===== FEEDBACK TOAST ===== */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#fff;border:1px solid var(--border);
+  border-radius:8px;padding:12px 20px;
+  font-size:13px;z-index:400;
+  transition:all 0.3s;opacity:0;pointer-events:none;
+  white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.12);
+}
+.toast.show{opacity:1;}
+.toast.ok{border-color:var(--green);color:var(--green);}
+.toast.err{border-color:var(--red);color:var(--red);}
+.toast.info{border-color:var(--amber);color:var(--amber);}
+
+/* ===== NEXT STAGE BTN ===== */
+.btn-next-stage{
+  padding:12px 28px;border-radius:8px;border:none;
+  background:var(--amber);color:#fff;
+  font-family:'Exo 2',sans-serif;font-weight:800;
+  font-size:14px;letter-spacing:1px;text-transform:uppercase;
+  cursor:pointer;transition:all 0.2s;
+  display:none;margin-top:16px;
+  box-shadow:0 3px 12px rgba(200,124,16,0.25);
+}
+.btn-next-stage:hover{background:var(--amber2);}
+.btn-next-stage.visible{display:inline-flex;align-items:center;gap:8px;}
+
+/* ===== UTILS ===== */
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn 0.3s ease forwards;}
+.hidden{display:none!important;}
+
+/* SVG circuit styles */
+.circuit-node{cursor:pointer;transition:all 0.2s;}
+.circuit-node:hover rect,.circuit-node:hover circle{filter:brightness(0.95);}
+.node-48v{fill:#fffbf2;stroke:var(--amber);stroke-width:1.5;}
+.node-12v{fill:#f2fbf5;stroke:var(--green);stroke-width:1.5;}
+.node-sig{fill:#f0fafd;stroke:var(--cyan);stroke-width:1.5;}
+.wire-48{stroke:var(--amber);stroke-width:2;fill:none;opacity:0.8;}
+.wire-12{stroke:var(--green);stroke-width:2;fill:none;opacity:0.8;}
+.wire-sig{stroke:var(--cyan);stroke-width:1.5;fill:none;stroke-dasharray:6 3;opacity:0.8;}
+.node-label{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#1a2535;}
+.node-sublabel{font-family:'JetBrains Mono',monospace;font-size:8px;fill:#6b7f99;}
+</style>
+</head>
+<body>
+
+<!-- ===== WELCOME ===== -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-wrap">
+    <div class="welcome-eyebrow">Skyy Skill Academy — Thane Campus</div>
+    <div class="welcome-title exo">48V BLDC<br><em>Circuit Explorer</em></div>
+    <div class="welcome-sub">Five stages. One circuit. Learn how a real 48V electric vehicle system works — from power source to motion.</div>
+    <div class="welcome-panel">
+      <label class="field-label">Your Name</label>
+      <input type="text" class="field-input" id="inp-name" placeholder="Enter your name" maxlength="30">
+      <label class="field-label">Workshop Name</label>
+      <input type="text" class="field-input" id="inp-workshop" placeholder="e.g. Voltage Garage" maxlength="30">
+      <label class="field-label">Select Your Mechanic</label>
+      <div class="avatar-row" id="av-row">
+        <div class="av-opt selected" data-av="0" onclick="pickAv(0)"><span class="av-em">🧑‍🔧</span></div>
+        <div class="av-opt" data-av="1" onclick="pickAv(1)"><span class="av-em">👩‍🔧</span></div>
+        <div class="av-opt" data-av="2" onclick="pickAv(2)"><span class="av-em">🧔‍♂️</span></div>
+        <div class="av-opt" data-av="3" onclick="pickAv(3)"><span class="av-em">👱‍♀️</span></div>
+      </div>
+      <label class="field-label">Level</label>
+      <div class="diff-row">
+        <div class="diff-opt selected" data-d="apprentice" onclick="pickDiff('apprentice')">
+          <div class="diff-tier">Apprentice</div>
+          <div class="diff-desc">Pre-undergrad level</div>
+        </div>
+        <div class="diff-opt" data-d="srtech" onclick="pickDiff('srtech')">
+          <div class="diff-tier">Sr. Technician</div>
+          <div class="diff-desc">Undergrad level</div>
+        </div>
+      </div>
+      <button class="btn-launch" id="btn-launch" onclick="launchGame()" disabled>ENTER THE WORKSHOP →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BRIEFING ===== -->
+<div id="screen-briefing" class="screen">
+  <div class="briefing-card">
+    <div class="briefing-header">
+      <div class="senior-av">👨‍🏭</div>
+      <div class="briefing-header-text">
+        <div class="tag">Senior Mechanic</div>
+        <div class="name">Rajesh Kumar</div>
+        <div class="role">Lead EV Technician — 18 years experience</div>
+      </div>
+    </div>
+    <div class="briefing-body">
+      <div class="dialogue-box" id="briefing-dialogue">
+        "Before you touch a single customer vehicle, you need to understand what's in front of you. This is a 48V BLDC EV system. Five exercises. Work through them. I'll know if you're guessing."
+      </div>
+      <div class="stage-overview">
+        <div class="stage-row"><span class="stage-num">STAGE 01</span><span class="stage-name">Read the Blueprint</span><span class="stage-type">LABELLING</span></div>
+        <div class="stage-row"><span class="stage-num">STAGE 02</span><span class="stage-name">Understand the Systems</span><span class="stage-type">EXPLORE + QUIZ</span></div>
+        <div class="stage-row"><span class="stage-num">STAGE 03</span><span class="stage-name">Connect the Circuit</span><span class="stage-type">WIRING</span></div>
+        <div class="stage-row"><span class="stage-num">STAGE 04</span><span class="stage-name">Trace the Power</span><span class="stage-type">PATH TRACING</span></div>
+        <div class="stage-row"><span class="stage-num">STAGE 05</span><span class="stage-name">Quick Fire</span><span class="stage-type">RAPID QUIZ</span></div>
+      </div>
+      <button class="btn-begin" onclick="beginStage(1)">START — STAGE 01 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN STAGE SCREEN ===== -->
+<div id="screen-stage" class="screen">
+  <div class="top-bar">
+    <div class="top-brand">SKYY SKILL <span>/ Circuit Explorer</span></div>
+    <div class="top-meta">
+      <div class="top-stage mono">STAGE <span id="top-stage-num">01</span>/05</div>
+      <div class="stage-progress-wrap">
+        <div class="stage-progress-track"><div class="stage-progress-fill" id="top-progress" style="width:0%"></div></div>
+        <div class="stage-score-display mono" id="top-score">0 pts</div>
+      </div>
+      <div class="top-user">
+        <span class="top-av" id="top-av">🧑‍🔧</span>
+        <span id="top-name">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="stage-body" id="stage-body"></div>
+</div>
+
+<!-- ===== COMPLETE ===== -->
+<div id="screen-complete" class="screen">
+  <div class="complete-card" id="complete-card">
+    <div class="complete-header">
+      <div class="complete-badge">⚡</div>
+      <div class="complete-title exo">Circuit Mastered</div>
+      <div class="complete-sub" id="comp-date"></div>
+      <div class="tier-pill" id="comp-tier">APPRENTICE</div>
+    </div>
+    <div class="complete-body">
+      <div class="player-row">
+        <div class="player-av" id="comp-av">🧑‍🔧</div>
+        <div>
+          <div class="player-name-text" id="comp-name">—</div>
+          <div class="player-workshop" id="comp-workshop">—</div>
+        </div>
+        <div class="mastery-pct">
+          <div class="mastery-num" id="comp-pct">0%</div>
+          <div class="mastery-lbl">Mastery</div>
+        </div>
+      </div>
+      <div class="stage-scores" id="comp-scores"></div>
+      <div class="complete-actions">
+        <button class="btn-dl" onclick="downloadReport()">⬇ DOWNLOAD REPORT</button>
+        <button class="btn-sec" onclick="location.reload()">RESTART</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== STAGE TRANSITION ===== -->
+<div class="stage-transition" id="stage-transition">
+  <div class="st-inner">
+    <div class="st-label">Loading</div>
+    <div class="st-title exo" id="st-title">Stage 02</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ============================================================
+// GAME STATE
+// ============================================================
+const AVATARS = ['🧑‍🔧','👩‍🔧','🧔‍♂️','👱‍♀️'];
+let G = {
+  name:'', workshop:'', avIdx:0, diff:'apprentice',
+  score:0, stageScores:[0,0,0,0,0],
+  currentStage:1,
+  stage1Done:false, stage2Done:false, stage3Done:false,
+  stage4Done:false, stage5Done:false,
+  stage2Unlocked:[], // which components explored
+};
+
+// ============================================================
+// CIRCUIT DATA — based on 48V BLDC wiring diagram
+// ============================================================
+const COMPONENTS = [
+  {id:'battery', name:'48V Battery', icon:'🔋', voltage:'48V DC',
+   vclass:'v48', color:'amber',
+   short:'The primary energy source. Stores electrical energy in lithium cells and supplies 48V DC to the entire power circuit.',
+   detail:`The 48V battery pack is the heart of the system. It provides direct current (DC) power at 48 volts to the main circuit via positive and negative terminals. The battery connects to the MCB (circuit breaker) which acts as the first line of protection. The State of Charge (SOC) meter monitors the battery's remaining energy level.`,
+   flow:['48V Battery (+ve)','+ve → MCB 63A','MCB → Controller','Controller → BLDC Motor'],
+   quiz:{q:'What does the battery supply to the circuit?',opts:['48V AC power','48V DC power','12V DC power','24V DC power'],ans:1}
+  },
+  {id:'mcb', name:'MCB 63A', icon:'⚡', voltage:'48V DC',
+   vclass:'v48', color:'amber',
+   short:'Miniature Circuit Breaker. Automatically disconnects the circuit if current exceeds 63 amperes, protecting all downstream components.',
+   detail:`The 63A MCB (Miniature Circuit Breaker) is positioned between the battery and controller. Unlike a fuse which must be replaced, an MCB automatically trips and can be manually reset. It protects against short circuits and sustained overcurrent. If the MCB trips, nothing in the vehicle will operate until it is manually reset.`,
+   flow:['Battery (+ve) → MCB input','MCB output → Controller +ve','MCB output → Key switch input'],
+   quiz:{q:'What is the key advantage of an MCB over a fuse?',opts:['It allows more current','It can be manually reset','It is cheaper to replace','It works on AC circuits'],ans:1}
+  },
+  {id:'controller', name:'BLDC Controller', icon:'🖥️', voltage:'48V DC',
+   vclass:'v48', color:'amber',
+   short:'The electronic brain. Reads throttle, brake and direction inputs, then controls motor speed and direction by switching the motor phase currents.',
+   detail:`The BLDC controller is the most complex component in the circuit. It receives the 48V supply from the MCB and takes inputs from the throttle sensor, brake cut switch, and reverse/forward toggle. Based on these inputs, it generates three-phase output signals (B, G, Y wires) to drive the motor. It also powers the Buck converter for the 12V auxiliary circuit.`,
+   flow:['MCB → Controller +ve','Throttle signal → Controller input','Brake switch → Controller input','Controller → Motor phase B,G,Y','Controller → Buck Converter'],
+   quiz:{q:'Which wires carry the three-phase output from the controller to the motor?',opts:['Red, Black, Yellow','B (Blue), G (Green), Y (Yellow)','48V, 12V, GND','Phase 1, Phase 2, Phase 3'],ans:1}
+  },
+  {id:'motor', name:'BLDC Motor', icon:'⚙️', voltage:'48V DC',
+   vclass:'v48', color:'amber',
+   short:'Brushless DC motor. Converts electrical energy into mechanical rotation. Three phase wires (B, G, Y) from the controller create a rotating magnetic field.',
+   detail:`The BLDC (Brushless DC) motor converts electrical energy to mechanical rotation. It has no brushes — instead, the controller electronically switches the three-phase currents through the stator windings (B, G, Y) to create a rotating magnetic field. A Bipolar Hall Effect sensor inside the motor detects rotor position and feeds this back to the controller, allowing precise speed control.`,
+   flow:['Controller phase B,G,Y → Motor windings','Bipolar Hall sensor → Controller (feedback)','Motor shaft → Wheel/drivetrain'],
+   quiz:{q:'What is the purpose of the Bipolar Hall Effect sensor in the motor?',opts:['To measure battery voltage','To detect rotor position for the controller','To control charging speed','To measure motor temperature'],ans:1}
+  },
+  {id:'throttle', name:'Throttle Sensor', icon:'🎮', voltage:'Signal 0.7–5V',
+   vclass:'vsig', color:'cyan',
+   short:'Linear Hall Effect sensor. Converts throttle position (twist) into a voltage signal (0.7V to 5V) that tells the controller how much power to deliver.',
+   detail:`The throttle uses a Linear Hall Effect sensor operating on 5V DC supplied by the controller. As the throttle is twisted, the sensor output voltage rises from 0.7V (idle) to 5V (full). The controller reads this signal voltage and proportionally increases motor current and speed. If the signal falls below 0.7V the controller ignores it as a safety measure against stuck throttles.`,
+   flow:['Controller → 5V supply → Throttle sensor','Throttle signal (0.7–5V) → Controller input','Controller interprets signal → Adjusts motor speed'],
+   quiz:{q:'What voltage does the throttle sensor signal when fully open (full throttle)?',opts:['0V','0.7V','5V','48V'],ans:2}
+  },
+  {id:'brake', name:'Brake Cut Switch', icon:'🛑', voltage:'Signal',
+   vclass:'vsig', color:'cyan',
+   short:'Safety switch. When the brake lever is pulled, this switch signals the controller to immediately cut motor power — preventing simultaneous braking and acceleration.',
+   detail:`The brake cut switch is a critical safety component. It is wired into the controller's brake input. When the brake lever is squeezed, the switch opens (or closes, depending on type) and the controller immediately reduces motor output to zero. This prevents the dangerous scenario of the motor fighting against the brakes. On some systems it also triggers regenerative braking.`,
+   flow:['Brake lever operation → Switch opens/closes','Switch signal → Controller brake input','Controller cuts motor output immediately'],
+   quiz:{q:'Why is the brake cut switch a safety-critical component?',opts:['It stops the battery from overcharging','It prevents motor fighting against brakes','It resets the MCB when braking','It increases braking distance for safety'],ans:1}
+  },
+  {id:'buck', name:'Buck/DC-DC Converter', icon:'🔌', voltage:'48V→12V DC',
+   vclass:'v12', color:'green',
+   short:'Steps down 48V DC to 12V DC. Supplies the auxiliary circuit — powering the headlamp, tail lamp, horn, indicators and flasher unit.',
+   detail:`The Buck (step-down) converter takes the 48V DC from the main circuit and converts it to a stable 12V DC output. This 12V supply powers all the auxiliary/lighting systems: headlamp, tail/brake lamp, horn, indicators, and flasher unit. This is why faults in the Buck converter affect multiple systems simultaneously. It is essentially a switching power supply built into the vehicle.`,
+   flow:['48V from controller/battery → Buck converter input','Buck converter output: stable 12V DC','12V → Headlamp, Tail lamp, Horn, Indicators, Flasher'],
+   quiz:{q:'If the Buck converter fails completely, which systems would be affected?',opts:['Only the motor','Only the battery charging','Headlamp, horn, and indicators','The MCB and battery only'],ans:2}
+  },
+  {id:'keyfuse', name:'Key + 5A Fuse', icon:'🔑', voltage:'48V DC',
+   vclass:'v48', color:'amber',
+   short:'The ignition key activates the controller circuit. A 5A fuse on this line protects the key circuit from overcurrent.',
+   detail:`The key switch activates the controller by completing the key input circuit. In series with this key line is a 5A fuse which protects against short circuits in the control wiring. When this fuse blows, the controller receives no key signal and will not operate — even if the battery and MCB are both healthy. This is a common fault scenario where the vehicle appears completely dead but battery voltage is present.`,
+   flow:['Battery → MCB → Key switch','Key switch ON → 5A fuse → Controller key input','Controller activates: all systems become operational'],
+   quiz:{q:'If the 5A key fuse blows, what happens?',opts:['Only the lights go out','The MCB trips','The controller does not activate — vehicle is dead','The battery disconnects'],ans:2}
+  },
+  {id:'soc', name:'Battery SOC Meter', icon:'📊', voltage:'12V/Signal',
+   vclass:'v12', color:'green',
+   short:'State of Charge digital meter. Monitors battery voltage and displays remaining energy level as a percentage or bar display.',
+   detail:`The SOC (State of Charge) digital meter continuously monitors the battery pack voltage and translates it to a user-readable percentage or bar graph. It draws its power from the 12V auxiliary supply. The meter must be calibrated to the specific battery chemistry and capacity — an incorrectly calibrated meter will display an inaccurate state of charge, potentially stranding the rider.`,
+   flow:['Battery voltage tap → SOC meter sensor input','12V supply → SOC meter display power','SOC meter → Display to rider'],
+   quiz:{q:'What can happen if a SOC meter loses calibration?',opts:['The battery charges faster','The motor changes speed','It displays incorrect charge level, potentially stranding the rider','The MCB trips more easily'],ans:2}
+  },
+  {id:'revfwd', name:'Rev/Fwd Switch', icon:'🔄', voltage:'Signal',
+   vclass:'vsig', color:'cyan',
+   short:'Two-way toggle switch. Sends a direction signal to the controller to rotate the motor either forward or reverse.',
+   detail:`The reverse/forward toggle switch sends a direction signal to the BLDC controller. The controller uses this to determine which sequence to switch the motor phase currents (B, G, Y), which determines the direction of the rotating magnetic field — and therefore whether the motor rotates forward or backward. This switch has no direct power connection — it is purely a signal switch.`,
+   flow:['Toggle to Forward → Signal to controller direction input','Toggle to Reverse → Inverted signal to controller','Controller changes phase switching sequence → Motor direction changes'],
+   quiz:{q:'The Rev/Forward switch changes direction by doing what?',opts:['Reversing battery polarity','Swapping the motor phase wires physically','Sending a direction signal to the controller','Switching 48V and 12V circuits'],ans:2}
+  },
+];
+
+// ============================================================
+// STAGE 3 — WIRING CONNECTIONS
+// ============================================================
+const WIRE_CONNECTIONS = [
+  {from:'battery', to:'mcb', label:'+48V DC', type:'48'},
+  {from:'mcb', to:'controller', label:'+48V DC', type:'48'},
+  {from:'mcb', to:'keyfuse', label:'+48V DC', type:'48'},
+  {from:'keyfuse', to:'controller', label:'Key Signal', type:'sig'},
+  {from:'controller', to:'motor', label:'Phase B,G,Y', type:'48'},
+  {from:'controller', to:'buck', label:'+48V DC', type:'48'},
+  {from:'buck', to:'soc', label:'+12V DC', type:'12'},
+  {from:'throttle', to:'controller', label:'Signal 0.7–5V', type:'sig'},
+  {from:'brake', to:'controller', label:'Brake Signal', type:'sig'},
+  {from:'revfwd', to:'controller', label:'Dir Signal', type:'sig'},
+];
+
+// ============================================================
+// STAGE 4 — TRACE SCENARIOS
+// ============================================================
+const TRACE_SCENARIOS = [
+  {
+    symptom:'Horn does not work. Headlamp is also dim.',
+    path:['battery','mcb','controller','buck'],
+    explanation:'Both horn and headlamp are 12V devices. The fault path leads from battery through MCB to controller, then to the Buck converter which provides 12V to all auxiliary systems. A Buck converter fault affects both simultaneously.'
+  },
+  {
+    symptom:'Vehicle is completely dead. Key turned on, nothing responds.',
+    path:['battery','mcb','keyfuse','controller'],
+    explanation:'Total dead means no controller activation. The path is Battery → MCB → Key/Fuse → Controller. Any break in this chain — tripped MCB, blown fuse, or failed key switch — causes complete shutdown.'
+  },
+  {
+    symptom:'Throttle pressed but vehicle does not move. Display shows full charge.',
+    path:['throttle','controller','motor'],
+    explanation:'Throttle signal must reach the controller, which then drives the motor. The fault lies somewhere in this signal-to-action chain — damaged throttle wire, controller input fault, or motor phase connection issue.'
+  },
+  {
+    symptom:'Motor keeps running when brake is applied.',
+    path:['brake','controller','motor'],
+    explanation:'The brake cut switch must signal the controller to stop the motor. If this signal path is broken — disconnected brake switch wire or bypassed circuit — the controller never receives the cut command and the motor keeps running.'
+  }
+];
+
+// ============================================================
+// STAGE 5 — QUICK FIRE QUESTIONS
+// ============================================================
+const QF_QUESTIONS = [
+  {type:'True / False', q:'The MCB can be reset after tripping without replacing any component.', opts:['True','False'], ans:0},
+  {type:'What Voltage?', q:'What voltage does the Buck converter supply to the horn?', opts:['48V DC','24V DC','12V DC','5V DC'], ans:2},
+  {type:'Which Component?', q:'Which component steps down 48V to 12V?', opts:['BLDC Motor','MCB','Buck/DC-DC Converter','Battery SOC Meter'], ans:2},
+  {type:'True / False', q:'The throttle sensor directly controls the battery discharge current.', opts:['True','False'], ans:1},
+  {type:'Signal Type', q:'What type of signal does the throttle sensor send to the controller?', opts:['48V DC power','12V DC power','Voltage signal 0.7–5V','Digital on/off signal'], ans:2},
+  {type:'True / False', q:'If the 5A key fuse blows, the battery voltage will also read zero.', opts:['True','False'], ans:1},
+  {type:'Which Component?', q:'Which sensor inside the BLDC motor feeds rotor position back to the controller?', opts:['Linear Hall Effect','Bipolar Hall Effect','Thermistor','Resolver'], ans:1},
+  {type:'What Voltage?', q:'What is the operating supply voltage for the throttle sensor?', opts:['48V DC','12V DC','5V DC','3.3V DC'], ans:2},
+  {type:'True / False', q:'The reverse/forward switch is connected directly to the motor windings.', opts:['True','False'], ans:1},
+  {type:'Which Path?', q:'Power to the headlamp flows through which component?', opts:['Motor → Controller → Battery','Battery → MCB → Buck Converter','Throttle → Controller → Fuse','Battery → SOC Meter → Lamp'], ans:1},
+];
+
+// ============================================================
+// WELCOME LOGIC
+// ============================================================
+function pickAv(i){
+  document.querySelectorAll('.av-opt').forEach(a=>a.classList.remove('selected'));
+  document.querySelector(`.av-opt[data-av="${i}"]`).classList.add('selected');
+  G.avIdx=i;
+}
+function pickDiff(d){
+  document.querySelectorAll('.diff-opt').forEach(a=>a.classList.remove('selected'));
+  document.querySelector(`.diff-opt[data-d="${d}"]`).classList.add('selected');
+  G.diff=d;
+}
+['inp-name','inp-workshop'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',checkForm);
+});
+function checkForm(){
+  const n=document.getElementById('inp-name').value.trim();
+  const w=document.getElementById('inp-workshop').value.trim();
+  document.getElementById('btn-launch').disabled=!(n&&w);
+}
+function launchGame(){
+  G.name=document.getElementById('inp-name').value.trim();
+  G.workshop=document.getElementById('inp-workshop').value.trim();
+  showScreen('briefing');
+}
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+}
+
+// ============================================================
+// STAGE MANAGEMENT
+// ============================================================
+function beginStage(n){
+  G.currentStage=n;
+  showScreen('stage');
+  document.getElementById('top-av').textContent=AVATARS[G.avIdx];
+  document.getElementById('top-name').textContent=G.name;
+  document.getElementById('top-stage-num').textContent=String(n).padStart(2,'0');
+  document.getElementById('top-progress').style.width=`${((n-1)/5)*100}%`;
+  document.getElementById('top-score').textContent=`${G.score} pts`;
+
+  const body=document.getElementById('stage-body');
+  body.innerHTML='';
+
+  if(n===1) renderStage1(body);
+  else if(n===2) renderStage2(body);
+  else if(n===3) renderStage3(body);
+  else if(n===4) renderStage4(body);
+  else if(n===5) renderStage5(body);
+}
+
+function transitionToStage(n){
+  const names=['','Read the Blueprint','Understand the Systems','Connect the Circuit','Trace the Power','Quick Fire Round'];
+  const t=document.getElementById('stage-transition');
+  document.getElementById('st-title').textContent=`Stage ${String(n).padStart(2,'0')} — ${names[n]}`;
+  t.classList.add('show');
+  setTimeout(()=>{
+    t.classList.remove('show');
+    beginStage(n);
+  },1400);
+}
+
+// ============================================================
+// STAGE 1 — LABELLING
+// ============================================================
+let s1Selected=null;
+let s1Labels=[
+  {id:'lbl-battery',ans:'48V Battery',x:5,y:38},
+  {id:'lbl-mcb',ans:'MCB 63A',x:26,y:20},
+  {id:'lbl-keyfuse',ans:'Key + 5A Fuse',x:48,y:8},
+  {id:'lbl-controller',ans:'BLDC Controller',x:68,y:20},
+  {id:'lbl-motor',ans:'BLDC Motor',x:85,y:38},
+  {id:'lbl-throttle',ans:'Throttle Sensor',x:65,y:68},
+  {id:'lbl-brake',ans:'Brake Cut Switch',x:40,y:78},
+  {id:'lbl-buck',ans:'Buck Converter',x:20,y:68},
+  {id:'lbl-soc',ans:'SOC Meter',x:5,y:65},
+  {id:'lbl-revfwd',ans:'Rev/Fwd Switch',x:48,y:55},
+];
+let s1Chips=[];
+let s1Answered={};
+
+function renderStage1(body){
+  s1Selected=null;
+  s1Answered={};
+  s1Chips=shuffle([...s1Labels.map(l=>l.ans)]);
+
+  body.innerHTML=`
+    <div class="mentor-strip fade-in">
+      <div class="mentor-em">👨‍🏭</div>
+      <div class="mentor-text"><strong>Rajesh Kumar:</strong> "Here is the complete 48V BLDC circuit diagram. Every box with a dashed border is unlabelled. Click a label box, then click the correct component name below to fill it in. Get them all right."</div>
+    </div>
+
+    <div class="circuit-diagram-wrap fade-in" style="padding-bottom:60px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px">48V BLDC EV — COMPLETE SYSTEM DIAGRAM</div>
+      ${renderCircuitSVG()}
+      <div style="position:relative;height:280px;margin-top:10px" id="label-layer">
+        ${s1Labels.map(l=>`
+          <div class="label-spot" id="${l.id}"
+            style="left:${l.x}%;top:${l.y}%"
+            onclick="s1ClickLabel('${l.id}')">
+            ??? 
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">SELECT FROM COMPONENT BANK</div>
+    <div class="answer-bank fade-in" id="chip-bank">
+      ${s1Chips.map(c=>`
+        <div class="answer-chip" onclick="s1ClickChip(this,'${c}')">${c}</div>
+      `).join('')}
+    </div>
+
+    <div id="s1-feedback" style="margin-top:12px;min-height:32px;font-size:13px;color:var(--muted);font-family:var(--mono)"></div>
+    <button class="btn-next-stage" id="s1-next" onclick="finishStage1()">STAGE 02 — UNDERSTAND THE SYSTEMS →</button>
+  `;
+}
+
+function renderCircuitSVG(){
+  return `
+  <svg class="circuit-svg" viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- 48V Power Rail -->
+    <line x1="60" y1="40" x2="700" y2="40" class="wire-48"/>
+    <!-- GND Rail -->
+    <line x1="60" y1="170" x2="700" y2="170" class="wire-48" stroke-opacity="0.4"/>
+
+    <!-- Battery -->
+    <rect x="10" y="20" width="90" height="50" rx="4" class="node-48v"/>
+    <text x="55" y="42" class="node-label" text-anchor="middle">BATTERY</text>
+    <text x="55" y="54" class="node-sublabel" text-anchor="middle">48V DC</text>
+    <text x="55" y="65" class="node-sublabel" text-anchor="middle">+ve / -ve</text>
+
+    <!-- MCB -->
+    <line x1="100" y1="40" x2="150" y2="40" class="wire-48"/>
+    <rect x="150" y="25" width="70" height="30" rx="4" class="node-48v"/>
+    <text x="185" y="43" class="node-label" text-anchor="middle">MCB 63A</text>
+
+    <!-- Key+Fuse branch -->
+    <line x1="185" y1="25" x2="185" y2="10" class="wire-sig"/>
+    <line x1="185" y1="10" x2="290" y2="10" class="wire-sig"/>
+    <rect x="255" y="2" width="90" height="22" rx="3" class="node-sig"/>
+    <text x="300" y="16" class="node-label" text-anchor="middle">KEY + 5A FUSE</text>
+
+    <!-- Controller -->
+    <line x1="220" y1="40" x2="280" y2="40" class="wire-48"/>
+    <rect x="280" y="18" width="110" height="44" rx="4" class="node-48v"/>
+    <text x="335" y="37" class="node-label" text-anchor="middle">BLDC</text>
+    <text x="335" y="50" class="node-label" text-anchor="middle">CONTROLLER</text>
+
+    <!-- Key to controller -->
+    <line x1="345" y1="10" x2="335" y2="18" class="wire-sig"/>
+
+    <!-- Motor -->
+    <line x1="390" y1="40" x2="450" y2="40" class="wire-48"/>
+    <rect x="450" y="18" width="90" height="44" rx="4" class="node-48v"/>
+    <text x="495" y="37" class="node-label" text-anchor="middle">BLDC</text>
+    <text x="495" y="50" class="node-label" text-anchor="middle">MOTOR</text>
+    <text x="495" y="62" class="node-sublabel" text-anchor="middle">B / G / Y</text>
+
+    <!-- Hall sensor feedback -->
+    <line x1="495" y1="62" x2="495" y2="80" class="wire-sig"/>
+    <line x1="495" y1="80" x2="430" y2="80" class="wire-sig"/>
+    <line x1="430" y1="80" x2="430" y2="55" class="wire-sig"/>
+    <text x="460" y="95" class="node-sublabel" text-anchor="middle">BIPOLAR HALL</text>
+    <text x="460" y="104" class="node-sublabel" text-anchor="middle">SENSOR feedback</text>
+
+    <!-- Buck Converter -->
+    <line x1="335" y1="62" x2="335" y2="110" class="wire-48"/>
+    <rect x="285" y="110" width="100" height="34" rx="4" style="fill:#001a06;stroke:var(--green);stroke-width:1.5"/>
+    <text x="335" y="124" class="node-label" text-anchor="middle">BUCK / DC-DC</text>
+    <text x="335" y="136" class="node-sublabel" text-anchor="middle">48V → 12V</text>
+
+    <!-- 12V rail -->
+    <line x1="335" y1="144" x2="335" y2="160" style="stroke:var(--green);stroke-width:2;fill:none"/>
+    <line x1="100" y1="160" x2="650" y2="160" style="stroke:var(--green);stroke-width:1.5;fill:none;opacity:0.6"/>
+
+    <!-- SOC Meter -->
+    <line x1="120" y1="160" x2="120" y2="140" style="stroke:var(--green);stroke-width:1.5;fill:none"/>
+    <rect x="75" y="110" width="90" height="30" rx="4" style="fill:#001206;stroke:var(--green);stroke-width:1.5"/>
+    <text x="120" y="128" class="node-label" text-anchor="middle">SOC METER</text>
+
+    <!-- Headlamp -->
+    <line x1="540" y1="160" x2="540" y2="145" style="stroke:var(--green);stroke-width:1.5;fill:none"/>
+    <rect x="510" y="118" width="70" height="27" rx="4" style="fill:#001206;stroke:var(--green);stroke-width:1.5"/>
+    <text x="545" y="135" class="node-sublabel" text-anchor="middle">HEAD / TAIL</text>
+    <text x="545" y="145" class="node-sublabel" text-anchor="middle">LAMP + HORN</text>
+
+    <!-- Flasher/Indicators -->
+    <line x1="630" y1="160" x2="630" y2="145" style="stroke:var(--green);stroke-width:1.5;fill:none"/>
+    <rect x="595" y="118" width="80" height="27" rx="4" style="fill:#001206;stroke:var(--green);stroke-width:1.5"/>
+    <text x="635" y="135" class="node-sublabel" text-anchor="middle">FLASHER +</text>
+    <text x="635" y="145" class="node-sublabel" text-anchor="middle">INDICATORS</text>
+
+    <!-- Throttle -->
+    <line x1="335" y1="62" x2="460" y2="62" class="wire-sig" stroke-dasharray="none"/>
+    <line x1="550" y1="40" x2="600" y2="40" class="wire-sig"/>
+    <line x1="600" y1="40" x2="600" y2="100" class="wire-sig"/>
+    <rect x="560" y="100" width="100" height="26" rx="4" class="node-sig"/>
+    <text x="610" y="116" class="node-sublabel" text-anchor="middle">THROTTLE SENSOR</text>
+    <line x1="610" y1="126" x2="610" y2="145" class="wire-sig"/>
+    <line x1="610" y1="145" x2="390" y2="145" class="wire-sig"/>
+    <line x1="390" y1="145" x2="390" y2="62" class="wire-sig"/>
+
+    <!-- Brake switch -->
+    <rect x="200" y="100" width="95" height="26" rx="4" class="node-sig"/>
+    <text x="248" y="116" class="node-sublabel" text-anchor="middle">BRAKE CUT SWITCH</text>
+    <line x1="248" y1="126" x2="248" y2="145" class="wire-sig"/>
+    <line x1="248" y1="145" x2="320" y2="145" class="wire-sig"/>
+    <line x1="320" y1="145" x2="320" y2="62" class="wire-sig"/>
+
+    <!-- Rev/Fwd -->
+    <rect x="680" y="25" width="72" height="30" rx="4" class="node-sig"/>
+    <text x="716" y="40" class="node-sublabel" text-anchor="middle">REV / FWD</text>
+    <text x="716" y="50" class="node-sublabel" text-anchor="middle">SWITCH</text>
+    <line x1="680" y1="40" x2="540" y2="40" class="wire-sig"/>
+
+    <!-- Voltage labels -->
+    <text x="130" y="35" class="node-sublabel" fill="var(--amber)">+48V</text>
+    <text x="240" y="35" class="node-sublabel" fill="var(--amber)">+48V</text>
+    <text x="200" y="155" class="node-sublabel" fill="var(--green)">+12V DC</text>
+
+    <!-- Legend -->
+    <rect x="10" y="185" width="8" height="3" fill="var(--amber)" opacity="0.8"/>
+    <text x="22" y="191" class="node-sublabel">48V Power</text>
+    <rect x="90" y="185" width="8" height="3" fill="var(--green)" opacity="0.8"/>
+    <text x="102" y="191" class="node-sublabel">12V Auxiliary</text>
+    <line x1="185" y1="187" x2="193" y2="187" class="wire-sig" stroke-dasharray="3 2"/>
+    <text x="198" y="191" class="node-sublabel">Control Signal</text>
+  </svg>`;
+}
+
+function s1ClickLabel(id){
+  document.querySelectorAll('.label-spot').forEach(l=>l.style.outline='none');
+  if(s1Answered[id]) return;
+  s1Selected=id;
+  const el=document.getElementById(id);
+  el.style.outline='2px solid var(--cyan)';
+  document.getElementById('s1-feedback').textContent='Now click a component name from the bank below →';
+}
+
+function s1ClickChip(el,name){
+  if(!s1Selected){showToast('Select a label box first','info');return;}
+  if(el.classList.contains('used')) return;
+  const spot=document.getElementById(s1Selected);
+  const correctAns=s1Labels.find(l=>l.id===s1Selected).ans;
+  if(name===correctAns){
+    spot.textContent=name;
+    spot.classList.add('correct','answered');
+    spot.style.outline='none';
+    el.classList.add('used');
+    s1Answered[s1Selected]=true;
+    G.score+=10;G.stageScores[0]+=10;
+    document.getElementById('top-score').textContent=`${G.score} pts`;
+    showToast('Correct ✓','ok');
+    s1Selected=null;
+    document.getElementById('s1-feedback').textContent='';
+    checkS1Complete();
+  } else {
+    spot.classList.add('wrong');
+    setTimeout(()=>spot.classList.remove('wrong'),400);
+    showToast('Incorrect — try another','err');
+    el.classList.add('wrong-flash');
+    setTimeout(()=>el.classList.remove('wrong-flash'),400);
+  }
+}
+
+function checkS1Complete(){
+  const total=s1Labels.length;
+  const done=Object.keys(s1Answered).length;
+  if(done===total){
+    document.getElementById('s1-feedback').textContent=`All ${total} components identified. Stage 1 complete.`;
+    document.getElementById('s1-feedback').style.color='var(--green)';
+    document.getElementById('s1-next').classList.add('visible');
+    G.stage1Done=true;
+    showToast('Stage 1 Complete! +'+G.stageScores[0]+' pts','ok');
+  }
+}
+
+function finishStage1(){ transitionToStage(2); }
+
+// ============================================================
+// STAGE 2 — EXPLORE + MINI QUIZ
+// ============================================================
+let s2ActiveComp=null;
+let s2QuizDone={};
+
+function renderStage2(body){
+  body.innerHTML=`
+    <div class="mentor-strip fade-in">
+      <div class="mentor-em">👨‍🏭</div>
+      <div class="mentor-text"><strong>Rajesh Kumar:</strong> "You know the names. Now learn what they actually do. Click each component to understand its function and power flow. Answer the question for each one to unlock it."</div>
+    </div>
+    <div class="explore-detail" id="explore-detail"></div>
+    <div class="explore-grid fade-in" id="comp-grid">
+      ${COMPONENTS.map(c=>`
+        <div class="component-card" id="cc-${c.id}" onclick="s2OpenComp('${c.id}')">
+          <div class="cc-header">
+            <span class="cc-icon">${c.icon}</span>
+            <span class="cc-name">${c.name}</span>
+            <span class="cc-voltage ${c.vclass}">${c.voltage}</span>
+          </div>
+          <div class="cc-desc">${c.short}</div>
+          <div class="cc-status" id="cc-status-${c.id}">CLICK TO EXPLORE →</div>
+        </div>
+      `).join('')}
+    </div>
+    <div id="s2-progress" style="margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted)">
+      Explored: <span id="s2-count" style="color:var(--amber)">0</span> / ${COMPONENTS.length}
+    </div>
+    <button class="btn-next-stage" id="s2-next" onclick="finishStage2()">STAGE 03 — CONNECT THE CIRCUIT →</button>
+  `;
+}
+
+function s2OpenComp(id){
+  s2ActiveComp=id;
+  const c=COMPONENTS.find(x=>x.id===id);
+  document.querySelectorAll('.component-card').forEach(cc=>cc.classList.remove('active-card'));
+  document.getElementById(`cc-${id}`).classList.add('active-card');
+
+  const detail=document.getElementById('explore-detail');
+  const quizDone=s2QuizDone[id];
+  detail.innerHTML=`
+    <div class="ed-header">
+      <span class="ed-icon">${c.icon}</span>
+      <div>
+        <div class="ed-title">${c.name}</div>
+      </div>
+      <span class="ed-voltage-tag ${c.vclass}">${c.voltage}</span>
+    </div>
+    <div class="ed-body">
+      <div>
+        <div class="ed-section-title">Function</div>
+        <div class="ed-text">${c.detail}</div>
+      </div>
+      <div>
+        <div class="ed-section-title">Power / Signal Flow</div>
+        <div class="ed-flow">
+          ${c.flow.map((f,i)=>`
+            <div class="flow-step">
+              ${i>0?`<span class="flow-arrow">→</span>`:''}
+              <span class="flow-comp ${i===Math.floor(c.flow.length/2)?'highlight':''}">${f}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${!quizDone ? `
+        <div class="mini-quiz" id="mq-${id}">
+          <div class="ed-section-title" style="margin-bottom:8px">Quick Check</div>
+          <div class="mq-question">${c.quiz.q}</div>
+          <div class="mq-options">
+            ${c.quiz.opts.map((o,i)=>`
+              <div class="mq-opt" onclick="s2Answer('${id}',${i},${c.quiz.ans},this)">${o}</div>
+            `).join('')}
+          </div>
+        </div>` : `<div style="margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--green)">✓ COMPONENT UNLOCKED</div>`}
+      </div>
+    </div>
+  `;
+  detail.classList.add('visible');
+  detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function s2Answer(compId, chosen, correct, el){
+  const opts=el.parentElement.querySelectorAll('.mq-opt');
+  opts.forEach(o=>o.style.pointerEvents='none');
+  if(chosen===correct){
+    el.classList.add('correct');
+    s2QuizDone[compId]=true;
+    G.score+=15;G.stageScores[1]+=15;
+    document.getElementById('top-score').textContent=`${G.score} pts`;
+    G.stage2Unlocked.push(compId);
+    const card=document.getElementById(`cc-${compId}`);
+    card.classList.add('unlocked');
+    document.getElementById(`cc-status-${compId}`).textContent='✓ UNLOCKED';
+    document.getElementById(`cc-status-${compId}`).classList.add('done');
+    const count=Object.keys(s2QuizDone).length;
+    document.getElementById('s2-count').textContent=count;
+    showToast('Correct ✓ Component Unlocked','ok');
+    if(count>=COMPONENTS.length){
+      G.stage2Done=true;
+      document.getElementById('s2-next').classList.add('visible');
+      showToast('All components unlocked! Stage 2 complete.','ok');
+    }
+  } else {
+    el.classList.add('wrong');
+    opts[correct].classList.add('correct');
+    showToast('Incorrect — correct answer highlighted','err');
+  }
+}
+
+function finishStage2(){ transitionToStage(3); }
+
+// ============================================================
+// STAGE 3 — CONNECT THE CIRCUIT
+// ============================================================
+let s3From=null;
+let s3Connected=[];
+let s3NodePositions={
+  battery:{x:8,y:40}, mcb:{x:25,y:18}, keyfuse:{x:45,y:5},
+  controller:{x:48,y:30}, motor:{x:72,y:18},
+  buck:{x:30,y:62}, soc:{x:8,y:72},
+  throttle:{x:72,y:62}, brake:{x:50,y:72},
+  revfwd:{x:88,y:45}
+};
+
+function renderStage3(body){
+  s3From=null; s3Connected=[];
+  // Pick 6 random connections to require
+  const pool=shuffle([...WIRE_CONNECTIONS]);
+  const required=pool.slice(0,6);
+  body._s3required=required;
+
+  body.innerHTML=`
+    <div class="mentor-strip fade-in">
+      <div class="mentor-em">👨‍🏭</div>
+      <div class="mentor-text"><strong>Rajesh Kumar:</strong> "Someone left this vehicle half-connected. Click a source node, then click the destination to draw the wire. Complete all ${required.length} missing connections."</div>
+    </div>
+    <div class="wire-legend">
+      <div class="wire-key"><div class="wire-key-line wk-48"></div><span>48V Power</span></div>
+      <div class="wire-key"><div class="wire-key-line wk-12"></div><span>12V Auxiliary</span></div>
+      <div class="wire-key"><div class="wire-key-line wk-sig"></div><span>Control Signal</span></div>
+    </div>
+    <div class="connect-instructions mono" id="s3-instruction">
+      Click a component to start a connection
+    </div>
+    <div class="connect-canvas-wrap fade-in">
+      <div class="connect-canvas" id="cn-canvas">
+        <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" id="cn-svg"></svg>
+        ${Object.entries(s3NodePositions).map(([id,pos])=>{
+          const comp=COMPONENTS.find(c=>c.id===id);
+          return `<div class="cn-node" id="cn-${id}"
+            style="left:${pos.x}%;top:${pos.y}%"
+            onclick="s3ClickNode('${id}',event)">
+            ${comp?comp.icon:''} ${comp?comp.name:id}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div id="s3-progress" style="margin-top:10px;font-family:var(--mono);font-size:12px;color:var(--muted)">
+      Connections: <span id="s3-count" style="color:var(--amber)">0</span> / ${required.length}
+    </div>
+    <button class="btn-next-stage" id="s3-next" onclick="finishStage3()">STAGE 04 — TRACE THE POWER →</button>
+  `;
+  // Store required on body for access
+  window._s3required=required;
+  window._s3answered=[];
+}
+
+function s3ClickNode(id,ev){
+  const required=window._s3required;
+  if(!s3From){
+    // Check if this node is a valid source
+    const validSource=required.some(c=>c.from===id && !window._s3answered.some(a=>a.from===id&&a.to===c.to));
+    if(!validSource){
+      // Maybe it's a valid destination? Just select it anyway
+    }
+    s3From=id;
+    document.querySelectorAll('.cn-node').forEach(n=>n.classList.remove('source-active'));
+    document.getElementById(`cn-${id}`).classList.add('source-active');
+    document.getElementById('s3-instruction').textContent=`From: ${COMPONENTS.find(c=>c.id===id)?.name||id} → now click destination`;
+  } else {
+    if(id===s3From){
+      s3From=null;
+      document.querySelectorAll('.cn-node').forEach(n=>n.classList.remove('source-active'));
+      document.getElementById('s3-instruction').textContent='Click a component to start a connection';
+      return;
+    }
+    // Check if this connection is required
+    const match=required.find(c=>(c.from===s3From&&c.to===id)||(c.to===s3From&&c.from===id));
+    const alreadyDone=window._s3answered.some(a=>(a.from===s3From&&a.to===id)||(a.from===id&&a.to===s3From));
+
+    if(match && !alreadyDone){
+      // Correct connection
+      window._s3answered.push({from:s3From,to:id});
+      drawWire(s3From,id,match.type,match.label);
+      document.getElementById(`cn-${s3From}`).classList.remove('source-active');
+      document.getElementById(`cn-${s3From}`).classList.add('connected');
+      document.getElementById(`cn-${id}`).classList.add('connected');
+      G.score+=15;G.stageScores[2]+=15;
+      document.getElementById('top-score').textContent=`${G.score} pts`;
+      const cnt=window._s3answered.length;
+      document.getElementById('s3-count').textContent=cnt;
+      showToast(`✓ Connected: ${match.label}`,'ok');
+      if(cnt>=required.length){
+        G.stage3Done=true;
+        document.getElementById('s3-next').classList.add('visible');
+        showToast('All connections complete! Stage 3 done.','ok');
+      }
+    } else if(alreadyDone){
+      showToast('Already connected','info');
+    } else {
+      document.getElementById(`cn-${id}`).classList.add('wrong-flash');
+      setTimeout(()=>document.getElementById(`cn-${id}`).classList.remove('wrong-flash'),400);
+      showToast('No required connection between those components','err');
+    }
+    s3From=null;
+    document.querySelectorAll('.cn-node').forEach(n=>n.classList.remove('source-active'));
+    document.getElementById('s3-instruction').textContent='Click a component to start a connection';
+  }
+}
+
+function drawWire(fromId,toId,type,label){
+  const canvas=document.getElementById('cn-canvas');
+  const svg=document.getElementById('cn-svg');
+  const fromEl=document.getElementById(`cn-${fromId}`);
+  const toEl=document.getElementById(`cn-${toId}`);
+  const cr=canvas.getBoundingClientRect();
+  const fr=fromEl.getBoundingClientRect();
+  const tr=toEl.getBoundingClientRect();
+  const x1=fr.left-cr.left+fr.width/2;
+  const y1=fr.top-cr.top+fr.height/2;
+  const x2=tr.left-cr.left+tr.width/2;
+  const y2=tr.top-cr.top+tr.height/2;
+  const colors={'48':'var(--amber)','12':'var(--green)','sig':'var(--cyan)'};
+  const col=colors[type]||'var(--muted)';
+  const mx=(x1+x2)/2, my=(y1+y2)/2;
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d',`M${x1},${y1} Q${mx},${my-20} ${x2},${y2}`);
+  path.setAttribute('stroke',col);path.setAttribute('stroke-width','2.5');
+  path.setAttribute('fill','none');path.setAttribute('opacity','0.85');
+  if(type==='sig') path.setAttribute('stroke-dasharray','6 3');
+  const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+  text.setAttribute('x',mx);text.setAttribute('y',my-24);
+  text.setAttribute('text-anchor','middle');
+  text.setAttribute('font-family','JetBrains Mono, monospace');
+  text.setAttribute('font-size','9');text.setAttribute('fill',col);
+  text.textContent=label;
+  svg.appendChild(path);svg.appendChild(text);
+}
+
+function finishStage3(){ transitionToStage(4); }
+
+// ============================================================
+// STAGE 4 — TRACE THE POWER
+// ============================================================
+let s4ScenarioIdx=0;
+let s4Sequence=[];
+let s4Correct=false;
+
+function renderStage4(body){
+  s4ScenarioIdx=0;
+  renderTrace(body);
+}
+
+function renderTrace(body){
+  s4Sequence=[];
+  s4Correct=false;
+  const sc=TRACE_SCENARIOS[s4ScenarioIdx%TRACE_SCENARIOS.length];
+
+  body.innerHTML=`
+    <div class="mentor-strip fade-in">
+      <div class="mentor-em">👨‍🏭</div>
+      <div class="mentor-text"><strong>Rajesh Kumar:</strong> "A customer reported a fault. Before picking up any tools — <strong>trace the relevant power path on the circuit</strong>. Click components in the correct sequence from cause to effect."</div>
+    </div>
+    <div class="trace-wrap fade-in">
+      <div class="trace-header">
+        <span class="symptom-badge">SYMPTOM</span>
+        <span class="symptom-text">"${sc.symptom}"</span>
+      </div>
+      <div class="trace-nodes" id="trace-nodes">
+        ${shuffle([...sc.path,...COMPONENTS.filter(c=>!sc.path.includes(c.id)).slice(0,4).map(c=>c.id)]).map(id=>{
+          const c=COMPONENTS.find(x=>x.id===id);
+          return `<div class="trace-node" id="tn-${id}" onclick="s4Click('${id}')">
+            ${c?c.icon:''} ${c?c.name:id}
+          </div>`;
+        }).join('')}
+      </div>
+      <div class="trace-seq" id="trace-seq">
+        <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Click components in the correct fault path order →</span>
+      </div>
+    </div>
+    <div id="s4-feedback" style="font-size:13px;color:var(--muted);min-height:20px;font-family:var(--mono)"></div>
+    <div id="s4-controls" style="margin-top:12px;display:flex;gap:10px;align-items:center">
+      <button onclick="s4Reset()" style="padding:8px 16px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:13px">↺ Reset Path</button>
+      <button onclick="s4Submit()" style="padding:8px 20px;border-radius:6px;border:none;background:var(--amber);color:#000;font-family:'Exo 2',sans-serif;font-weight:700;font-size:13px;cursor:pointer">CHECK PATH →</button>
+    </div>
+    <div id="s4-explanation" style="display:none;margin-top:14px;" class="fade-in"></div>
+    <button class="btn-next-stage" id="s4-next" onclick="s4Next()"></button>
+  `;
+  window._s4sc=sc;
+}
+
+function s4Click(id){
+  if(s4Correct) return;
+  if(s4Sequence.includes(id)){showToast('Already in path','info');return;}
+  s4Sequence.push(id);
+  const tn=document.getElementById(`tn-${id}`);
+  tn.classList.add('selected');
+  updateTraceSeq();
+}
+
+function updateTraceSeq(){
+  const seq=document.getElementById('trace-seq');
+  if(s4Sequence.length===0){
+    seq.innerHTML='<span style="font-family:var(--mono);font-size:11px;color:var(--muted)">Click components in the correct fault path order →</span>';
+    return;
+  }
+  seq.innerHTML=s4Sequence.map((id,i)=>{
+    const c=COMPONENTS.find(x=>x.id===id);
+    return `${i>0?'<span class="seq-arrow">→</span>':''}<span class="seq-item">${c?c.icon:''} ${c?c.name:id}</span>`;
+  }).join('');
+}
+
+function s4Reset(){
+  s4Sequence=[];
+  s4Correct=false;
+  document.querySelectorAll('.trace-node').forEach(n=>{
+    n.classList.remove('selected','correct-path','wrong-path');
+  });
+  updateTraceSeq();
+  document.getElementById('s4-feedback').textContent='';
+  document.getElementById('s4-explanation').style.display='none';
+}
+
+function s4Submit(){
+  if(s4Sequence.length===0){showToast('Select a path first','info');return;}
+  const sc=window._s4sc;
+  const correct=sc.path;
+  let isCorrect=s4Sequence.length===correct.length && s4Sequence.every((id,i)=>id===correct[i]);
+
+  if(isCorrect){
+    s4Correct=true;
+    s4Sequence.forEach(id=>document.getElementById(`tn-${id}`)?.classList.add('correct-path'));
+    G.score+=20;G.stageScores[3]+=20;
+    document.getElementById('top-score').textContent=`${G.score} pts`;
+    showToast('Correct path traced ✓','ok');
+    document.getElementById('s4-feedback').textContent='';
+    document.getElementById('s4-explanation').style.display='block';
+    document.getElementById('s4-explanation').innerHTML=`
+      <div style="background:var(--surface);border:1px solid rgba(34,196,90,0.3);border-radius:8px;padding:14px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:6px">PATH ANALYSIS</div>
+        <div style="font-size:13px;line-height:1.6;color:var(--text)">${sc.explanation}</div>
+      </div>`;
+    const isLast=s4ScenarioIdx>=TRACE_SCENARIOS.length-1;
+    const nextBtn=document.getElementById('s4-next');
+    nextBtn.textContent=isLast?'STAGE 05 — QUICK FIRE →':'NEXT SCENARIO →';
+    nextBtn.classList.add('visible');
+    if(isLast) G.stage4Done=true;
+  } else {
+    s4Sequence.forEach(id=>document.getElementById(`tn-${id}`)?.classList.add('wrong-path'));
+    setTimeout(()=>{
+      document.querySelectorAll('.trace-node').forEach(n=>n.classList.remove('wrong-path','selected'));
+      s4Sequence=[];updateTraceSeq();
+    },600);
+    showToast('Incorrect path — try again','err');
+  }
+}
+
+function s4Next(){
+  s4ScenarioIdx++;
+  if(s4ScenarioIdx>=TRACE_SCENARIOS.length){
+    transitionToStage(5);
+  } else {
+    renderTrace(document.getElementById('stage-body'));
+  }
+}
+
+// ============================================================
+// STAGE 5 — QUICK FIRE
+// ============================================================
+let s5QIdx=0;
+let s5Answered=false;
+let s5Timer=null;
+let s5TimeLeft=15;
+const QF_TIME=15;
+
+function renderStage5(body){
+  s5QIdx=0;
+  renderQF(body);
+}
+
+function renderQF(body){
+  s5Answered=false;
+  s5TimeLeft=QF_TIME;
+  clearInterval(s5Timer);
+
+  if(s5QIdx>=QF_QUESTIONS.length){
+    G.stage5Done=true;
+    transitionToComplete();
+    return;
+  }
+
+  const q=QF_QUESTIONS[s5QIdx];
+  const pct=((s5QIdx)/QF_QUESTIONS.length)*100;
+
+  body.innerHTML=`
+    <div class="mentor-strip fade-in">
+      <div class="mentor-em">👨‍🏭</div>
+      <div class="mentor-text"><strong>Rajesh Kumar:</strong> "Last section. ${QF_QUESTIONS.length} questions. 15 seconds each. No hesitation in a real workshop."</div>
+    </div>
+    <div class="qf-counter">
+      <div class="qf-num exo">${s5QIdx+1}</div>
+      <div class="qf-of">of ${QF_QUESTIONS.length} questions</div>
+    </div>
+    <div class="qf-timer-bar"><div class="qf-timer-fill" id="qf-timer" style="width:100%"></div></div>
+    <div class="qf-question-card fade-in">
+      <div class="qf-q-type">${q.type}</div>
+      <div class="qf-q-text">${q.q}</div>
+      <div class="qf-options">
+        ${q.opts.map((o,i)=>`<button class="qf-opt" onclick="s5Answer(${i},${q.ans},this)">${o}</button>`).join('')}
+      </div>
+    </div>
+    <div id="qf-feedback" style="margin-top:12px;min-height:20px;font-family:var(--mono);font-size:12px;color:var(--muted)"></div>
+  `;
+
+  s5Timer=setInterval(()=>{
+    s5TimeLeft-=0.1;
+    const pct=Math.max(0,(s5TimeLeft/QF_TIME)*100);
+    const el=document.getElementById('qf-timer');
+    if(el) el.style.width=pct+'%';
+    if(el) el.style.background=pct>40?'var(--amber)':pct>15?'var(--yellow)':'var(--red)';
+    if(s5TimeLeft<=0){
+      clearInterval(s5Timer);
+      if(!s5Answered) s5Timeout();
+    }
+  },100);
+}
+
+function s5Answer(chosen,correct,el){
+  if(s5Answered) return;
+  s5Answered=true;
+  clearInterval(s5Timer);
+  document.querySelectorAll('.qf-opt').forEach(o=>o.style.pointerEvents='none');
+  if(chosen===correct){
+    el.classList.add('correct');
+    G.score+=10;G.stageScores[4]+=10;
+    document.getElementById('top-score').textContent=`${G.score} pts`;
+    showToast('Correct ✓','ok');
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.qf-opt')[correct].classList.add('correct');
+    showToast('Incorrect','err');
+  }
+  setTimeout(()=>{ s5QIdx++; renderQF(document.getElementById('stage-body')); },900);
+}
+
+function s5Timeout(){
+  s5Answered=true;
+  document.querySelectorAll('.qf-opt').forEach(o=>o.style.pointerEvents='none');
+  const q=QF_QUESTIONS[s5QIdx];
+  document.querySelectorAll('.qf-opt')[q.ans].classList.add('correct');
+  showToast('Time up','err');
+  setTimeout(()=>{ s5QIdx++; renderQF(document.getElementById('stage-body')); },900);
+}
+
+// ============================================================
+// COMPLETION
+// ============================================================
+function transitionToComplete(){
+  const t=document.getElementById('stage-transition');
+  document.getElementById('st-title').textContent='Computing Results...';
+  t.classList.add('show');
+  setTimeout(()=>{
+    t.classList.remove('show');
+    showComplete();
+  },1400);
+}
+
+function showComplete(){
+  showScreen('complete');
+  const av=AVATARS[G.avIdx];
+  const isApp=G.diff==='apprentice';
+  const maxScore=isApp?300:400;
+  const pct=Math.min(100,Math.round((G.score/maxScore)*100));
+
+  document.getElementById('comp-av').textContent=av;
+  document.getElementById('comp-name').textContent=G.name;
+  document.getElementById('comp-workshop').textContent=G.workshop+' — Circuit Explorer';
+  document.getElementById('comp-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('comp-pct').textContent=pct+'%';
+
+  const tier=document.getElementById('comp-tier');
+  tier.textContent=isApp?'🟢 APPRENTICE LEVEL':'🟡 SR. TECHNICIAN LEVEL';
+  tier.className=`tier-pill ${isApp?'tier-app':'tier-srt'}`;
+
+  const names=['Read the Blueprint','Understand the Systems','Connect the Circuit','Trace the Power','Quick Fire'];
+  document.getElementById('comp-scores').innerHTML=names.map((n,i)=>`
+    <div class="ss-row">
+      <span class="ss-name">Stage ${i+1} — ${n}</span>
+      <span class="ss-val">${G.stageScores[i]} pts</span>
+    </div>
+  `).join('')+`
+    <div class="ss-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:10px">
+      <span style="font-weight:700;color:var(--text)">Total Score</span>
+      <span class="ss-val" style="font-size:16px">${G.score} pts</span>
+    </div>
+  `;
+}
+
+function downloadReport(){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const isApp=G.diff==='apprentice';
+  const tierRGB=isApp?[0,200,150]:[245,166,35];
+  const tierLabel=isApp?'APPRENTICE LEVEL':'SR. TECHNICIAN LEVEL';
+  const maxScore=isApp?300:400;
+  const pct=Math.min(100,Math.round((G.score/maxScore)*100));
+
+  // Header
+  doc.setFillColor(10,15,20);doc.rect(0,0,210,50,'F');
+  doc.setFillColor(...tierRGB);doc.rect(0,48,210,2,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');doc.setFontSize(18);
+  doc.text('SKYY SKILL ACADEMY',105,16,{align:'center'});
+  doc.setFontSize(10);doc.setFont('helvetica','normal');
+  doc.setTextColor(90,122,148);
+  doc.text('THANE CAMPUS — 48V BLDC CIRCUIT EXPLORER',105,24,{align:'center'});
+  doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(255,255,255);
+  doc.text('CIRCUIT MASTERY REPORT',105,38,{align:'center'});
+
+  // Tier pill
+  doc.setFillColor(...tierRGB);doc.roundedRect(14,56,55,10,2,2,'F');
+  doc.setTextColor(0,0,0);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  doc.text(tierLabel,41,63,{align:'center'});
+
+  // Date
+  doc.setTextColor(90,122,148);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),196,63,{align:'right'});
+
+  // Student box
+  doc.setFillColor(17,24,32);doc.roundedRect(14,72,182,28,3,3,'F');
+  doc.setTextColor(...tierRGB);doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text(G.name,55,84);
+  doc.setTextColor(255,255,255);doc.setFontSize(11);
+  doc.text(G.workshop+' — Circuit Explorer',55,93);
+  doc.setTextColor(...tierRGB);doc.setFontSize(22);
+  doc.text(pct+'%',185,90,{align:'right'});
+  doc.setTextColor(90,122,148);doc.setFontSize(8);
+  doc.text('MASTERY',185,96,{align:'right'});
+
+  // Stage scores
+  const stageNames=['Read the Blueprint','Understand the Systems','Connect the Circuit','Trace the Power','Quick Fire Round'];
+  const tableY=108;
+  doc.setFillColor(24,32,48);doc.rect(14,tableY,182,8,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  doc.text('STAGE',18,tableY+5.5);doc.text('EXERCISE',40,tableY+5.5);doc.text('SCORE',185,tableY+5.5,{align:'right'});
+
+  G.stageScores.forEach((s,i)=>{
+    const ry=tableY+8+(i*12);
+    doc.setFillColor(i%2===0?17:14,i%2===0?24:20,i%2===0?32:28);
+    doc.rect(14,ry,182,12,'F');
+    doc.setTextColor(90,122,148);doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text(`Stage ${i+1}`,18,ry+8);
+    doc.setTextColor(180,200,220);
+    doc.text(stageNames[i],40,ry+8);
+    doc.setTextColor(...tierRGB);doc.setFont('helvetica','bold');
+    doc.text(s+' pts',185,ry+8,{align:'right'});
+  });
+
+  // Total bar
+  const totalY=tableY+8+(5*12)+4;
+  doc.setFillColor(...tierRGB);doc.roundedRect(14,totalY,182,14,2,2,'F');
+  doc.setTextColor(0,0,0);doc.setFontSize(12);doc.setFont('helvetica','bold');
+  doc.text(`TOTAL SCORE: ${G.score} points — ${pct}% Mastery`,105,totalY+9,{align:'center'});
+
+  // Footer
+  doc.setFillColor(10,15,20);doc.rect(0,268,210,29,'F');
+  doc.setTextColor(...tierRGB);doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text('Skyy Skill Academy — Thane Campus | 48V BLDC Circuit Explorer',105,277,{align:'center'});
+  doc.text(`Level: ${tierLabel} | Generated: ${new Date().toLocaleString()}`,105,284,{align:'center'});
+
+  doc.save(`Circuit_Report_${G.name.replace(/\s/g,'_')}_${Date.now()}.pdf`);
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+let toastTimer=null;
+function showToast(msg,type='info'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className=`toast show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.className='toast',2000);
+}
+</script>
+</body>
+</html>
