@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Family Game Night</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #F5F0E8;
+  --charcoal: #1C1C1C;
+  --wnrs-red: #C0392B;
+  --gold: #B8860B;
+  --wave-teal: #1A6B6B;
+  --hot: #e05c2a;
+  --cold: #2a7ab8;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow:hidden; }
+body { font-family:'DM Sans',sans-serif; color:var(--charcoal); background:var(--charcoal); display:flex; flex-direction:column; }
+
+/* HEADER */
+header { background:var(--charcoal); padding:1.2rem 2rem 0; text-align:center; flex-shrink:0; }
+header h1 { font-family:'Playfair Display',serif; font-size:clamp(1.2rem,3vw,1.8rem); color:var(--cream); letter-spacing:0.02em; }
+header p { color:#555; font-size:0.68rem; margin-top:0.15rem; letter-spacing:0.1em; text-transform:uppercase; }
+
+/* TABS */
+.tabs { display:flex; justify-content:center; gap:0.5rem; background:var(--charcoal); padding:0.8rem 2rem 1.1rem; flex-shrink:0; }
+.tab { padding:0.5rem 1.5rem; border:1.5px solid #444; cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; transition:all 0.2s; border-radius:3px; background:transparent; color:#555; }
+.tab.active-wnrs { background:var(--wnrs-red); color:white; border-color:var(--wnrs-red); }
+.tab.active-wave { background:var(--wave-teal); color:white; border-color:var(--wave-teal); }
+.tab:not(.active-wnrs):not(.active-wave):hover { color:#ccc; border-color:#666; }
+
+/* Section container — takes remaining height, clips overflow */
+.sections-wrap { flex:1; overflow:hidden; position:relative; min-height:0; }
+.section {
+  display:none;
+  position:absolute; inset:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.section.active { display:block; }
+
+/* ══════════════════════════════════
+   WNRS
+══════════════════════════════════ */
+#wnrs { background:#160805; }
+.wnrs-inner { padding:1.3rem 1rem 3rem; }
+
+.wnrs-header { text-align:center; margin-bottom:1.4rem; }
+.wnrs-header h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--cream); }
+.wnrs-header p { font-size:0.68rem; color:#755; margin-top:0.2rem; letter-spacing:0.08em; text-transform:uppercase; }
+
+.level-selector { display:flex; justify-content:center; gap:0.4rem; margin-bottom:1.6rem; flex-wrap:wrap; }
+.level-btn { padding:0.38rem 0.85rem; border:1.5px solid #3a1a18; background:transparent; color:#664; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; border-radius:2px; cursor:pointer; transition:all 0.2s; }
+.level-btn.active { background:var(--wnrs-red); color:white; border-color:var(--wnrs-red); }
+.level-btn.gold-active { background:var(--gold); color:white; border-color:var(--gold); }
+.level-btn:hover:not(.active):not(.gold-active) { border-color:#885; color:#aa9; }
+
+/* Card stage — fixed height so it never bleeds */
+.card-stage { position:relative; width:100%; max-width:420px; margin:0 auto; height:290px; overflow:visible; }
+.card-stack-bg { position:absolute; width:96%; height:100%; border-radius:16px; left:2%; pointer-events:none; }
+.card-stack-bg.s1 { background:rgba(130,30,20,0.35); top:-6px; transform:rotate(-1.5deg); z-index:0; }
+.card-stack-bg.s2 { background:rgba(130,30,20,0.18); top:-12px; transform:rotate(1deg); z-index:0; }
+.card-stack-bg.s1.gold { background:rgba(110,75,0,0.4); }
+.card-stack-bg.s2.gold { background:rgba(110,75,0,0.2); }
+
+.wnrs-playing-card {
+  position:absolute; width:100%; height:100%; border-radius:16px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:1.8rem 1.6rem; cursor:pointer; z-index:1;
+  box-shadow:0 16px 50px rgba(0,0,0,0.7), 0 4px 16px rgba(0,0,0,0.4);
+  text-align:center; user-select:none;
+}
+.wnrs-playing-card.red-card { background:linear-gradient(145deg,#C0392B 0%,#7a1a0f 100%); border:1px solid rgba(255,255,255,0.07); }
+.wnrs-playing-card.gold-card { background:linear-gradient(145deg,#B8860B 0%,#6a4800 100%); border:1px solid rgba(255,255,255,0.07); }
+
+.card-corner { position:absolute; font-size:0.52rem; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.18); font-weight:600; }
+.card-corner.tl { top:0.9rem; left:1.1rem; }
+.card-corner.br { bottom:0.9rem; right:1.1rem; transform:rotate(180deg); }
+.card-level-tag { font-size:0.6rem; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.45); margin-bottom:0.8rem; font-weight:600; }
+.card-wild-badge { font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.22); padding:0.18rem 0.55rem; border-radius:2px; margin-bottom:0.8rem; display:inline-block; }
+.card-question { font-family:'Playfair Display',serif; font-size:clamp(0.9rem,2.6vw,1.15rem); line-height:1.55; color:white; font-style:italic; }
+
+.card-controls { max-width:420px; margin:1.3rem auto 0; display:flex; align-items:center; justify-content:space-between; padding:0 0.5rem; }
+.card-counter { font-size:0.72rem; color:#554; letter-spacing:0.08em; }
+.card-nav-btn { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#777; width:40px; height:40px; border-radius:50%; font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+.card-nav-btn:hover { background:rgba(255,255,255,0.1); color:white; }
+.card-nav-btn:active { transform:scale(0.92); }
+.swipe-hint { text-align:center; margin-top:0.7rem; font-size:0.6rem; color:#3a2020; letter-spacing:0.08em; text-transform:uppercase; }
+
+/* Card animations */
+@keyframes slideOutLeft { to { transform:translateX(-120%) rotate(-8deg); opacity:0; } }
+@keyframes slideOutRight { to { transform:translateX(120%) rotate(8deg); opacity:0; } }
+@keyframes slideInRight { from { transform:translateX(100%) rotate(6deg); opacity:0; } to { transform:translateX(0) rotate(0); opacity:1; } }
+@keyframes slideInLeft { from { transform:translateX(-100%) rotate(-6deg); opacity:0; } to { transform:translateX(0) rotate(0); opacity:1; } }
+.card-slide-out-left { animation:slideOutLeft 0.28s forwards; }
+.card-slide-out-right { animation:slideOutRight 0.28s forwards; }
+.card-slide-in-right { animation:slideInRight 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+.card-slide-in-left { animation:slideInLeft 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards; }
+
+/* ══════════════════════════════════
+   WAVELENGTH
+══════════════════════════════════ */
+#wave { background:#030f0f; }
+.wave-inner { padding:1.2rem 1rem 2rem; display:flex; flex-direction:column; align-items:center; min-height:100%; }
+
+.wave-header { text-align:center; margin-bottom:1rem; }
+.wave-header h2 { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--cream); }
+.wave-header p { font-size:0.68rem; color:#3a6060; margin-top:0.15rem; letter-spacing:0.08em; text-transform:uppercase; }
+
+/* Spectrum prompt card — richer layout */
+.spectrum-card {
+  width:100%; max-width:460px;
+  background:linear-gradient(145deg,#0a2828,#051818);
+  border:1px solid rgba(26,107,107,0.35);
+  border-radius:14px;
+  padding:1.1rem 1.4rem 1.2rem;
+  margin-bottom:1rem;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  position:relative; overflow:hidden;
+}
+.spectrum-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(to right,transparent,var(--wave-teal),transparent); }
+
+.spec-top-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.55rem; }
+.spec-cat { font-size:0.6rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--wave-teal); font-weight:600; }
+.spec-round { font-size:0.6rem; color:#2a5050; letter-spacing:0.07em; }
+
+/* Poles with color coding */
+.spec-poles { display:flex; align-items:stretch; gap:0; margin-bottom:0.65rem; }
+.spec-pole {
+  flex:1; padding:0.55rem 0.7rem;
+  border-radius:6px;
+  display:flex; flex-direction:column; gap:0.25rem;
+}
+.spec-pole.cold { background:rgba(42,122,184,0.12); border:1px solid rgba(42,122,184,0.25); }
+.spec-pole.hot  { background:rgba(224,92,42,0.12);  border:1px solid rgba(224,92,42,0.25); }
+.spec-pole-label {
+  font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:700;
+}
+.spec-pole.cold .spec-pole-label { color:var(--cold); }
+.spec-pole.hot  .spec-pole-label { color:var(--hot); }
+.spec-pole-word { font-family:'Playfair Display',serif; font-size:clamp(0.85rem,2.2vw,1.05rem); font-weight:700; color:var(--cream); line-height:1.2; }
+.spec-pole.hot  .spec-pole-word { text-align:right; }
+.spec-pole-hint { font-size:0.6rem; color:#4a7070; line-height:1.3; font-style:italic; }
+.spec-pole.hot  .spec-pole-hint { text-align:right; }
+
+.spec-divider-col { display:flex; align-items:center; justify-content:center; padding:0 0.5rem; color:rgba(26,107,107,0.35); font-size:1rem; flex-shrink:0; }
+
+/* Scoring guide under poles */
+.spec-score-guide {
+  display:flex; align-items:center; gap:0; height:8px; border-radius:4px; overflow:hidden; margin-bottom:0.4rem;
+}
+.score-seg { flex:1; height:100%; }
+.score-seg.s0 { background:rgba(42,122,184,0.8); }
+.score-seg.s1 { background:rgba(42,122,184,0.45); }
+.score-seg.s2 { background:rgba(255,255,255,0.12); }
+.score-seg.s3 { background:rgba(224,92,42,0.45); }
+.score-seg.s4 { background:rgba(224,92,42,0.8); }
+
+.spec-score-labels { display:flex; justify-content:space-between; }
+.spec-score-labels span { font-size:0.52rem; color:#3a5858; letter-spacing:0.04em; }
+.spec-score-labels .pts { color:#4a7878; font-weight:600; }
+
+/* State dots */
+.round-state { display:flex; gap:0.4rem; align-items:center; margin-bottom:1rem; }
+.sdot { width:7px; height:7px; border-radius:50%; background:#1a2e2e; transition:background 0.35s; }
+.sdot.done { background:var(--wave-teal); }
+.slabel { font-size:0.6rem; color:#3a5858; letter-spacing:0.08em; text-transform:uppercase; margin-left:0.3rem; }
+
+/* Pinwheel */
+.pinwheel-wrap { position:relative; width:240px; height:240px; margin-bottom:0.5rem; flex-shrink:0; }
+
+.pw-cover { position:absolute; inset:0; border-radius:50%; background:radial-gradient(circle at 40% 35%,#0f2222,#030f0f); border:2px solid rgba(26,107,107,0.2); z-index:10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.35rem; transition:opacity 0.15s; pointer-events:none; }
+.pw-cover.hidden { opacity:0; }
+.pw-cover-icon { font-size:1.4rem; opacity:0.25; }
+.pw-cover-label { font-size:0.58rem; color:#2a5050; letter-spacing:0.12em; text-transform:uppercase; font-weight:600; }
+
+.pw-svg-wrap { position:absolute; inset:0; z-index:5; }
+#pwSvg { width:100%; height:100%; overflow:visible; }
+
+/* Hot/cold zone labels outside the wheel */
+.pw-zone-labels {
+  position:absolute; inset:0; z-index:6; pointer-events:none;
+}
+.pw-zone-label {
+  position:absolute; font-size:0.5rem; font-weight:700; letter-spacing:0.1em;
+  text-transform:uppercase; white-space:nowrap;
+}
+/* Left = cold, Right = hot — labels outside wheel ring */
+.pw-zone-label.cold-label { color:var(--cold); left:-38px; top:50%; transform:translateY(-50%) rotate(-90deg); opacity:0.7; }
+.pw-zone-label.hot-label  { color:var(--hot);  right:-38px; top:50%; transform:translateY(-50%) rotate(90deg); opacity:0.7; }
+
+.pw-needle { position:absolute; top:-10px; left:50%; transform:translateX(-50%); z-index:20; width:0; height:0; border-left:7px solid transparent; border-right:7px solid transparent; border-top:18px solid white; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7)); }
+
+.pw-spin-wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:15; pointer-events:none; }
+.pw-spin-btn { width:54px; height:54px; border-radius:50%; background:#030f0f; border:2px solid var(--wave-teal); color:var(--wave-teal); font-size:0.58rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.2; pointer-events:all; transition:all 0.2s; box-shadow:0 2px 14px rgba(0,0,0,0.6); }
+.pw-spin-btn:hover:not(:disabled) { background:var(--wave-teal); color:white; }
+.pw-spin-btn:active:not(:disabled) { transform:scale(0.91); }
+.pw-spin-btn:disabled { border-color:#162828; color:#1a3030; cursor:not-allowed; }
+.pw-spin-icon { font-size:1rem; margin-bottom:1px; }
+
+.spun-msg { font-size:0.6rem; color:var(--wave-teal); letter-spacing:0.1em; text-transform:uppercase; font-weight:600; opacity:0; transition:opacity 0.3s; min-height:1rem; margin-bottom:0.4rem; }
+.spun-msg.show { opacity:0.65; }
+
+/* Reveal button */
+.reveal-wrap { width:100%; max-width:460px; }
+.reveal-btn { width:100%; padding:0.8rem; background:rgba(26,107,107,0.08); border:1.5px solid rgba(26,107,107,0.28); border-radius:10px; color:var(--wave-teal); font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.5rem; user-select:none; -webkit-user-select:none; transition:background 0.12s,border-color 0.12s; }
+.reveal-btn.pressing { background:rgba(26,107,107,0.28); border-color:var(--wave-teal); color:white; }
+.reveal-sub { font-size:0.58rem; color:#2a4848; text-align:center; margin-top:0.4rem; letter-spacing:0.05em; }
+
+/* Deliberate large gap — prevents accidental Next tap */
+.btn-gap { width:100%; max-width:460px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem; padding:1.6rem 0 1.4rem; }
+.btn-gap-rule { width:50px; height:1px; background:rgba(26,107,107,0.1); }
+.btn-gap-text { font-size:0.6rem; color:#1a3535; letter-spacing:0.1em; text-transform:uppercase; }
+
+/* Next round button */
+.next-wrap { width:100%; max-width:460px; border-top:1px solid rgba(26,107,107,0.1); padding-top:0.9rem; }
+.next-btn { width:100%; padding:0.95rem; background:var(--wave-teal); border:none; border-radius:10px; color:white; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:background 0.2s,transform 0.12s; }
+.next-btn:hover { background:#1f8585; }
+.next-btn:active { transform:scale(0.98); }
+.next-sub { text-align:center; font-size:0.58rem; color:#1a3535; margin-top:0.35rem; letter-spacing:0.06em; text-transform:uppercase; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Family Game Night</h1>
+  <p>Parents &amp; Adult Kids Edition</p>
+</header>
+
+<div class="tabs">
+  <button class="tab active-wnrs" onclick="showTab('wnrs',this)">We're Not Really Strangers</button>
+  <button class="tab" onclick="showTab('wave',this)">Wavelength</button>
+</div>
+
+<div class="sections-wrap">
+
+  <!-- ══════════ WNRS ══════════ -->
+  <div id="wnrs" class="section active">
+    <div class="wnrs-inner">
+      <div class="wnrs-header">
+        <h2>We're Not Really Strangers</h2>
+        <p>Swipe or tap arrows · Parents &amp; Adult Kids</p>
+      </div>
+
+      <div class="level-selector">
+        <button class="level-btn active" onclick="setLevel(0,this)">Level 1</button>
+        <button class="level-btn" onclick="setLevel(1,this)">Level 2</button>
+        <button class="level-btn" onclick="setLevel(2,this)">Level 3</button>
+        <button class="level-btn" onclick="setLevel(3,this)">✦ Wild</button>
+      </div>
+
+      <div class="card-stage" id="cardStage">
+        <div class="card-stack-bg s2" id="sb2"></div>
+        <div class="card-stack-bg s1" id="sb1"></div>
+        <div class="wnrs-playing-card red-card" id="mainCard">
+          <span class="card-corner tl" id="ccTL">Level 1</span>
+          <span class="card-corner br" id="ccBR">Level 1</span>
+          <div id="cardTag" class="card-level-tag">Perception</div>
+          <div id="cardQ" class="card-question"></div>
+        </div>
+      </div>
+
+      <div class="card-controls">
+        <button class="card-nav-btn" onclick="prevCard()">←</button>
+        <div class="card-counter" id="cardCtr"></div>
+        <button class="card-nav-btn" onclick="nextCard()">→</button>
+      </div>
+      <div class="swipe-hint">← swipe or tap arrows →</div>
+    </div>
+  </div>
+
+  <!-- ══════════ WAVELENGTH ══════════ -->
+  <div id="wave" class="section">
+    <div class="wave-inner">
+      <div class="wave-header">
+        <h2>Wavelength</h2>
+        <p>Spin once · Only the Psychic peeks · Everyone else guesses</p>
+      </div>
+
+      <!-- Spectrum prompt card -->
+      <div class="spectrum-card" id="specCard">
+        <div class="spec-top-row">
+          <div class="spec-cat" id="specCat">—</div>
+          <div class="spec-round" id="specRound">Round 1</div>
+        </div>
+
+        <div class="spec-poles">
+          <div class="spec-pole cold">
+            <div class="spec-pole-label">❄ Cold</div>
+            <div class="spec-pole-word" id="pLeft">—</div>
+            <div class="spec-pole-hint" id="hLeft"></div>
+          </div>
+          <div class="spec-divider-col">⟷</div>
+          <div class="spec-pole hot">
+            <div class="spec-pole-label">🔥 Hot</div>
+            <div class="spec-pole-word" id="pRight">—</div>
+            <div class="spec-pole-hint" id="hRight"></div>
+          </div>
+        </div>
+
+        <!-- Colour gradient scoring bar -->
+        <div class="spec-score-guide">
+          <div class="score-seg s0"></div>
+          <div class="score-seg s1"></div>
+          <div class="score-seg s2"></div>
+          <div class="score-seg s3"></div>
+          <div class="score-seg s4"></div>
+        </div>
+        <div class="spec-score-labels">
+          <span>4 pts</span>
+          <span class="pts">← Cold side</span>
+          <span class="pts">Bullseye = 4 pts →</span>
+          <span class="pts">Hot side →</span>
+          <span>4 pts</span>
+        </div>
+      </div>
+
+      <!-- Round state dots -->
+      <div class="round-state">
+        <div class="sdot" id="d1"></div>
+        <div class="sdot" id="d2"></div>
+        <div class="sdot" id="d3"></div>
+        <span class="slabel" id="sLabel">Spin the wheel</span>
+      </div>
+
+      <!-- Pinwheel -->
+      <div class="pinwheel-wrap" id="pwWrap">
+        <div class="pw-needle"></div>
+
+        <div class="pw-svg-wrap">
+          <svg id="pwSvg" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hotColdGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stop-color="#1a5fa0"/>
+                <stop offset="40%"  stop-color="#1a6b6b"/>
+                <stop offset="60%"  stop-color="#1a6b6b"/>
+                <stop offset="100%" stop-color="#b84020"/>
+              </linearGradient>
+              <clipPath id="circleClip">
+                <circle cx="120" cy="120" r="118"/>
+              </clipPath>
+            </defs>
+            <g id="pwSegs"></g>
+            <!-- Scoring zone rings — drawn after segments -->
+            <g id="pwZones" clip-path="url(#circleClip)"></g>
+            <!-- Center cap -->
+            <circle cx="120" cy="120" r="17" fill="#030f0f" stroke="rgba(26,107,107,0.4)" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <!-- Hot / Cold side labels outside the wheel -->
+        <div class="pw-zone-labels">
+          <div class="pw-zone-label cold-label">❄ Cold</div>
+          <div class="pw-zone-label hot-label">🔥 Hot</div>
+        </div>
+
+        <div class="pw-spin-wrap">
+          <button class="pw-spin-btn" id="spinBtn" onclick="spinWheel()">
+            <span class="pw-spin-icon">⟳</span>
+            <span>Spin</span>
+          </button>
+        </div>
+        <div class="pw-cover" id="pwCover">
+          <div class="pw-cover-icon">◉</div>
+          <div class="pw-cover-label">Hidden</div>
+        </div>
+      </div>
+
+      <div class="spun-msg" id="spunMsg">✓ Wheel locked for this round</div>
+
+      <!-- Reveal -->
+      <div class="reveal-wrap">
+        <button class="reveal-btn" id="revBtn"
+          onmousedown="startReveal()" onmouseup="endReveal()" onmouseleave="endReveal()"
+          ontouchstart="startReveal(event)" ontouchend="endReveal()" ontouchcancel="endReveal()">
+          <span>👁</span> Hold to Peek at Needle
+        </button>
+        <div class="reveal-sub">Hold down to reveal · Release to hide · Psychic only!</div>
+      </div>
+
+      <!-- Deliberate gap to prevent accidental Next tap -->
+      <div class="btn-gap">
+        <div class="btn-gap-rule"></div>
+        <div class="btn-gap-text">discuss before continuing</div>
+        <div class="btn-gap-rule"></div>
+      </div>
+
+      <!-- Next round — clearly separated -->
+      <div class="next-wrap">
+        <button class="next-btn" onclick="nextRound()">Next Round →</button>
+        <div class="next-sub">New spectrum card · Wheel resets · New round begins</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /sections-wrap -->
+
+<script>
+// ══ TAB SWITCH ══
+function showTab(tab, btn) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active-wnrs','active-wave'));
+  document.getElementById(tab).classList.add('active');
+  btn.classList.add(tab==='wnrs'?'active-wnrs':'active-wave');
+}
+
+// ══════════════════════════════════
+// WNRS DATA
+// ══════════════════════════════════
+const WNRS = [
+  {
+    name:'Level 1', sub:'Perception', wild:false,
+    qs:[
+      "What's one habit of mine you secretly find endearing but would never admit to me?",
+      "What do you think I was like as a teenager — and how close are you to the truth?",
+      "What's one opinion or belief of mine you think has shifted the most over the years?",
+      "If you had to describe my energy in three words right now, what would they be?",
+      "What's something you've always assumed about me that you've never actually asked me about?",
+      "What do you think I'm most quietly proud of — the thing I rarely mention but feels important to me?",
+      "What's a phase or version of me that you think about more than I'd expect?",
+      "What's a memory we share that you think I've completely forgotten by now?",
+      "What's one small thing I do that you think says a lot about who I am as a person?",
+      "Looking back, what do you think was the best version of us — and when do you think that was?"
+    ]
+  },
+  {
+    name:'Level 2', sub:'Connection', wild:false,
+    qs:[
+      "What's something you genuinely wish you could go back and do differently with me — and why?",
+      "Is there something you've wanted to ask me for a long time but never felt like you could?",
+      "What's a moment between us that you think about more often than I'd ever realize?",
+      "What do you honestly think I need more of in my life right now, and why?",
+      "What's something you've learned from watching me that you'd never normally say out loud?",
+      "What's one way I've genuinely surprised you in the last few years — something you didn't see coming?",
+      "What's the biggest difference between us as people — and do you actually think that's a good thing?",
+      "Is there something I've done for you that you've never properly thanked me for?",
+      "What's a memory of something we did together that shaped you more than you've ever let on?",
+      "What's one thing from our past together that you genuinely wish we still did or had?",
+      "Was there ever a time I made you really proud of me — something you never actually told me?"
+    ]
+  },
+  {
+    name:'Level 3', sub:'Reflection', wild:false,
+    qs:[
+      "What's one thing about your life right now that you genuinely don't think I fully understand?",
+      "Is there a version of yourself you gave up on at some point — one you sometimes still miss?",
+      "What's something about our relationship you wish were different — and do you think it's something that can actually change?",
+      "What's a fear you have about the future that you haven't shared with anyone else in this room?",
+      "What's the most important thing you think you've taught me — even if you never meant to?",
+      "What's something you hope I always know about how you feel, even if we never say it out loud again?",
+      "If you could change just one thing about how we communicate with each other, what would it be?",
+      "What's the single happiest you've ever felt with this family — and what was it that made it that way?",
+      "Is there a whole chapter of your life that you wish the rest of us understood a little better?",
+      "What's something about who I've become as a person that genuinely makes you happy when you think about it?"
+    ]
+  },
+  {
+    name:'Wild', sub:'Wild Card', wild:true,
+    qs:[
+      "Everyone goes around and says one specific thing they genuinely admire about the person sitting to their left.",
+      "Without talking first, everyone writes down what they think the group's single funniest shared memory is. Then read them out loud.",
+      "The youngest person in the room asks the oldest person one question they've genuinely always wanted to ask. Then flip it.",
+      "Everyone shares one thing they're currently worried about — no advice allowed, no fixing. Just listening.",
+      "Each person says just one word they think describes this family. Then explain why you chose it.",
+      "Go around the room and each person shares their single favourite memory of a family trip or holiday — the very first one that comes to mind.",
+      "Everyone names one thing they genuinely think this family does better than any other family they know.",
+      "Take turns finishing this sentence out loud: 'Something I hope we still do together in ten years is…'",
+      "Everyone picks the moment from the past year that made them feel most like themselves, and shares why.",
+      "Go around and each person shares one old memory from their time together that still genuinely makes them smile when they think about it."
+    ]
+  }
+];
+
+let curLevel = 0, curIdx = 0, touchX = 0;
+
+function setLevel(lv, btn) {
+  curLevel = lv; curIdx = 0;
+  document.querySelectorAll('.level-btn').forEach(b=>b.classList.remove('active','gold-active'));
+  btn.classList.add(lv===3?'gold-active':'active');
+  renderCard(false);
+}
+
+function renderCard(anim, dir) {
+  const deck = WNRS[curLevel];
+  const q = deck.qs[curIdx];
+  const card = document.getElementById('mainCard');
+  if (anim) {
+    const out = dir==='next'?'card-slide-out-left':'card-slide-out-right';
+    card.classList.add(out);
+    setTimeout(()=>{
+      card.classList.remove(out);
+      applyCard(deck,q);
+      const inn = dir==='next'?'card-slide-in-right':'card-slide-in-left';
+      card.classList.add(inn);
+      setTimeout(()=>card.classList.remove(inn),380);
+    },260);
+  } else { applyCard(deck,q); }
+  document.getElementById('cardCtr').textContent = `${curIdx+1} / ${deck.qs.length}`;
+}
+
+function applyCard(deck,q) {
+  const card = document.getElementById('mainCard');
+  const isW = deck.wild;
+  card.className = 'wnrs-playing-card '+(isW?'gold-card':'red-card');
+  document.getElementById('sb1').className = 'card-stack-bg s1'+(isW?' gold':'');
+  document.getElementById('sb2').className = 'card-stack-bg s2'+(isW?' gold':'');
+  document.getElementById('ccTL').textContent = deck.name;
+  document.getElementById('ccBR').textContent = deck.name;
+  const tag = document.getElementById('cardTag');
+  if (isW) { tag.innerHTML='<span class="card-wild-badge">✦ Wild Card</span>'; }
+  else { tag.className='card-level-tag'; tag.textContent=deck.sub; }
+  document.getElementById('cardQ').textContent = q;
+}
+
+function nextCard() { const d=WNRS[curLevel]; if(curIdx<d.qs.length-1){curIdx++;renderCard(true,'next');} }
+function prevCard() { if(curIdx>0){curIdx--;renderCard(true,'prev');} }
+
+const stage = document.getElementById('cardStage');
+stage.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+stage.addEventListener('touchend',e=>{ const dx=e.changedTouches[0].clientX-touchX; if(Math.abs(dx)>50){dx<0?nextCard():prevCard();} });
+renderCard(false);
+
+// ══════════════════════════════════
+// WAVELENGTH DATA — richer prompts
+// ══════════════════════════════════
+const SPECS = [
+  {
+    cat:'Our Household Growing Up',
+    left:'Total Chaos', leftHint:'noise, mess, unpredictable',
+    right:'Perfectly Organised', rightHint:'routines, schedules, structure'
+  },
+  {
+    cat:'How Strict the Parenting Was',
+    left:'No Rules Whatsoever', leftHint:'total freedom, figuring it out yourself',
+    right:'Rules for Everything', rightHint:'curfews, expectations, discipline'
+  },
+  {
+    cat:'A Childhood Memory We Share',
+    left:'Cringeworthy to Revisit', leftHint:'embarrassing, awkward, best forgotten',
+    right:'Legendary Status Now', rightHint:'still funny, still told, still proud'
+  },
+  {
+    cat:'A Classic Family Trait We All Have',
+    left:'Drives Me Absolutely Crazy', leftHint:'frustrating, exhausting, wish it would stop',
+    right:"I'm Genuinely Proud of It", rightHint:'makes us us, wouldn\'t change it'
+  },
+  {
+    cat:'A Big Family Decision',
+    left:'Total Mistake in Hindsight', leftHint:'wish we\'d done differently, wrong call',
+    right:'Best Decision We Ever Made', rightHint:'changed everything for the better'
+  },
+  {
+    cat:'Advice That Was Given in This Family',
+    left:'Completely Ignored It at the Time', leftHint:'dismissed it, rolled my eyes, moved on',
+    right:'It Actually Changed My Life', rightHint:'still think about it, shaped who I am'
+  },
+  {
+    cat:'How We Communicate as a Family',
+    left:'Complete Silence and Avoidance', leftHint:'bottling it up, nobody says anything',
+    right:'Oversharing Absolutely Everything', rightHint:'too much info, no filter, all out there'
+  },
+  {
+    cat:'Family Gatherings and Get-Togethers',
+    left:'I Absolutely Dread Them', leftHint:'stressful, draining, countdown to leaving',
+    right:'I Genuinely Live for Them', rightHint:'best part of the year, never want them to end'
+  },
+  {
+    cat:'A Phase in Your Life',
+    left:'Completely Lost and Rudderless', leftHint:'no idea what I was doing, winging it',
+    right:'Had It All Figured Out', rightHint:'clear direction, confident, on track'
+  },
+  {
+    cat:'How This Family Handles Money',
+    left:'Save Every Single Penny', leftHint:'never splurge, always practical, careful',
+    right:'Spend It While You Have It', rightHint:'enjoy it now, live in the moment'
+  },
+  {
+    cat:'Comparing Two People in This Room',
+    left:'Practically the Same Person', leftHint:'same habits, same reactions, eerily similar',
+    right:'Total Opposites in Every Way', rightHint:'completely different people, different lives'
+  },
+  {
+    cat:'Something That Happened in Your Life',
+    left:'Haunts Me on a Daily Basis', leftHint:'wish it never happened, hard to shake',
+    right:'It Made Me Who I Am', rightHint:'grateful for it now, needed to happen'
+  },
+  {
+    cat:'A Holiday or Family Tradition',
+    left:'Please Let This One Die Out', leftHint:'nobody enjoys it, outdated, time to move on',
+    right:'Sacred — Never Change It', rightHint:'non-negotiable, part of who we are'
+  },
+  {
+    cat:'An Embarrassing Family Moment',
+    left:'I am Still Not Over It', leftHint:'mortifying, cringe, do not bring it up',
+    right:'The Funniest Thing That Ever Happened', rightHint:'we laugh every time, iconic story'
+  },
+  {
+    cat:'A Rule You Had Growing Up',
+    left:'Completely Unfair and Unreasonable', leftHint:'too strict, made no sense, resented it',
+    right:'Made Total Sense Looking Back', rightHint:'I get it now, good call actually'
+  },
+  {
+    cat:'Nostalgia for an Earlier Time',
+    left:'Bittersweet — Happy It\'s Behind Us', leftHint:'good memories but glad things changed',
+    right:'Pure Joy — I\'d Go Back in a Heartbeat', rightHint:'best years, wish we could relive them'
+  },
+  {
+    cat:'A Family Holiday or Trip We Took',
+    left:'A Total Disaster at the Time', leftHint:'fights, delays, nothing went right',
+    right:'The Best Trip We\'ve Ever Had', rightHint:'still talk about it, perfect memories'
+  },
+  {
+    cat:'An Old Family Habit or Tradition',
+    left:'Forgotten Way Too Soon', leftHint:'miss it, wish we\'d kept it going',
+    right:'Still Makes Me Smile Every Time', rightHint:'warm memory, glad it happened'
+  },
+  {
+    cat:'A Favourite Shared Memory',
+    left:'Painful to Think Back On', leftHint:'bittersweet, tinged with regret or loss',
+    right:'Warms My Heart Every Single Time', rightHint:'pure happiness, love that it happened'
+  },
+  {
+    cat:'How That Year Actually Felt',
+    left:'Genuinely Glad It\'s Over', leftHint:'hard, exhausting, wanted out of it',
+    right:'One of the Best Years of My Life', rightHint:'thriving, joyful, wouldn\'t change a thing'
+  },
+  {
+    cat:'A Simpler Chapter of Life',
+    left:'Glad We\'ve All Moved Past That', leftHint:'growing pains, needed to change',
+    right:'I\'d Go Back in a Heartbeat', rightHint:'easier, happier, miss it genuinely'
+  },
+];
+
+let specIdx=0, shuffled=[...SPECS].sort(()=>Math.random()-0.5);
+let wAngle=0, hasSpun=false, isSpinning=false, isRevealing=false, roundNum=1;
+
+// ── Build pinwheel ──
+(function buildPW(){
+  const g=document.getElementById('pwSegs');
+  const N=20, cx=120, cy=120, r=118;
+  // Gradient from cold blue → teal → hot orange across the wheel
+  // Segment 0 = top = needle start; left half = cold, right half = hot
+  const step=2*Math.PI/N;
+
+  for(let i=0;i<N;i++){
+    // fraction around circle: 0=top, 0.25=right, 0.5=bottom, 0.75=left
+    const frac = i/N;
+    // colour: left (0.5–1.0) = cold blues, right (0–0.5) = hot oranges, centre = teal
+    let fill;
+    const dist = Math.abs(frac - 0.5); // 0=bottom, 0.5=top
+    const rightFrac = frac <= 0.5 ? frac*2 : 0; // 0=top,1=equator on right side
+    const leftFrac  = frac >  0.5 ? (frac-0.5)*2 : 0;
+
+    if(frac <= 0.5){
+      // right half: top=near needle, equator=far — hot gradient
+      const t = frac * 2; // 0=top,1=equator
+      // interpolate teal → hot orange as t goes 0→1
+      const r2 = Math.round(26 + t*(224-26));
+      const g2 = Math.round(107 + t*(92-107));
+      const b2 = Math.round(107 + t*(42-107));
+      fill = `rgb(${r2},${g2},${b2})`;
+    } else {
+      // left half: equator → cold blue as we go from 0.5→1
+      const t = (frac - 0.5) * 2; // 0=equator,1=top
+      const r2 = Math.round(26 + t*(26-26));
+      const g2 = Math.round(107 + t*(95-107));
+      const b2 = Math.round(107 + t*(160-107));
+      fill = `rgb(${r2},${g2},${b2})`;
+    }
+
+    const a1=i*step-Math.PI/2, a2=a1+step;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d',`M${cx},${cy} L${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`);
+    p.setAttribute('fill',fill);
+    p.setAttribute('stroke','rgba(0,0,0,0.3)');
+    p.setAttribute('stroke-width','0.8');
+    g.appendChild(p);
+  }
+
+  // Scoring zone arcs: bullseye (centre ~25% of arc), close (next 25% each side), far (outer edges)
+  const zg = document.getElementById('pwZones');
+  // Draw concentric arc overlays to show scoring bands — from centre outward
+  const zones = [
+    // [startFrac, endFrac, opacity] — centred on top (0 = 12 o'clock)
+    { s:-0.08, e:0.08,  alpha:0.18 }, // bullseye 4pts
+    { s:-0.17, e:-0.08, alpha:0.08 }, // 3pts left
+    { s:0.08,  e:0.17,  alpha:0.08 }, // 3pts right
+    { s:-0.25, e:-0.17, alpha:0.05 }, // 2pts left
+    { s:0.17,  e:0.25,  alpha:0.05 }, // 2pts right
+  ];
+  zones.forEach(z=>{
+    const a1=(z.s*2*Math.PI)-Math.PI/2, a2=(z.e*2*Math.PI)-Math.PI/2;
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const large = Math.abs(z.e-z.s) > 0.5 ? 1:0;
+    const pa=document.createElementNS('http://www.w3.org/2000/svg','path');
+    pa.setAttribute('d',`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`);
+    pa.setAttribute('fill',`rgba(255,255,255,${z.alpha})`);
+    pa.setAttribute('pointer-events','none');
+    zg.appendChild(pa);
+  });
+
+  // Score labels on the wheel face
+  const labels = [
+    {frac:0,    text:'4', r:80},
+    {frac:0.12, text:'3', r:75},
+    {frac:-0.12,text:'3', r:75},
+    {frac:0.22, text:'2', r:72},
+    {frac:-0.22,text:'2', r:72},
+  ];
+  labels.forEach(lb=>{
+    const a=(lb.frac*2*Math.PI)-Math.PI/2;
+    const lx=cx+lb.r*Math.cos(a), ly=cy+lb.r*Math.sin(a);
+    const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',lx); t.setAttribute('y',ly);
+    t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
+    t.setAttribute('fill','rgba(255,255,255,0.35)');
+    t.setAttribute('font-size','10'); t.setAttribute('font-weight','700');
+    t.setAttribute('font-family','DM Sans, sans-serif');
+    t.setAttribute('pointer-events','none');
+    t.textContent=lb.text;
+    zg.appendChild(t);
+  });
+})();
+
+function spinWheel(){
+  if(hasSpun||isSpinning)return;
+  isSpinning=true;
+  const deg=720+Math.random()*1080;
+  const dur=2200+Math.random()*800;
+  const target=wAngle+deg;
+  const svg=document.getElementById('pwSvg');
+  svg.style.transition='none';
+  svg.style.transform=`rotate(${wAngle}deg)`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    svg.style.transition=`transform ${dur}ms cubic-bezier(0.18,0.85,0.32,1)`;
+    svg.style.transform=`rotate(${target}deg)`;
+  }));
+  setTimeout(()=>{
+    wAngle=target%360; svg.style.transition='none'; svg.style.transform=`rotate(${wAngle}deg)`;
+    isSpinning=false; hasSpun=true;
+    document.getElementById('spinBtn').disabled=true;
+    document.getElementById('spunMsg').classList.add('show');
+    document.getElementById('d1').classList.add('done');
+    document.getElementById('sLabel').textContent='Hold to peek · then discuss';
+  },dur+60);
+}
+
+function startReveal(e){
+  if(e)e.preventDefault();
+  if(isRevealing)return;
+  isRevealing=true;
+  document.getElementById('pwCover').classList.add('hidden');
+  document.getElementById('revBtn').classList.add('pressing');
+  document.getElementById('d2').classList.add('done');
+  if(document.getElementById('d1').classList.contains('done')){
+    document.getElementById('d3').classList.add('done');
+    document.getElementById('sLabel').textContent='Discuss → tap Next when ready';
+  }
+}
+function endReveal(){
+  if(!isRevealing)return;
+  isRevealing=false;
+  document.getElementById('pwCover').classList.remove('hidden');
+  document.getElementById('revBtn').classList.remove('pressing');
+}
+
+function nextRound(){
+  hasSpun=false; isSpinning=false; isRevealing=false; roundNum++;
+  document.getElementById('pwCover').classList.remove('hidden');
+  document.getElementById('revBtn').classList.remove('pressing');
+  document.getElementById('spinBtn').disabled=false;
+  document.getElementById('spunMsg').classList.remove('show');
+  ['d1','d2','d3'].forEach(id=>document.getElementById(id).classList.remove('done'));
+  document.getElementById('sLabel').textContent='Spin the wheel';
+  const svg=document.getElementById('pwSvg');
+  svg.style.transition='none'; wAngle=0; svg.style.transform='rotate(0deg)';
+  specIdx=(specIdx+1)%shuffled.length;
+  if(specIdx===0)shuffled=[...SPECS].sort(()=>Math.random()-0.5);
+  loadSpec();
+  document.getElementById('specRound').textContent=`Round ${roundNum}`;
+}
+
+function loadSpec(){
+  const s=shuffled[specIdx];
+  document.getElementById('specCat').textContent=s.cat;
+  document.getElementById('pLeft').textContent=s.left;
+  document.getElementById('pRight').textContent=s.right;
+  document.getElementById('hLeft').textContent=s.leftHint;
+  document.getElementById('hRight').textContent=s.rightHint;
+  const c=document.getElementById('specCard');
+  c.style.opacity='0'; c.style.transform='translateY(-6px)';
+  setTimeout(()=>{
+    c.style.transition='opacity 0.28s,transform 0.28s';
+    c.style.opacity='1'; c.style.transform='translateY(0)';
+    setTimeout(()=>{c.style.transition='';c.style.transform='';},300);
+  },40);
+}
+loadSpec();
+</script>
+</body>
+</html>
