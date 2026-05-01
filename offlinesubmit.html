@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignment Submission</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f7f5f0;
+  --paper:    #ffffff;
+  --border:   #e2ddd5;
+  --border2:  #cdc7bc;
+  --text:     #1e1b16;
+  --muted:    #8a8175;
+  --accent:   #2a6049;
+  --accent-l: #e8f2ed;
+  --accent-m: #c4ddd2;
+  --red:      #c0392b;
+  --red-l:    #fdf0ee;
+  --amber:    #a05c00;
+  --amber-l:  #fef6e7;
+  --green:    #1a5c38;
+  --green-l:  #eaf5ee;
+  --r: 10px;
+  --mono: 'DM Mono', monospace;
+  --body: 'Figtree', sans-serif;
+  --disp: 'Fraunces', serif;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 12px rgba(0,0,0,.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 1px 0 var(--border);
+}
+.page-title {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: 1.15rem;
+  letter-spacing: -.01em;
+  color: var(--text);
+}
+.page-sub {
+  font-family: var(--mono);
+  font-size: .65rem;
+  color: var(--muted);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+/* ── TABS ── */
+.tabs {
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  padding: 0 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  gap: 0;
+}
+.tab {
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: .8rem;
+  color: var(--muted);
+  padding: .65rem 1.1rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+  user-select: none;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── LAYOUT ── */
+main { max-width: 640px; margin: 0 auto; padding: 2rem 1.25rem; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── SECTION CARD ── */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.4rem 1.5rem;
+  margin-bottom: .9rem;
+  box-shadow: var(--shadow);
+}
+
+.step-row {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-bottom: .35rem;
+}
+.step-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-family: var(--mono);
+  font-size: .65rem;
+  font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-title {
+  font-family: var(--disp);
+  font-weight: 600;
+  font-size: .95rem;
+  letter-spacing: -.01em;
+}
+.card-desc {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.55;
+}
+
+/* ── FIELD ── */
+.field-label {
+  font-family: var(--mono);
+  font-size: .62rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: .38rem;
+  display: block;
+}
+input[type="text"] {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border2);
+  border-radius: 7px;
+  padding: .6rem .85rem;
+  font-family: var(--mono);
+  font-size: .9rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(42,96,73,.12);
+  background: white;
+}
+input[type="text"].ok  { border-color: var(--green); }
+input[type="text"].bad { border-color: var(--red); }
+.hint { font-family: var(--mono); font-size: .68rem; min-height: 1.2em; margin-top: .38rem; }
+
+/* ── EXPIRY CHIPS ── */
+.exp-row { display: flex; gap: .45rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+.exp-chip {
+  font-family: var(--mono); font-size: .72rem;
+  padding: .32rem .72rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--border2);
+  background: var(--bg);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .13s;
+  user-select: none;
+}
+.exp-chip:hover { border-color: var(--accent); color: var(--accent); }
+.exp-chip.sel { border-color: var(--accent); background: var(--accent-l); color: var(--accent); font-weight: 500; }
+
+/* ── DROPZONE ── */
+.dropzone {
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--r);
+  padding: 1.6rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  background: var(--bg);
+  transition: border-color .15s, background .15s;
+}
+.dropzone:hover, .dropzone.over {
+  border-color: var(--accent);
+  background: var(--accent-l);
+}
+.dropzone input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.dz-icon { font-size: 1.6rem; margin-bottom: .3rem; }
+.dz-lbl { font-family: var(--disp); font-weight: 600; font-size: .9rem; color: var(--text); }
+.dz-sub { font-size: .73rem; color: var(--muted); margin-top: .2rem; }
+.dz-chip-file {
+  display: inline-flex; align-items: center; gap: .45rem;
+  background: var(--paper); border: 1px solid var(--border2);
+  border-radius: 6px; padding: .35rem .7rem;
+  font-family: var(--mono); font-size: .74rem; color: var(--text);
+  margin-top: .55rem;
+}
+.dz-rm { cursor: pointer; background: none; border: none; color: var(--red); font-size: .95rem; line-height: 1; padding: 0; }
+
+/* ── PREVIEW ── */
+.prev-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-bottom: 1.1rem; }
+.prev-box {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: .65rem .85rem;
+  display: flex; align-items: center; gap: .55rem;
+  transition: border-color .2s, background .2s;
+}
+.prev-box.ready { border-color: var(--green); background: var(--green-l); }
+.prev-icon { font-size: 1.2rem; flex-shrink: 0; }
+.prev-name { font-family: var(--mono); font-size: .74rem; font-weight: 500; }
+.prev-rule { font-size: .63rem; color: var(--muted); margin-top: .05rem; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family: var(--body); font-weight: 600; font-size: .8rem;
+  border: none; border-radius: 8px; padding: .6rem 1.3rem;
+  cursor: pointer; display: inline-flex; align-items: center; gap: .45rem;
+  transition: all .13s; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover:not(:disabled) { background: #1d4a36; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(42,96,73,.25); }
+.btn-primary:disabled { background: var(--accent-m); color: white; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-ghost { background: var(--bg); color: var(--text); border: 1.5px solid var(--border2); }
+.btn-ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+
+/* ── ALERTS ── */
+.al {
+  border-radius: 8px; padding: .7rem .95rem;
+  font-size: .8rem; display: flex; align-items: flex-start;
+  gap: .55rem; margin-bottom: .9rem; line-height: 1.55;
+}
+.al-info  { background: var(--accent-l); color: #1a4a36; border: 1px solid var(--accent-m); }
+.al-ok    { background: var(--green-l);  color: var(--green);  border: 1px solid #a8d5bc; }
+.al-warn  { background: var(--amber-l);  color: var(--amber);  border: 1px solid #f0d49a; }
+.al-err   { background: var(--red-l);    color: var(--red);    border: 1px solid #f0c0bb; }
+
+/* ── UPLOAD STEPS ── */
+.usteps { display: flex; flex-direction: column; gap: .38rem; margin-bottom: .85rem; }
+.usp {
+  display: flex; align-items: center; gap: .55rem;
+  font-family: var(--mono); font-size: .72rem; color: var(--muted);
+}
+.usp.on   { color: var(--text); }
+.usp.done { color: var(--green); }
+.usp.fail { color: var(--red); }
+.usp-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: .55rem;
+}
+.usp.on   .usp-dot { background: var(--accent-l); border-color: var(--accent); }
+.usp.done .usp-dot { background: var(--green-l);  border-color: var(--green); }
+.usp.fail .usp-dot { background: var(--red-l);    border-color: var(--red); }
+
+/* ── PROGRESS ── */
+.prog-wrap { margin-bottom: .85rem; }
+.prog-track { background: var(--border); border-radius: 999px; height: 4px; overflow: hidden; }
+.prog-fill {
+  height: 100%; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #4aab80);
+  transition: width .3s ease;
+}
+.prog-lbl { font-family: var(--mono); font-size: .65rem; color: var(--muted); margin-top: .3rem; }
+
+/* ── RESULT CARD ── */
+.result-card {
+  background: var(--green-l);
+  border: 1px solid #a8d5bc;
+  border-radius: var(--r);
+  padding: 1.3rem 1.4rem;
+  margin-top: .9rem;
+}
+.result-eyebrow {
+  font-family: var(--mono); font-size: .62rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--green);
+  display: flex; align-items: center; gap: .5rem;
+  margin-bottom: .9rem;
+}
+.destruct-pill {
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: rgba(192,57,43,.1); border: 1px solid rgba(192,57,43,.2);
+  color: var(--red); border-radius: 999px; padding: .15rem .55rem;
+  font-size: .62rem;
+}
+.destruct-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--red);
+  animation: pulse 1.3s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.75)} }
+
+/* ── LINK ROW ── */
+.link-row { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.share-url {
+  font-family: var(--mono); font-size: .78rem; color: var(--accent);
+  background: white; border: 1px solid var(--border2); border-radius: 6px;
+  padding: .42rem .75rem; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  text-decoration: none; cursor: pointer; transition: border-color .13s;
+}
+.share-url:hover { border-color: var(--accent); }
+.copy-btn {
+  font-family: var(--mono); font-size: .7rem; font-weight: 500;
+  background: var(--accent); color: white;
+  border: none; border-radius: 6px; padding: .42rem .8rem;
+  cursor: pointer; transition: all .13s; flex-shrink: 0;
+}
+.copy-btn:hover { background: #1d4a36; }
+.copy-btn.copied { background: var(--green); }
+
+/* ── QR SECTION ── */
+.qr-section {
+  display: flex; gap: 1.25rem; align-items: flex-start;
+  flex-wrap: wrap;
+  padding-top: .9rem;
+  border-top: 1px solid var(--accent-m);
+}
+.qr-box {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+  /* will be sized by JS to match QR output */
+}
+#qr-render { display: block; }
+#qr-render canvas { display: block !important; }
+
+.qr-side { flex: 1; min-width: 160px; }
+.qr-side-title {
+  font-family: var(--disp); font-weight: 600; font-size: .88rem;
+  margin-bottom: .3rem;
+}
+.qr-side-desc {
+  font-size: .75rem; color: var(--muted); line-height: 1.5; margin-bottom: .75rem;
+}
+.qr-actions { display: flex; flex-direction: column; gap: .4rem; }
+.qr-dl-btn {
+  font-family: var(--body); font-weight: 600; font-size: .75rem;
+  background: white; color: var(--accent);
+  border: 1.5px solid var(--accent-m); border-radius: 7px;
+  padding: .45rem .9rem; cursor: pointer;
+  display: flex; align-items: center; gap: .4rem;
+  transition: all .13s;
+}
+.qr-dl-btn:hover { background: var(--accent-l); border-color: var(--accent); }
+
+/* ── SHARE NOTE ── */
+.share-note { font-size: .75rem; color: #3a6b52; line-height: 1.55; margin-top: .75rem; }
+.share-note strong { color: var(--green); }
+
+/* ── FALLBACK ── */
+.fallback-row { margin-top: .75rem; display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; }
+.fallback-lbl { font-size: .72rem; color: var(--muted); }
+
+/* ── FACULTY TIMELINE ── */
+.tl { display: flex; flex-direction: column; }
+.tl-item { display: flex; gap: .9rem; position: relative; }
+.tl-item:not(:last-child)::after {
+  content: ''; position: absolute; left: 11px; top: 24px;
+  width: 1px; bottom: -8px; background: var(--border);
+}
+.tl-n {
+  width: 23px; height: 23px; border-radius: 50%;
+  background: var(--accent-l); border: 1.5px solid var(--accent-m);
+  color: var(--accent); font-family: var(--mono); font-weight: 500; font-size: .7rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px; z-index: 1;
+}
+.tl-b { flex: 1; padding-bottom: 1rem; }
+.tl-t { font-family: var(--disp); font-weight: 600; font-size: .88rem; margin-bottom: .18rem; }
+.tl-d { font-size: .77rem; color: var(--muted); line-height: 1.55; }
+code {
+  font-family: var(--mono); background: var(--bg); color: var(--accent);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: .03rem .38rem; font-size: .82em;
+}
+
+/* ── SPINNER ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin {
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,.35); border-top-color: white;
+  border-radius: 50%; animation: spin .5s linear infinite; flex-shrink: 0;
+}
+
+/* ── CONFETTI ── */
+@keyframes cfall {
+  0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(560deg); opacity: 0; }
+}
+.cp { position: fixed; width: 7px; height: 7px; border-radius: 2px; pointer-events: none; animation: cfall linear forwards; z-index: 9999; }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 1.5rem 1rem;
+  font-family: var(--mono); font-size: .62rem; color: var(--muted);
+  border-top: 1px solid var(--border); margin-top: 1rem;
+}
+
+@media (max-width: 500px) {
+  .prev-pair { grid-template-columns: 1fr; }
+  .qr-section { flex-direction: column; align-items: center; }
+  .qr-side { text-align: center; }
+  .qr-actions { align-items: center; }
+  main { padding: 1.2rem .9rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="page-title">Assignment Submission</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('student')">Submit Assignment</div>
+  <div class="tab" onclick="switchTab('faculty')">Faculty Guide</div>
+</div>
+
+<main>
+
+<!-- ══════════════════════════
+     STUDENT PANEL
+══════════════════════════ -->
+<div class="panel active" id="panel-student">
+
+  <div class="al al-info">
+    <span>ℹ</span>
+    <span>Enter your username, drop your PDF, choose expiry — one click zips, uploads, and gives you a <strong>self-destructing link + QR code</strong> to send to faculty.</span>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="card">
+    <div class="step-row"><div class="step-num">1</div><span class="step-title">Your LMS Username</span></div>
+    <p class="card-desc">Exact login username from the LMS — e.g. <code>john.doe</code> or <code>jd2024</code>. This becomes the filename.</p>
+    <label class="field-label">Username</label>
+    <input type="text" id="uname" placeholder="e.g. student123"
+      oninput="onUname()" autocomplete="off" autocapitalize="none" spellcheck="false">
+    <div class="hint" id="uname-hint"></div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card">
+    <div class="step-row"><div class="step-num">2</div><span class="step-title">Upload Your PDF</span></div>
+    <p class="card-desc">Drop your assignment file. Any filename — it will be renamed automatically.</p>
+    <div class="dropzone" id="dz"
+      ondragover="dzOver(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+      <input type="file" accept=".pdf" id="fileIn" onchange="onFile()" title="">
+      <div id="dz-empty">
+        <div class="dz-icon">📄</div>
+        <div class="dz-lbl">Drop PDF here or tap to browse</div>
+        <div class="dz-sub">PDF only · up to 50 MB</div>
+      </div>
+      <div id="dz-full" style="display:none">
+        <div class="dz-chip-file">
+          <span>📄</span><span id="dz-fname"></span>
+          <button class="dz-rm" onclick="clearFile(event)">×</button>
+        </div>
+        <div class="dz-sub" id="dz-fsize" style="margin-top:.4rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card">
+    <div class="step-row"><div class="step-num">3</div><span class="step-title">Expiry &amp; Send</span></div>
+    <p class="card-desc">Link permanently self-destructs after faculty downloads it, or when the timer runs out — whichever comes first.</p>
+
+    <label class="field-label">Link expires after</label>
+    <div class="exp-row">
+      <div class="exp-chip sel" data-v="1d" onclick="selExp(this)">1 day</div>
+      <div class="exp-chip"    data-v="3d" onclick="selExp(this)">3 days</div>
+      <div class="exp-chip"    data-v="7d" onclick="selExp(this)">7 days</div>
+      <div class="exp-chip"    data-v="14d" onclick="selExp(this)">14 days</div>
+    </div>
+
+    <!-- File preview -->
+    <div class="prev-pair">
+      <div>
+        <div class="field-label">PDF inside zip</div>
+        <div class="prev-box" id="pv-pdf">
+          <span class="prev-icon">📄</span>
+          <div><div class="prev-name" id="pv-pdf-n" style="color:var(--muted)">username.pdf</div><div class="prev-rule">auto-renamed</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Zip to transfer</div>
+        <div class="prev-box" id="pv-zip">
+          <span class="prev-icon">🗜️</span>
+          <div><div class="prev-name" id="pv-zip-n" style="color:var(--muted)">username.zip</div><div class="prev-rule">faculty uploads this</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress steps -->
+    <div class="usteps" id="usteps" style="display:none">
+      <div class="usp" id="s1"><div class="usp-dot" id="d1">1</div><span id="l1">Reading PDF…</span></div>
+      <div class="usp" id="s2"><div class="usp-dot" id="d2">2</div><span id="l2">Creating ZIP…</span></div>
+      <div class="usp" id="s3"><div class="usp-dot" id="d3">3</div><span id="l3">Uploading to file.io…</span></div>
+      <div class="usp" id="s4"><div class="usp-dot" id="d4">4</div><span id="l4">Generating share link…</span></div>
+    </div>
+
+    <div class="prog-wrap" id="prog-wrap" style="display:none">
+      <div class="prog-track"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+      <div class="prog-lbl" id="prog-lbl"></div>
+    </div>
+
+    <div id="err-box" style="display:none"></div>
+
+    <!-- ── RESULT ── -->
+    <div class="result-card" id="result-card" style="display:none">
+      <div class="result-eyebrow">
+        ✓ Uploaded — ready to share
+        <span class="destruct-pill"><span class="destruct-dot"></span><span id="destruct-lbl">auto-deletes after download</span></span>
+      </div>
+
+      <!-- Link row -->
+      <div class="link-row">
+        <a class="share-url" id="share-url" href="#" target="_blank" rel="noopener noreferrer"></a>
+        <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy</button>
+      </div>
+
+      <!-- QR code -->
+      <div class="qr-section">
+        <div class="qr-box">
+          <div id="qr-render"></div>
+        </div>
+        <div class="qr-side">
+          <div class="qr-side-title">Scan to download</div>
+          <div class="qr-side-desc">Faculty can scan this QR with their phone camera. Link opens the download page directly.</div>
+          <div class="qr-actions">
+            <button class="qr-dl-btn" onclick="dlQR()">⬇ Save QR image</button>
+            <button class="qr-dl-btn" onclick="dlLocal()">⬇ Download ZIP locally</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="share-note">
+        <strong>Send the link or QR</strong> to faculty via WhatsApp, Telegram, or email.<br>
+        File <strong>permanently deletes</strong> the moment faculty downloads it.
+      </div>
+    </div>
+
+    <!-- Send button -->
+    <div style="margin-top:1rem; display:flex; gap:.65rem; flex-wrap:wrap; align-items:center">
+      <button class="btn btn-primary" id="btn-go" onclick="go()" disabled>
+        <span>↑</span> Zip &amp; Send
+      </button>
+      <span id="go-hint" style="font-size:.74rem;color:var(--muted)">Enter username &amp; upload PDF first</span>
+    </div>
+  </div>
+
+</div><!-- /student -->
+
+
+<!-- ══════════════════════════
+     FACULTY PANEL
+══════════════════════════ -->
+<div class="panel" id="panel-faculty">
+
+  <div class="al al-warn">
+    <span>ℹ</span>
+    <span>Each student sends you one self-destructing link or QR. Download each zip, then upload individually to the LMS — one zip per upload session.</span>
+  </div>
+
+  <div class="card">
+    <div class="card" style="border:none;padding:0;box-shadow:none;margin-bottom:0">
+      <div class="tl">
+        <div class="tl-item">
+          <div class="tl-n">1</div>
+          <div class="tl-b">
+            <div class="tl-t">Receive link or QR from student</div>
+            <div class="tl-d">Student sends a <code>file.io/…</code> link via WhatsApp/email, or shows the QR on their screen. Open the link or scan the QR — click Download. The zip arrives named <code>username.zip</code>.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-n">2</div>
+          <div class="tl-b">
+            <div class="tl-t">Log in to LMS with faculty credentials</div>
+            <div class="tl-d">Navigate to the Bulk Assignment Upload page for this assignment.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-n">3</div>
+          <div class="tl-b">
+            <div class="tl-t">Upload each zip one at a time</div>
+            <div class="tl-d">Drop <code>username.zip</code> → select <em>Unevaluated</em> → click <strong>Process ZIP</strong>. Repeat per student. No renaming needed at any step.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-n">4</div>
+          <div class="tl-b">
+            <div class="tl-t">File auto-deletes after your download</div>
+            <div class="tl-d">Once you download a student's zip, file.io permanently deletes it. No data lingers on any server.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /faculty -->
+
+</main>
+
+<footer>Zipping &amp; QR generation happen in-browser · file.io for self-destructing transfer · No data stored by this tool</footer>
+
+<!-- ── LIBS ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.min.js"></script>
+
+<script>
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let selFile = null, zipBlob = null, zipUser = '';
+let expiry = '1d';
+let qrInstance = null;
+
+// ══════════════════════════════════
+// TABS
+// ══════════════════════════════════
+function switchTab(n) {
+  ['student','faculty'].forEach((t,i) => {
+    document.querySelectorAll('.tab')[i].classList.toggle('active', t === n);
+    document.getElementById('panel-' + t).classList.remove('active');
+  });
+  document.getElementById('panel-' + n).classList.add('active');
+}
+
+// ══════════════════════════════════
+// EXPIRY
+// ══════════════════════════════════
+function selExp(el) {
+  document.querySelectorAll('.exp-chip').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+  expiry = el.dataset.v;
+  refreshBtn();
+}
+
+// ══════════════════════════════════
+// DRAG & DROP
+// ══════════════════════════════════
+function dzOver(e)  { e.preventDefault(); document.getElementById('dz').classList.add('over'); }
+function dzLeave()  { document.getElementById('dz').classList.remove('over'); }
+function dzDrop(e)  {
+  e.preventDefault(); dzLeave();
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  const dt = new DataTransfer(); dt.items.add(f);
+  document.getElementById('fileIn').files = dt.files; onFile();
+}
+
+// ══════════════════════════════════
+// USERNAME
+// ══════════════════════════════════
+function onUname() {
+  const v = document.getElementById('uname').value.trim();
+  const h = document.getElementById('uname-hint');
+  const i = document.getElementById('uname');
+  if (!v) { h.textContent = ''; i.className = ''; }
+  else if (/[^a-zA-Z0-9._\-]/.test(v)) {
+    h.innerHTML = '<span style="color:var(--red)">⚠ Only letters, numbers, dots, underscores, hyphens</span>';
+    i.className = 'bad';
+  } else {
+    h.innerHTML = `<span style="color:var(--green)">✓ Will create ${v}.pdf inside ${v}.zip</span>`;
+    i.className = 'ok';
+  }
+  refreshPreview(); refreshBtn();
+}
+const uname   = () => document.getElementById('uname').value.trim();
+const unameOk = () => { const u = uname(); return u && !/[^a-zA-Z0-9._\-]/.test(u); };
+
+// ══════════════════════════════════
+// FILE
+// ══════════════════════════════════
+function onFile() {
+  const inp = document.getElementById('fileIn');
+  if (!inp.files.length) return;
+  const f = inp.files[0];
+  if (!f.name.toLowerCase().endsWith('.pdf')) { alert('Please select a PDF file.'); inp.value = ''; return; }
+  if (f.size > 50 * 1024 * 1024) { alert('File exceeds 50 MB.'); inp.value = ''; return; }
+  selFile = f;
+  document.getElementById('dz-empty').style.display = 'none';
+  document.getElementById('dz-full').style.display  = 'block';
+  document.getElementById('dz-fname').textContent   = f.name;
+  document.getElementById('dz-fsize').textContent   = fmtSz(f.size);
+  refreshPreview(); refreshBtn();
+}
+function clearFile(e) {
+  e.stopPropagation(); selFile = null;
+  document.getElementById('fileIn').value = '';
+  document.getElementById('dz-empty').style.display = 'block';
+  document.getElementById('dz-full').style.display  = 'none';
+  refreshPreview(); refreshBtn();
+}
+
+// ══════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════
+function refreshPreview() {
+  const u = uname() || 'username';
+  document.getElementById('pv-pdf-n').textContent = u + '.pdf';
+  document.getElementById('pv-zip-n').textContent = u + '.zip';
+  const ok = !!selFile && unameOk();
+  document.getElementById('pv-pdf').classList.toggle('ready', ok);
+  document.getElementById('pv-zip').classList.toggle('ready', ok);
+}
+function refreshBtn() {
+  const ok = !!selFile && unameOk();
+  document.getElementById('btn-go').disabled = !ok;
+  document.getElementById('go-hint').textContent = ok
+    ? `Ready — will send as ${uname()}.zip (expires in ${expiry})`
+    : 'Enter username & upload PDF first';
+}
+
+// ══════════════════════════════════
+// STEP UI
+// ══════════════════════════════════
+const stepLabels = ['Reading PDF…','Creating ZIP…','Uploading to file.io…','Generating share link…'];
+function setS(n, state, text) {
+  document.getElementById('s'+n).className = 'usp ' + (state||'');
+  document.getElementById('d'+n).textContent = state==='done' ? '✓' : state==='fail' ? '✗' : n;
+  if (text) document.getElementById('l'+n).textContent = text;
+}
+function resetSteps() { for(let i=1;i<=4;i++) setS(i,'',stepLabels[i-1]); }
+
+// ══════════════════════════════════
+// QR GENERATION  (qr-code-styling)
+// ══════════════════════════════════
+function buildQR(url) {
+  const container = document.getElementById('qr-render');
+  container.innerHTML = '';
+
+  qrInstance = new QRCodeStyling({
+    width: 180,
+    height: 180,
+    type: 'canvas',
+    data: url,
+    dotsOptions:        { color: '#1e1b16', type: 'rounded' },
+    backgroundOptions:  { color: '#ffffff' },
+    cornersSquareOptions: { color: '#2a6049', type: 'extra-rounded' },
+    cornersDotOptions:  { color: '#2a6049', type: 'dot' },
+    qrOptions:          { errorCorrectionLevel: 'H' }
+  });
+
+  qrInstance.append(container);
+}
+
+function dlQR() {
+  if (qrInstance) qrInstance.download({ name: (zipUser || 'assignment') + '_qr', extension: 'png' });
+}
+
+// ══════════════════════════════════
+// MAIN: ZIP & SEND
+// ══════════════════════════════════
+async function go() {
+  const user = uname();
+  if (!selFile || !unameOk()) return;
+
+  // reset UI
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('err-box').style.display     = 'none';
+  document.getElementById('usteps').style.display      = 'flex';
+  document.getElementById('prog-wrap').style.display   = 'block';
+
+  const prog    = document.getElementById('prog');
+  const progLbl = document.getElementById('prog-lbl');
+  prog.style.width = '0%';
+  prog.style.background = 'linear-gradient(90deg, var(--accent), #4aab80)';
+  resetSteps();
+
+  const btn = document.getElementById('btn-go');
+  const origHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Working…';
+
+  try {
+    // ── 1. Read PDF ──
+    setS(1,'on'); prog.style.width='8%'; progLbl.textContent='Reading PDF…';
+    const ab = await selFile.arrayBuffer();
+    setS(1,'done','PDF read ✓');
+
+    // ── 2. Zip ──
+    setS(2,'on'); prog.style.width='22%'; progLbl.textContent='Creating ZIP…';
+    const zip = new JSZip();
+    zip.file(user + '.pdf', ab);
+    zipBlob = await zip.generateAsync(
+      { type:'blob', compression:'DEFLATE', compressionOptions:{level:6} },
+      m => { prog.style.width = (22 + m.percent * 0.22) + '%'; }
+    );
+    zipUser = user;
+    setS(2,'done',`ZIP ready: ${user}.zip (${fmtSz(zipBlob.size)}) ✓`);
+
+    // ── 3. Upload to file.io ──
+    setS(3,'on'); prog.style.width='50%'; progLbl.textContent='Uploading…';
+    const fd = new FormData();
+    fd.append('file', zipBlob, user + '.zip');
+    fd.append('expires',      expiry);
+    fd.append('maxDownloads', '1');
+    fd.append('autoDelete',   'true');
+
+    const resp = await fetch('https://file.io', { method:'POST', body:fd });
+    prog.style.width = '82%';
+
+    if (!resp.ok) throw new Error(`file.io returned HTTP ${resp.status}`);
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.message || 'Upload rejected by file.io');
+    setS(3,'done','Upload complete ✓');
+
+    // ── 4. Link & QR ──
+    setS(4,'on'); prog.style.width='92%'; progLbl.textContent='Building QR…';
+    const link = data.link;
+    if (!link) throw new Error('No link returned from file.io');
+
+    // Build QR (synchronous setup, canvas renders in ~300 ms)
+    buildQR(link);
+
+    prog.style.width='100%'; progLbl.textContent='✓ Done';
+    setS(4,'done','Done ✓');
+
+    // populate result
+    const expiryMap = {'1d':'1 day','3d':'3 days','7d':'7 days','14d':'14 days'};
+    document.getElementById('destruct-lbl').textContent =
+      `deletes on download · expires in ${expiryMap[expiry]||expiry}`;
+    document.getElementById('share-url').textContent = link;
+    document.getElementById('share-url').href = link;
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('copy-btn').textContent = 'Copy';
+    document.getElementById('copy-btn').classList.remove('copied');
+
+    spawnConfetti();
+
+  } catch(err) {
+    console.error(err);
+    for (let i = 4; i >= 1; i--) {
+      if (document.getElementById('s'+i).classList.contains('on')) { setS(i,'fail','Failed'); break; }
+    }
+    prog.style.width = '100%';
+    prog.style.background = 'var(--red)';
+    const eb = document.getElementById('err-box');
+    eb.className = 'al al-err';
+    eb.innerHTML = `<span>✗</span><span><strong>Upload failed:</strong> ${esc(err.message)}. Check your connection and try again. Use <em>Download ZIP locally</em> below as a fallback.</span>`;
+    eb.style.display = 'flex';
+    // Still offer local download if zip was made
+    if (zipBlob) {
+      document.getElementById('result-card').style.display = 'block';
+      document.getElementById('share-url').textContent = '(upload failed — use local download)';
+      document.getElementById('share-url').href = '#';
+      document.getElementById('copy-btn').style.display = 'none';
+    }
+  } finally {
+    btn.disabled  = false;
+    btn.innerHTML = origHTML;
+    refreshBtn();
+  }
+}
+
+// ══════════════════════════════════
+// LOCAL DOWNLOAD FALLBACK
+// ══════════════════════════════════
+function dlLocal() {
+  if (!zipBlob || !zipUser) return;
+  const url = URL.createObjectURL(zipBlob);
+  const a = document.createElement('a'); a.href = url; a.download = zipUser + '.zip';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+// ══════════════════════════════════
+// COPY LINK
+// ══════════════════════════════════
+async function copyLink() {
+  const url = document.getElementById('share-url').textContent;
+  const btn = document.getElementById('copy-btn');
+  try {
+    await navigator.clipboard.writeText(url);
+    btn.textContent = '✓ Copied'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2200);
+  } catch {
+    const a = document.getElementById('share-url');
+    const r = document.createRange(); r.selectNode(a);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+    btn.textContent = 'Select & copy';
+    setTimeout(() => btn.textContent = 'Copy', 2500);
+  }
+}
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+function fmtSz(b) {
+  if (b < 1024) return b+'B';
+  if (b < 1048576) return (b/1024).toFixed(1)+'KB';
+  return (b/1048576).toFixed(2)+'MB';
+}
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function spawnConfetti() {
+  const cols = ['#2a6049','#4aab80','#a8d5bc','#1e1b16','#f7c97a'];
+  for (let i = 0; i < 45; i++) {
+    const p = document.createElement('div'); p.className = 'cp';
+    p.style.cssText = `left:${Math.random()*100}vw;top:-10px;background:${cols[i%cols.length]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.6}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(p); setTimeout(() => p.remove(), 4000);
+  }
+}
+</script>
+</body>
+</html>
