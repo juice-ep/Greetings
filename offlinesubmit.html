@@ -434,7 +434,7 @@ footer {
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab('student')">Submit Assignment</div>
-  <div class="tab" onclick="switchTab('faculty')">Faculty Guide</div>
+  <div class="tab" onclick="switchTab('faculty')">Receiver Guide</div>
 </div>
 
 <main>
@@ -446,13 +446,13 @@ footer {
 
   <div class="al al-info">
     <span>ℹ</span>
-    <span>Enter your username, drop your PDF, choose expiry — one click zips, uploads, and gives you a <strong>self-destructing link + QR code</strong> to send to faculty.</span>
+    <span>Enter your username, drop your PDF, choose expiry — one click zips, uploads, and gives you a <strong>self-destructing link + QR code</strong> to share with the receiver.</span>
   </div>
 
   <!-- Step 1 -->
   <div class="card">
-    <div class="step-row"><div class="step-num">1</div><span class="step-title">Your LMS Username</span></div>
-    <p class="card-desc">Exact login username from the LMS — e.g. <code>john.doe</code> or <code>jd2024</code>. This becomes the filename.</p>
+    <div class="step-row"><div class="step-num">1</div><span class="step-title">Your Username</span></div>
+    <p class="card-desc">Enter your username exactly as registered — e.g. <code>john.doe</code> or <code>jd2024</code>. This becomes the filename.</p>
     <label class="field-label">Username</label>
     <input type="text" id="uname" placeholder="e.g. student123"
       oninput="onUname()" autocomplete="off" autocapitalize="none" spellcheck="false">
@@ -827,7 +827,7 @@ async function go() {
     fd.append('filename', user + '.zip');
     fd.append('expires',  expiry);
 
-    const resp = await fetch(UPLOAD_PROXY + '/upload', { method:'POST', body:fd });
+    const resp = await fetch(UPLOAD_PROXY.replace(/\/+$/, '') + '/upload', { method:'POST', body:fd });
     prog.style.width = '82%';
 
     if (!resp.ok) throw new Error(`Upload server returned HTTP ${resp.status}`);
