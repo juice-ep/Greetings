@@ -534,6 +534,12 @@ footer {
         <span class="destruct-pill"><span class="destruct-dot"></span><span id="destruct-lbl">auto-deletes after download</span></span>
       </div>
 
+      <!-- Filename label -->
+      <div id="share-filename-row" style="display:none;align-items:center;gap:.5rem;margin-bottom:.65rem">
+        <span style="font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">File</span>
+        <span id="share-filename" style="font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--green);background:white;border:1px solid var(--accent-m);border-radius:5px;padding:.2rem .6rem"></span>
+      </div>
+
       <!-- Link row -->
       <div class="link-row">
         <a class="share-url" id="share-url" href="#" target="_blank" rel="noopener noreferrer"></a>
@@ -769,7 +775,8 @@ function buildQR(url) {
 }
 
 function dlQR() {
-  if (qrInstance) qrInstance.download({ name: (zipUser || 'assignment') + '_qr', extension: 'png' });
+  const fname = document.getElementById('share-filename').textContent || (zipUser + '.zip');
+  if (qrInstance) qrInstance.download({ name: fname.replace('.zip','') + '_qr', extension: 'png' });
 }
 
 // ══════════════════════════════════
@@ -816,12 +823,11 @@ async function go() {
     // ── 3. Upload via proxy ──
     setS(3,'on'); prog.style.width='50%'; progLbl.textContent='Uploading…';
     const fd = new FormData();
-    fd.append('file', zipBlob, user + '.zip');
-    fd.append('expires',      expiry);
-    fd.append('maxDownloads', '1');
-    fd.append('autoDelete',   'true');
+    fd.append('file',     zipBlob, user + '.zip');
+    fd.append('filename', user + '.zip');
+    fd.append('expires',  expiry);
 
-    const resp = await fetch(UPLOAD_PROXY, { method:'POST', body:fd });
+    const resp = await fetch(UPLOAD_PROXY + '/upload', { method:'POST', body:fd });
     prog.style.width = '82%';
 
     if (!resp.ok) throw new Error(`Upload server returned HTTP ${resp.status}`);
@@ -831,19 +837,21 @@ async function go() {
 
     // ── 4. Link & QR ──
     setS(4,'on'); prog.style.width='92%'; progLbl.textContent='Building QR…';
-    const link = data.link;
+    const link     = data.link;
+    const filename = data.filename || (user + '.zip');
     if (!link) throw new Error('No download link returned from transfer server');
 
-    // Build QR (synchronous setup, canvas renders in ~300 ms)
     buildQR(link);
 
     prog.style.width='100%'; progLbl.textContent='✓ Done';
     setS(4,'done','Done ✓');
 
-    // populate result
     const expiryMap = {'1h':'1 hour','12h':'12 hours','24h':'24 hours','72h':'3 days'};
     document.getElementById('destruct-lbl').textContent =
       `deletes on download · expires in ${expiryMap[expiry]||expiry}`;
+    // Show the actual filename above the link so faculty knows whose file it is
+    document.getElementById('share-filename').textContent = filename;
+    document.getElementById('share-filename-row').style.display = 'flex';
     document.getElementById('share-url').textContent = link;
     document.getElementById('share-url').href = link;
     document.getElementById('result-card').style.display = 'block';
