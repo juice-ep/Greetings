@@ -516,7 +516,7 @@ footer {
     <div class="usteps" id="usteps" style="display:none">
       <div class="usp" id="s1"><div class="usp-dot" id="d1">1</div><span id="l1">Reading PDF…</span></div>
       <div class="usp" id="s2"><div class="usp-dot" id="d2">2</div><span id="l2">Creating ZIP…</span></div>
-      <div class="usp" id="s3"><div class="usp-dot" id="d3">3</div><span id="l3">Uploading to file.io…</span></div>
+      <div class="usp" id="s3"><div class="usp-dot" id="d3">3</div><span id="l3">Uploading…</span></div>
       <div class="usp" id="s4"><div class="usp-dot" id="d4">4</div><span id="l4">Generating share link…</span></div>
     </div>
 
@@ -590,7 +590,7 @@ footer {
           <div class="tl-n">1</div>
           <div class="tl-b">
             <div class="tl-t">Receive link or QR from student</div>
-            <div class="tl-d">Student sends a <code>file.io/…</code> link via WhatsApp/email, or shows the QR on their screen. Open the link or scan the QR — click Download. The zip arrives named <code>username.zip</code>.</div>
+            <div class="tl-d">Student sends a download link via WhatsApp/email, or shows the QR on their screen. Open the link or scan the QR — click Download. The zip arrives already named <code>username.zip</code>.</div>
           </div>
         </div>
         <div class="tl-item">
@@ -611,7 +611,7 @@ footer {
           <div class="tl-n">4</div>
           <div class="tl-b">
             <div class="tl-t">File auto-deletes after your download</div>
-            <div class="tl-d">Once you download a student's zip, file.io permanently deletes it. No data lingers on any server.</div>
+            <div class="tl-d">Once you download a student's zip, it is permanently deleted from the transfer server. No data lingers anywhere.</div>
           </div>
         </div>
       </div>
@@ -622,7 +622,7 @@ footer {
 
 </main>
 
-<footer>Zipping &amp; QR generation happen in-browser · file.io for self-destructing transfer · No data stored by this tool</footer>
+<footer>Zipping &amp; QR generation happen in-browser · Self-destructing transfer · No data stored by this tool</footer>
 
 <!-- ── LIBS ── -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -735,7 +735,10 @@ function refreshBtn() {
 // ══════════════════════════════════
 // STEP UI
 // ══════════════════════════════════
-const stepLabels = ['Reading PDF…','Creating ZIP…','Uploading to file.io…','Generating share link…'];
+// ── CONFIG: replace with your deployed Cloudflare Worker URL ──
+const UPLOAD_PROXY = 'https://fileio-proxy.jschiramel.workers.dev/';
+
+const stepLabels = ['Reading PDF…','Creating ZIP…','Uploading…','Generating share link…'];
 function setS(n, state, text) {
   document.getElementById('s'+n).className = 'usp ' + (state||'');
   document.getElementById('d'+n).textContent = state==='done' ? '✓' : state==='fail' ? '✗' : n;
@@ -810,7 +813,7 @@ async function go() {
     zipUser = user;
     setS(2,'done',`ZIP ready: ${user}.zip (${fmtSz(zipBlob.size)}) ✓`);
 
-    // ── 3. Upload to file.io ──
+    // ── 3. Upload via proxy ──
     setS(3,'on'); prog.style.width='50%'; progLbl.textContent='Uploading…';
     const fd = new FormData();
     fd.append('file', zipBlob, user + '.zip');
@@ -818,18 +821,18 @@ async function go() {
     fd.append('maxDownloads', '1');
     fd.append('autoDelete',   'true');
 
-    const resp = await fetch('https://file.io', { method:'POST', body:fd });
+    const resp = await fetch(UPLOAD_PROXY, { method:'POST', body:fd });
     prog.style.width = '82%';
 
-    if (!resp.ok) throw new Error(`file.io returned HTTP ${resp.status}`);
+    if (!resp.ok) throw new Error(`Upload server returned HTTP ${resp.status}`);
     const data = await resp.json();
-    if (!data.success) throw new Error(data.message || 'Upload rejected by file.io');
+    if (!data.success) throw new Error(data.message || 'Upload failed');
     setS(3,'done','Upload complete ✓');
 
     // ── 4. Link & QR ──
     setS(4,'on'); prog.style.width='92%'; progLbl.textContent='Building QR…';
     const link = data.link;
-    if (!link) throw new Error('No link returned from file.io');
+    if (!link) throw new Error('No download link returned from transfer server');
 
     // Build QR (synchronous setup, canvas renders in ~300 ms)
     buildQR(link);
