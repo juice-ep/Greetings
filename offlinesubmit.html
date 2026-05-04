@@ -488,10 +488,10 @@ footer {
 
     <label class="field-label">Link expires after</label>
     <div class="exp-row">
-      <div class="exp-chip sel" data-v="1d" onclick="selExp(this)">1 day</div>
-      <div class="exp-chip"    data-v="3d" onclick="selExp(this)">3 days</div>
-      <div class="exp-chip"    data-v="7d" onclick="selExp(this)">7 days</div>
-      <div class="exp-chip"    data-v="14d" onclick="selExp(this)">14 days</div>
+      <div class="exp-chip sel" data-v="1h"  onclick="selExp(this)">1 hour</div>
+      <div class="exp-chip"    data-v="12h" onclick="selExp(this)">12 hours</div>
+      <div class="exp-chip"    data-v="24h" onclick="selExp(this)">24 hours</div>
+      <div class="exp-chip"    data-v="72h" onclick="selExp(this)">3 days</div>
     </div>
 
     <!-- File preview -->
@@ -633,7 +633,7 @@ footer {
 // STATE
 // ══════════════════════════════════
 let selFile = null, zipBlob = null, zipUser = '';
-let expiry = '1d';
+let expiry = '1h';
 let qrInstance = null;
 
 // ══════════════════════════════════
@@ -728,7 +728,7 @@ function refreshBtn() {
   const ok = !!selFile && unameOk();
   document.getElementById('btn-go').disabled = !ok;
   document.getElementById('go-hint').textContent = ok
-    ? `Ready — will send as ${uname()}.zip (expires in ${expiry})`
+    ? `Ready — will send as ${uname()}.zip (expires in ${{'1h':'1 hour','12h':'12 hours','24h':'24 hours','72h':'3 days'}[expiry]||expiry})`
     : 'Enter username & upload PDF first';
 }
 
@@ -841,7 +841,7 @@ async function go() {
     setS(4,'done','Done ✓');
 
     // populate result
-    const expiryMap = {'1d':'1 day','3d':'3 days','7d':'7 days','14d':'14 days'};
+    const expiryMap = {'1h':'1 hour','12h':'12 hours','24h':'24 hours','72h':'3 days'};
     document.getElementById('destruct-lbl').textContent =
       `deletes on download · expires in ${expiryMap[expiry]||expiry}`;
     document.getElementById('share-url').textContent = link;
