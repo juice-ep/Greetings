@@ -444,6 +444,24 @@ footer {
 ══════════════════════════ -->
 <div class="panel active" id="panel-student">
 
+  <!-- No valid session token — neutral message, no explanation -->
+  <div id="session-blocked" style="display:none">
+    <div class="card" style="text-align:center;padding:2.5rem 1.5rem">
+      <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
+      <div style="font-family:var(--disp);font-weight:600;font-size:1rem;margin-bottom:.5rem">Submission unavailable</div>
+      <div style="font-size:.82rem;color:var(--muted);line-height:1.6">Please contact your faculty.</div>
+    </div>
+  </div>
+
+  <!-- Countdown banner — visible once session verified -->
+  <div id="session-banner" class="al al-info" style="display:none;justify-content:space-between;align-items:center;margin-bottom:.9rem">
+    <span>Submission window open</span>
+    <span style="font-family:var(--mono);font-size:.88rem;font-weight:500"><span id="session-timer">30:00</span> remaining</span>
+  </div>
+
+  <!-- All submission content gated behind valid session -->
+  <div id="student-content" style="display:none">
+
   <div class="al al-info">
     <span>ℹ</span>
     <span>Enter your username, drop your PDF, choose expiry — one click zips, uploads, and gives you a <strong>self-destructing link + QR code</strong> to share with the receiver.</span>
@@ -574,7 +592,7 @@ footer {
       </button>
       <span id="go-hint" style="font-size:.74rem;color:var(--muted)">Enter username &amp; upload PDF first</span>
     </div>
-  </div>
+  </div><!-- /student-content -->
 
 </div><!-- /student -->
 
@@ -631,7 +649,106 @@ footer {
 <footer>Zipping &amp; QR generation happen in-browser · Self-destructing transfer · No data stored by this tool</footer>
 
 <!-- ── LIBS ── -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
+<script>
+// makeZip: builds a single-file ZIP with flag_bits=2056 (bit3+bit11)
+// and extract_version=20 — matching OS zip output accepted by the LMS.
+// Uses fflate for DEFLATE compression, manually writes ZIP structure.
+async function makeZip(filename, uint8Data) {
+  return new Promise((resolve, reject) => {
+    fflate.deflate(uint8Data, { level: 6 }, (err, compressed) => {
+      if (err) return reject(err);
+
+      const fname    = new TextEncoder().encode(filename);
+      const crc      = crc32(uint8Data);
+      const flags    = 0x0008 | 0x0800; // bit3=data descriptor, bit11=UTF-8
+      const method   = 8;               // DEFLATE
+      const now      = new Date();
+      const dosTime  = (now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
+      const dosDate  = ((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+
+      const localOffset = 0;
+
+      // Local file header (30 bytes + filename)
+      const lfh = new ArrayBuffer(30 + fname.length);
+      const lv  = new DataView(lfh);
+      lv.setUint32(0,  0x504B0304, false); // PK\x03\x04
+      lv.setUint16(4,  20, true);          // version needed
+      lv.setUint16(6,  flags, true);
+      lv.setUint16(8,  method, true);
+      lv.setUint16(10, dosTime, true);
+      lv.setUint16(12, dosDate, true);
+      lv.setUint32(14, 0, true);           // CRC (0 = deferred to data descriptor)
+      lv.setUint32(18, 0, true);           // compressed size (deferred)
+      lv.setUint32(22, 0, true);           // uncompressed size (deferred)
+      lv.setUint16(26, fname.length, true);
+      lv.setUint16(28, 0, true);           // extra field length
+      new Uint8Array(lfh, 30).set(fname);
+
+      // Data descriptor (16 bytes — written after compressed data)
+      const dd = new ArrayBuffer(16);
+      const dv = new DataView(dd);
+      dv.setUint32(0,  0x504B0708, false); // PK\x07\x08
+      dv.setUint32(4,  crc, true);
+      dv.setUint32(8,  compressed.length, true);
+      dv.setUint32(12, uint8Data.length, true);
+
+      const cdOffset = 30 + fname.length + compressed.length + 16;
+
+      // Central directory record (46 bytes + filename)
+      const cdr = new ArrayBuffer(46 + fname.length);
+      const cv  = new DataView(cdr);
+      cv.setUint32(0,  0x504B0102, false); // PK\x01\x02
+      cv.setUint8(4,   20);                // version made by
+      cv.setUint8(5,   0);                 // OS (0=DOS)
+      cv.setUint16(6,  20, true);          // version needed
+      cv.setUint16(8,  0, true);
+      cv.setUint16(10, flags, true);
+      cv.setUint16(12, method, true);
+      cv.setUint16(14, dosTime, true);
+      cv.setUint16(16, dosDate, true);
+      cv.setUint32(18, crc, true);
+      cv.setUint32(22, compressed.length, true);
+      cv.setUint32(26, uint8Data.length, true);
+      cv.setUint16(30, fname.length, true);
+      cv.setUint16(32, 0, true);           // extra
+      cv.setUint16(34, 0, true);           // comment
+      cv.setUint16(36, 0, true);           // disk start
+      cv.setUint16(38, 0, true);           // internal attrs
+      cv.setUint32(40, 0x20, true);        // external attrs (archive bit)
+      cv.setUint32(42, localOffset, true); // local header offset
+      new Uint8Array(cdr, 46).set(fname);
+
+      // End of central directory (22 bytes)
+      const cdSize = 46 + fname.length;
+      const eocd   = new ArrayBuffer(22);
+      const ev     = new DataView(eocd);
+      ev.setUint32(0,  0x504B0506, false); // PK\x05\x06
+      ev.setUint16(4,  0, true);           // disk number
+      ev.setUint16(6,  0, true);           // start disk
+      ev.setUint16(8,  1, true);           // entries on disk
+      ev.setUint16(10, 1, true);           // total entries
+      ev.setUint32(12, cdSize, true);
+      ev.setUint32(16, cdOffset, true);
+      ev.setUint16(20, 0, true);           // comment length
+
+      resolve(new Blob([lfh, compressed, dd, cdr, eocd], { type: 'application/zip' }));
+    });
+  });
+}
+
+// CRC-32 implementation
+function crc32(data) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < data.length; i++) {
+    crc ^= data[i];
+    for (let j = 0; j < 8; j++) {
+      crc = (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1;
+    }
+  }
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+</script>
 <script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.min.js"></script>
 
 <script>
@@ -641,6 +758,7 @@ footer {
 let selFile = null, zipBlob = null, zipUser = '';
 let expiry = '1h';
 let qrInstance = null;
+let sessionToken = '';
 
 // ══════════════════════════════════
 // TABS
@@ -783,7 +901,7 @@ function dlQR() {
 // MAIN: ZIP & SEND
 // ══════════════════════════════════
 async function go() {
-  const user = uname();
+  const user = uname().toLowerCase();
   if (!selFile || !unameOk()) return;
 
   // reset UI
@@ -811,12 +929,10 @@ async function go() {
 
     // ── 2. Zip ──
     setS(2,'on'); prog.style.width='22%'; progLbl.textContent='Creating ZIP…';
-    const zip = new JSZip();
-    zip.file(user + '.pdf', ab);
-    zipBlob = await zip.generateAsync(
-      { type:'blob', compression:'DEFLATE', compressionOptions:{level:6} },
-      m => { prog.style.width = (22 + m.percent * 0.22) + '%'; }
-    );
+
+    // makeZip sets flag_bits=2056 (bit3=data descriptor + bit11=UTF-8)
+    // and extract_version=20 — required by the LMS
+    zipBlob = await makeZip(user + '.pdf', new Uint8Array(ab));
     zipUser = user;
     setS(2,'done',`ZIP ready: ${user}.zip (${fmtSz(zipBlob.size)}) ✓`);
 
@@ -826,6 +942,7 @@ async function go() {
     fd.append('file',     zipBlob, user + '.zip');
     fd.append('filename', user + '.zip');
     fd.append('expires',  expiry);
+    fd.append('session',  sessionToken);
 
     const resp = await fetch(UPLOAD_PROXY.replace(/\/+$/, '') + '/upload', { method:'POST', body:fd });
     prog.style.width = '82%';
@@ -916,8 +1033,67 @@ async function copyLink() {
 }
 
 // ══════════════════════════════════
-// UTILS
+// SESSION CHECK ON LOAD
 // ══════════════════════════════════
+(async function checkSession() {
+  const proxy = UPLOAD_PROXY.replace(/\/+$/, '');
+  const params = new URLSearchParams(window.location.search);
+  const token  = params.get('session');
+
+  const banner  = document.getElementById('session-banner');
+  const blocked = document.getElementById('session-blocked');
+  const content = document.getElementById('student-content');
+
+  if (!token) {
+    // No session token — show blocked state
+    content.style.display  = 'none';
+    blocked.style.display  = 'block';
+    return;
+  }
+
+  // Verify token with worker
+  try {
+    const r    = await fetch(`${proxy}/session/verify/${token}`);
+    const data = await r.json();
+
+    if (!data.valid) {
+      content.style.display = 'none';
+      blocked.style.display = 'block';
+      return;
+    }
+
+    // Valid — store token, show remaining time in banner
+    sessionToken = token;
+    content.style.display = 'block';
+    blocked.style.display = 'none';
+    banner.style.display  = 'flex';
+
+    // Countdown in banner
+    let remaining = Math.floor(data.remaining / 1000);
+    function tick() {
+      if (remaining <= 0) {
+        banner.innerHTML = '<span>⚠</span><span>Submission window has closed. Please contact your faculty.</span>';
+        banner.className = 'al al-warn';
+        document.getElementById('btn-go').disabled = true;
+        document.getElementById('go-hint').textContent = 'Session expired';
+        return;
+      }
+      const m = String(Math.floor(remaining / 60)).padStart(2,'0');
+      const s = String(remaining % 60).padStart(2,'0');
+      document.getElementById('session-timer').textContent = `${m}:${s}`;
+      remaining--;
+      setTimeout(tick, 1000);
+    }
+    tick();
+
+  } catch(e) {
+    // Network error — fail open so students aren't blocked by connectivity issues
+    sessionToken = token;
+    content.style.display = 'block';
+    blocked.style.display = 'none';
+  }
+})();
+
 function fmtSz(b) {
   if (b < 1024) return b+'B';
   if (b < 1048576) return (b/1024).toFixed(1)+'KB';
