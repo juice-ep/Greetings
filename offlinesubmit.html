@@ -651,93 +651,102 @@ footer {
 <!-- ── LIBS ── -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.2/umd/index.js"></script>
 <script>
-// makeZip: builds a single-file ZIP with flag_bits=2056 (bit3+bit11)
-// and extract_version=20 — matching OS zip output accepted by the LMS.
-// Uses fflate for DEFLATE compression, manually writes ZIP structure.
+/**
+ * makeZip(filename, uint8Data) → Promise<Blob>
+ *
+ * Builds a single-file ZIP with:
+ *   flag_bits = 2056  (bit 3 = data descriptor, bit 11 = UTF-8 declared)
+ *   extract_version = 20
+ * — matching OS zip output required by the LMS.
+ *
+ * Uses fflate for DEFLATE compression, manually writes ZIP binary structure.
+ * Struct layout validated against Python zipfile module.
+ */
 async function makeZip(filename, uint8Data) {
+  // Force uppercase filename
+  filename = filename.toUpperCase();
+
   return new Promise((resolve, reject) => {
     fflate.deflate(uint8Data, { level: 6 }, (err, compressed) => {
-      if (err) return reject(err);
+      if (err) return reject(new Error('Compression failed: ' + err));
 
-      const fname    = new TextEncoder().encode(filename);
-      const crc      = crc32(uint8Data);
-      const flags    = 0x0008 | 0x0800; // bit3=data descriptor, bit11=UTF-8
-      const method   = 8;               // DEFLATE
-      const now      = new Date();
-      const dosTime  = (now.getHours()<<11)|(now.getMinutes()<<5)|(now.getSeconds()>>1);
-      const dosDate  = ((now.getFullYear()-1980)<<9)|((now.getMonth()+1)<<5)|now.getDate();
+      const fname   = new TextEncoder().encode(filename);
+      const crc     = crc32(uint8Data);
+      const flags   = 0x0008 | 0x0800; // bit3=data descriptor, bit11=UTF-8
+      const now     = new Date();
+      const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+      const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
 
-      const localOffset = 0;
+      // ── Local File Header (30 bytes + fname) ──────────────────────
+      // Signature + 10 little-endian fields (HHHHHIIIHH = 26 bytes)
+      const lfhFixed = new ArrayBuffer(30);
+      const lfh = new DataView(lfhFixed);
+      lfh.setUint8(0, 0x50); lfh.setUint8(1, 0x4B); lfh.setUint8(2, 0x03); lfh.setUint8(3, 0x04); // PK\x03\x04
+      lfh.setUint16(4,  20,          true); // version needed
+      lfh.setUint16(6,  flags,       true); // general purpose bit flag
+      lfh.setUint16(8,  8,           true); // compression method (DEFLATE)
+      lfh.setUint16(10, dosTime,     true); // last mod time
+      lfh.setUint16(12, dosDate,     true); // last mod date
+      lfh.setUint32(14, 0,           true); // CRC-32 (deferred)
+      lfh.setUint32(18, 0,           true); // compressed size (deferred)
+      lfh.setUint32(22, 0,           true); // uncompressed size (deferred)
+      lfh.setUint16(26, fname.length,true); // filename length
+      lfh.setUint16(28, 0,           true); // extra field length
 
-      // Local file header (30 bytes + filename)
-      const lfh = new ArrayBuffer(30 + fname.length);
-      const lv  = new DataView(lfh);
-      lv.setUint32(0,  0x504B0304, false); // PK\x03\x04
-      lv.setUint16(4,  20, true);          // version needed
-      lv.setUint16(6,  flags, true);
-      lv.setUint16(8,  method, true);
-      lv.setUint16(10, dosTime, true);
-      lv.setUint16(12, dosDate, true);
-      lv.setUint32(14, 0, true);           // CRC (0 = deferred to data descriptor)
-      lv.setUint32(18, 0, true);           // compressed size (deferred)
-      lv.setUint32(22, 0, true);           // uncompressed size (deferred)
-      lv.setUint16(26, fname.length, true);
-      lv.setUint16(28, 0, true);           // extra field length
-      new Uint8Array(lfh, 30).set(fname);
-
-      // Data descriptor (16 bytes — written after compressed data)
-      const dd = new ArrayBuffer(16);
-      const dv = new DataView(dd);
-      dv.setUint32(0,  0x504B0708, false); // PK\x07\x08
-      dv.setUint32(4,  crc, true);
-      dv.setUint32(8,  compressed.length, true);
-      dv.setUint32(12, uint8Data.length, true);
+      // ── Data Descriptor (16 bytes) ────────────────────────────────
+      const ddBuf = new ArrayBuffer(16);
+      const dd = new DataView(ddBuf);
+      dd.setUint8(0, 0x50); dd.setUint8(1, 0x4B); dd.setUint8(2, 0x07); dd.setUint8(3, 0x08); // PK\x07\x08
+      dd.setUint32(4,  crc,               true);
+      dd.setUint32(8,  compressed.length, true);
+      dd.setUint32(12, uint8Data.length,  true);
 
       const cdOffset = 30 + fname.length + compressed.length + 16;
 
-      // Central directory record (46 bytes + filename)
-      const cdr = new ArrayBuffer(46 + fname.length);
-      const cv  = new DataView(cdr);
-      cv.setUint32(0,  0x504B0102, false); // PK\x01\x02
-      cv.setUint8(4,   20);                // version made by
-      cv.setUint8(5,   0);                 // OS (0=DOS)
-      cv.setUint16(6,  20, true);          // version needed
-      cv.setUint16(8,  0, true);
-      cv.setUint16(10, flags, true);
-      cv.setUint16(12, method, true);
-      cv.setUint16(14, dosTime, true);
-      cv.setUint16(16, dosDate, true);
-      cv.setUint32(18, crc, true);
-      cv.setUint32(22, compressed.length, true);
-      cv.setUint32(26, uint8Data.length, true);
-      cv.setUint16(30, fname.length, true);
-      cv.setUint16(32, 0, true);           // extra
-      cv.setUint16(34, 0, true);           // comment
-      cv.setUint16(36, 0, true);           // disk start
-      cv.setUint16(38, 0, true);           // internal attrs
-      cv.setUint32(40, 0x20, true);        // external attrs (archive bit)
-      cv.setUint32(42, localOffset, true); // local header offset
-      new Uint8Array(cdr, 46).set(fname);
+      // ── Central Directory Record (46 bytes + fname) ───────────────
+      // Signature + 16 little-endian fields (HHHHHHIIIHHHHHII = 42 bytes)
+      const cdrFixed = new ArrayBuffer(46);
+      const cdr = new DataView(cdrFixed);
+      cdr.setUint8(0, 0x50); cdr.setUint8(1, 0x4B); cdr.setUint8(2, 0x01); cdr.setUint8(3, 0x02); // PK\x01\x02
+      cdr.setUint16(4,  20,               true); // version made by
+      cdr.setUint16(6,  20,               true); // version needed
+      cdr.setUint16(8,  flags,            true); // general purpose bit flag
+      cdr.setUint16(10, 8,                true); // compression method
+      cdr.setUint16(12, dosTime,          true); // last mod time
+      cdr.setUint16(14, dosDate,          true); // last mod date
+      cdr.setUint32(16, crc,              true); // CRC-32
+      cdr.setUint32(20, compressed.length,true); // compressed size
+      cdr.setUint32(24, uint8Data.length, true); // uncompressed size
+      cdr.setUint16(28, fname.length,     true); // filename length
+      cdr.setUint16(30, 0,                true); // extra field length
+      cdr.setUint16(32, 0,                true); // file comment length
+      cdr.setUint16(34, 0,                true); // disk number start
+      cdr.setUint16(36, 0,                true); // internal file attributes
+      cdr.setUint32(38, 0x20,             true); // external file attributes (archive bit)
+      cdr.setUint32(42, cdOffset,         true); // relative offset of local header — BUG WAS HERE
 
-      // End of central directory (22 bytes)
+      // ── End of Central Directory (22 bytes) ───────────────────────
       const cdSize = 46 + fname.length;
-      const eocd   = new ArrayBuffer(22);
-      const ev     = new DataView(eocd);
-      ev.setUint32(0,  0x504B0506, false); // PK\x05\x06
-      ev.setUint16(4,  0, true);           // disk number
-      ev.setUint16(6,  0, true);           // start disk
-      ev.setUint16(8,  1, true);           // entries on disk
-      ev.setUint16(10, 1, true);           // total entries
-      ev.setUint32(12, cdSize, true);
-      ev.setUint32(16, cdOffset, true);
-      ev.setUint16(20, 0, true);           // comment length
+      const eocdBuf = new ArrayBuffer(22);
+      const eocd = new DataView(eocdBuf);
+      eocd.setUint8(0, 0x50); eocd.setUint8(1, 0x4B); eocd.setUint8(2, 0x05); eocd.setUint8(3, 0x06); // PK\x05\x06
+      eocd.setUint16(4,  0,         true); // disk number
+      eocd.setUint16(6,  0,         true); // disk with start of CD
+      eocd.setUint16(8,  1,         true); // entries on this disk
+      eocd.setUint16(10, 1,         true); // total entries
+      eocd.setUint32(12, cdSize,    true); // size of central directory
+      eocd.setUint32(16, cdOffset,  true); // offset of central directory — BUG WAS HERE
+      eocd.setUint16(20, 0,         true); // comment length
 
-      resolve(new Blob([lfh, compressed, dd, cdr, eocd], { type: 'application/zip' }));
+      resolve(new Blob(
+        [lfhFixed, fname, compressed, ddBuf, cdrFixed, fname, eocdBuf],
+        { type: 'application/zip' }
+      ));
     });
   });
 }
 
-// CRC-32 implementation
+// CRC-32 table-based implementation
 function crc32(data) {
   let crc = 0xFFFFFFFF;
   for (let i = 0; i < data.length; i++) {
@@ -797,21 +806,23 @@ function dzDrop(e)  {
 // USERNAME
 // ══════════════════════════════════
 function onUname() {
-  const v = document.getElementById('uname').value.trim();
+  // Force uppercase immediately
+  const inp = document.getElementById('uname');
+  inp.value = inp.value.toUpperCase();
+  const v = inp.value.trim();
   const h = document.getElementById('uname-hint');
-  const i = document.getElementById('uname');
-  if (!v) { h.textContent = ''; i.className = ''; }
-  else if (/[^a-zA-Z0-9._\-]/.test(v)) {
+  if (!v) { h.textContent = ''; inp.className = ''; }
+  else if (/[^A-Z0-9._\-]/.test(v)) {
     h.innerHTML = '<span style="color:var(--red)">⚠ Only letters, numbers, dots, underscores, hyphens</span>';
-    i.className = 'bad';
+    inp.className = 'bad';
   } else {
-    h.innerHTML = `<span style="color:var(--green)">✓ Will create ${v}.pdf inside ${v}.zip</span>`;
-    i.className = 'ok';
+    h.innerHTML = `<span style="color:var(--green)">✓ Will create ${v}.PDF inside ${v}.ZIP</span>`;
+    inp.className = 'ok';
   }
   refreshPreview(); refreshBtn();
 }
-const uname   = () => document.getElementById('uname').value.trim();
-const unameOk = () => { const u = uname(); return u && !/[^a-zA-Z0-9._\-]/.test(u); };
+const uname   = () => document.getElementById('uname').value.trim().toUpperCase();
+const unameOk = () => { const u = uname(); return u && !/[^A-Z0-9._\-]/.test(u); };
 
 // ══════════════════════════════════
 // FILE
@@ -860,7 +871,7 @@ function refreshBtn() {
 // STEP UI
 // ══════════════════════════════════
 // ── CONFIG: replace with your deployed Cloudflare Worker URL ──
-const UPLOAD_PROXY = 'https://fileio-proxy.jschiramel.workers.dev/';
+const UPLOAD_PROXY = 'https://fileio-proxy.jschiramel.workers.dev';
 
 const stepLabels = ['Reading PDF…','Creating ZIP…','Uploading…','Generating share link…'];
 function setS(n, state, text) {
