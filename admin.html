@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Faculty — Submission Window</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f7f5f0; --paper:#ffffff; --border:#e2ddd5; --border2:#cdc7bc;
+  --text:#1e1b16; --muted:#8a8175;
+  --accent:#2a6049; --accent-l:#e8f2ed; --accent-m:#c4ddd2;
+  --red:#c0392b; --red-l:#fdf0ee;
+  --amber:#a05c00; --amber-l:#fef6e7;
+  --green:#1a5c38; --green-l:#eaf5ee;
+  --r:10px;
+  --mono:'DM Mono',monospace; --body:'Figtree',sans-serif; --disp:'Fraunces',serif;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--bg);color:var(--text);
+  min-height:100vh;font-size:15px;line-height:1.6;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:2rem 1.25rem}
+
+.page-title{font-family:var(--disp);font-weight:700;font-size:1.25rem;
+  letter-spacing:-.01em;margin-bottom:.25rem;text-align:center}
+.page-sub{font-family:var(--mono);font-size:.65rem;color:var(--muted);
+  letter-spacing:.05em;text-transform:uppercase;text-align:center;margin-bottom:2rem}
+
+.card{background:var(--paper);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.5rem;box-shadow:var(--shadow);width:100%;max-width:420px;margin-bottom:1rem}
+.card-title{font-family:var(--disp);font-weight:600;font-size:1rem;margin-bottom:.35rem}
+.card-desc{font-size:.8rem;color:var(--muted);line-height:1.55;margin-bottom:1.1rem}
+
+.btn{font-family:var(--body);font-weight:600;font-size:.85rem;border:none;
+  border-radius:8px;padding:.7rem 1.4rem;cursor:pointer;width:100%;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  transition:all .13s}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover:not(:disabled){background:#1d4a36;transform:translateY(-1px);
+  box-shadow:0 4px 14px rgba(42,96,73,.25)}
+.btn-primary:disabled{background:var(--accent-m);cursor:not-allowed;transform:none}
+.btn-danger{background:var(--red);color:white;margin-top:.65rem}
+.btn-danger:hover:not(:disabled){background:#a93226;transform:translateY(-1px)}
+.btn-danger:disabled{background:#e8b4af;cursor:not-allowed;transform:none}
+
+.al{border-radius:8px;padding:.7rem .95rem;font-size:.8rem;
+  display:flex;align-items:flex-start;gap:.55rem;margin-bottom:.9rem;line-height:1.55;
+  width:100%;max-width:420px}
+.al-info{background:var(--accent-l);color:#1a4a36;border:1px solid var(--accent-m)}
+.al-warn{background:var(--amber-l);color:var(--amber);border:1px solid #f0d49a}
+.al-err{background:var(--red-l);color:var(--red);border:1px solid #f0c0bb}
+
+/* ── TIMER RING ── */
+.timer-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:1.25rem}
+.ring-container{position:relative;width:120px;height:120px;margin-bottom:.75rem}
+.ring-svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--border);stroke-width:8}
+.ring-fill{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;
+  stroke-dasharray:339.3;stroke-dashoffset:0;transition:stroke-dashoffset .9s linear,stroke .5s}
+.ring-fill.warn{stroke:var(--amber)}
+.ring-fill.crit{stroke:var(--red)}
+.ring-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:1.35rem;font-weight:500;color:var(--text)}
+.ring-label{font-family:var(--mono);font-size:.65rem;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--muted)}
+
+/* ── QR ── */
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:.75rem;margin-bottom:1.1rem}
+.qr-box{background:white;border:1px solid var(--border);border-radius:8px;padding:10px;
+  box-shadow:var(--shadow)}
+#qr-render canvas{display:block!important}
+.qr-caption{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center;
+  line-height:1.5}
+
+/* ── STATUS ── */
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.35rem}
+.dot-green{background:var(--green);animation:pulse 1.4s ease-in-out infinite}
+.dot-red{background:var(--red)}
+.dot-grey{background:var(--border2)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);
+  border-top-color:white;border-radius:50%;animation:spin .5s linear infinite;flex-shrink:0}
+
+footer{font-family:var(--mono);font-size:.62rem;color:var(--muted);
+  text-align:center;margin-top:1rem;padding-top:1rem;
+  border-top:1px solid var(--border);width:100%;max-width:420px}
+</style>
+</head>
+<body>
+
+<div class="page-title">Submission Window</div>
+<div class="page-sub">Faculty · Session Control</div>
+
+<!-- Idle state -->
+<div class="card" id="card-idle">
+  <div class="card-title">Open a submission window</div>
+  <div class="card-desc">Generates a 30-minute QR code. Students scan it off your screen to access the submission form. The window closes automatically after 30 minutes, or you can close it early.</div>
+  <button class="btn btn-primary" id="btn-open" onclick="openWindow()">
+    Open Submission Window
+  </button>
+</div>
+
+<!-- Active state -->
+<div class="card" id="card-active" style="display:none">
+  <div class="card-title" style="margin-bottom:.9rem">Window is open</div>
+
+  <!-- Countdown ring -->
+  <div class="timer-wrap">
+    <div class="ring-container">
+      <svg class="ring-svg" width="120" height="120" viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="54"/>
+        <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="54"/>
+      </svg>
+      <div class="ring-time" id="ring-time">30:00</div>
+    </div>
+    <div class="ring-label">remaining</div>
+  </div>
+
+  <!-- QR code -->
+  <div class="qr-wrap">
+    <div class="qr-box"><div id="qr-render"></div></div>
+    <div class="qr-caption">
+      Show this to students in the room.<br>
+      Do not share the screen remotely.
+    </div>
+  </div>
+
+  <!-- Status row -->
+  <div style="display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.9rem;
+    font-size:.78rem;color:var(--muted)">
+    <div class="status-dot dot-green" id="status-dot"></div>
+    <span id="status-text">Session active — students can submit</span>
+  </div>
+
+  <button class="btn btn-danger" id="btn-close" onclick="closeWindow()">
+    Close Submission Window
+  </button>
+</div>
+
+<!-- Closed state -->
+<div class="card" id="card-closed" style="display:none;text-align:center">
+  <div style="font-size:1.75rem;margin-bottom:.6rem">✓</div>
+  <div class="card-title" style="margin-bottom:.35rem">Window closed</div>
+  <div style="font-size:.82rem;color:var(--muted);margin-bottom:1.1rem;line-height:1.5">
+    The session token has been invalidated.<br>No further submissions can be made with it.
+  </div>
+  <button class="btn btn-primary" onclick="resetToIdle()">Open a new window</button>
+</div>
+
+<div id="err-banner" style="display:none"></div>
+
+<footer>Faculty tool · Keep this page private · Do not share the URL with students</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.9.2/lib/qr-code-styling.min.js"></script>
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+// Same worker URL as in assignment_submit.html
+const WORKER = 'https://fileio-proxy.jschiramel.workers.dev/';
+
+// URL of the student submission page (same GitHub Pages repo)
+// Must match exactly where assignment_submit.html is hosted
+const STUDENT_PAGE = 'https://juice-ep.github.io/Greetings/offlinesubmit.html';
+// ────────────────────────────────────────────────────────────────────
+
+const SESSION_SECS = 30 * 60;
+const CIRCUMFERENCE = 2 * Math.PI * 54; // matches r="54" in SVG
+
+let activeToken    = null;
+let countdownTimer = null;
+let qrInstance     = null;
+let remainingSecs  = SESSION_SECS;
+
+async function openWindow() {
+  const btn = document.getElementById('btn-open');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Creating session…';
+
+  try {
+    const proxy = WORKER.replace(/\/+$/, '');
+    const resp  = await fetch(`${proxy}/session/create`, { method: 'POST' });
+    const data  = await resp.json();
+
+    if (!data.success) throw new Error(data.message || 'Failed to create session');
+
+    activeToken   = data.token;
+    remainingSecs = SESSION_SECS;
+
+    // Build student URL with session token
+    const studentUrl = `${STUDENT_PAGE}?session=${activeToken}`;
+
+    // Build QR
+    buildQR(studentUrl);
+
+    // Show active card
+    document.getElementById('card-idle').style.display   = 'none';
+    document.getElementById('card-active').style.display = 'block';
+    document.getElementById('card-closed').style.display = 'none';
+    hideErr();
+
+    // Start countdown
+    startCountdown();
+
+  } catch(e) {
+    showErr(e.message);
+    btn.disabled = false;
+    btn.innerHTML = 'Open Submission Window';
+  }
+}
+
+async function closeWindow() {
+  clearInterval(countdownTimer);
+  const btn = document.getElementById('btn-close');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spin"></div> Closing…';
+
+  try {
+    if (activeToken) {
+      const proxy = WORKER.replace(/\/+$/, '');
+      await fetch(`${proxy}/session/${activeToken}`, { method: 'DELETE' });
+    }
+  } catch(e) { /* best effort */ }
+
+  activeToken = null;
+  document.getElementById('card-active').style.display = 'none';
+  document.getElementById('card-closed').style.display = 'block';
+  btn.disabled = false;
+  btn.innerHTML = 'Close Submission Window';
+}
+
+function resetToIdle() {
+  document.getElementById('card-closed').style.display = 'none';
+  document.getElementById('card-idle').style.display   = 'block';
+  document.getElementById('btn-open').disabled = false;
+  document.getElementById('btn-open').innerHTML = 'Open Submission Window';
+  if (qrInstance) {
+    document.getElementById('qr-render').innerHTML = '';
+    qrInstance = null;
+  }
+}
+
+function startCountdown() {
+  updateRing(remainingSecs);
+  countdownTimer = setInterval(() => {
+    remainingSecs--;
+    updateRing(remainingSecs);
+    if (remainingSecs <= 0) {
+      clearInterval(countdownTimer);
+      onSessionExpired();
+    }
+  }, 1000);
+}
+
+function updateRing(secs) {
+  const m     = String(Math.floor(secs / 60)).padStart(2,'0');
+  const s     = String(secs % 60).padStart(2,'0');
+  const frac  = secs / SESSION_SECS;
+  const offset = CIRCUMFERENCE * (1 - frac);
+
+  document.getElementById('ring-time').textContent  = `${m}:${s}`;
+  document.getElementById('ring-fill').style.strokeDashoffset = offset;
+
+  const ring = document.getElementById('ring-fill');
+  if (secs <= 60)       ring.className = 'ring-fill crit';
+  else if (secs <= 300) ring.className = 'ring-fill warn';
+  else                  ring.className = 'ring-fill';
+}
+
+function onSessionExpired() {
+  activeToken = null;
+  document.getElementById('status-dot').className = 'status-dot dot-red';
+  document.getElementById('status-text').textContent = 'Session expired — window is now closed';
+  document.getElementById('btn-close').disabled = true;
+  document.getElementById('qr-wrap') && (document.querySelector('.qr-caption').textContent =
+    'This QR is no longer valid.');
+  setTimeout(() => {
+    document.getElementById('card-active').style.display = 'none';
+    document.getElementById('card-closed').style.display = 'block';
+  }, 3000);
+}
+
+function buildQR(url) {
+  const container = document.getElementById('qr-render');
+  container.innerHTML = '';
+  qrInstance = new QRCodeStyling({
+    width: 200, height: 200,
+    type: 'canvas',
+    data: url,
+    dotsOptions:          { color: '#1e1b16', type: 'rounded' },
+    backgroundOptions:    { color: '#ffffff' },
+    cornersSquareOptions: { color: '#2a6049', type: 'extra-rounded' },
+    cornersDotOptions:    { color: '#2a6049', type: 'dot' },
+    qrOptions:            { errorCorrectionLevel: 'H' }
+  });
+  qrInstance.append(container);
+}
+
+function showErr(msg) {
+  const el = document.getElementById('err-banner');
+  el.className = 'al al-err';
+  el.innerHTML = `<span>✗</span><span>${msg}</span>`;
+  el.style.display = 'flex';
+}
+function hideErr() {
+  document.getElementById('err-banner').style.display = 'none';
+}
+</script>
+</body>
+</html>
