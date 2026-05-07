@@ -723,7 +723,7 @@ async function makeZip(filename, uint8Data) {
       cdr.setUint16(34, 0,                true); // disk number start
       cdr.setUint16(36, 0,                true); // internal file attributes
       cdr.setUint32(38, 0x20,             true); // external file attributes (archive bit)
-      cdr.setUint32(42, cdOffset,         true); // relative offset of local header — BUG WAS HERE
+      cdr.setUint32(42, 0,          true); // relative offset of local header (always 0 — only one file)
 
       // ── End of Central Directory (22 bytes) ───────────────────────
       const cdSize = 46 + fname.length;
@@ -735,7 +735,7 @@ async function makeZip(filename, uint8Data) {
       eocd.setUint16(8,  1,         true); // entries on this disk
       eocd.setUint16(10, 1,         true); // total entries
       eocd.setUint32(12, cdSize,    true); // size of central directory
-      eocd.setUint32(16, cdOffset,  true); // offset of central directory — BUG WAS HERE
+      eocd.setUint32(16, cdOffset,  true); // offset of central directory from start of file
       eocd.setUint16(20, 0,         true); // comment length
 
       resolve(new Blob(
@@ -746,15 +746,19 @@ async function makeZip(filename, uint8Data) {
   });
 }
 
-// CRC-32 table-based implementation
+// CRC-32 — lookup table version (fast)
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let j = 0; j < 8; j++) c = (c & 1) ? (c >>> 1) ^ 0xEDB88320 : c >>> 1;
+    t[i] = c;
+  }
+  return t;
+})();
 function crc32(data) {
   let crc = 0xFFFFFFFF;
-  for (let i = 0; i < data.length; i++) {
-    crc ^= data[i];
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 1) ? (crc >>> 1) ^ 0xEDB88320 : crc >>> 1;
-    }
-  }
+  for (let i = 0; i < data.length; i++) crc = (crc >>> 8) ^ CRC_TABLE[(crc ^ data[i]) & 0xFF];
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
 </script>
