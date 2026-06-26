@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laptop Comparison · Civil Engineering</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;min-height:100vh;padding:16px 12px}
+/* header */
+.header{background:#1e3a5f;border-radius:12px;padding:16px 18px;margin-bottom:14px;color:#fff}
+.header-sub{font-size:11px;letter-spacing:2px;color:#93c5fd;text-transform:uppercase;margin-bottom:4px}
+.header-title{font-size:20px;font-weight:700}
+.header-desc{font-size:13px;color:#bfdbfe;margin-top:2px}
+.wuxga-note{margin-top:12px;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:12px;color:#dbeafe}
+.wuxga-note b{color:#93c5fd}
+/* budget banner */
+.budget-banner{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#065f46}
+.budget-banner b{font-size:13px}
+/* tabs */
+.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab-btn{padding:8px 16px;border-radius:20px;border:none;font-weight:600;font-size:13px;cursor:pointer}
+.tab-btn.active{background:#1e3a5f;color:#fff}
+.tab-btn.inactive{background:#e2e8f0;color:#475569}
+/* sections */
+.section{display:none}
+.section.visible{display:block}
+/* tier dividers */
+.tier-header{display:flex;align-items:center;gap:10px;margin:16px 0 10px}
+.tier-header:first-child{margin-top:0}
+.tier-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;padding:3px 10px;border-radius:20px}
+.tier-budget .tier-label{background:#d1fae5;color:#065f46}
+.tier-stretch .tier-label{background:#fef3c7;color:#92400e}
+.tier-premium .tier-label{background:#ede9fe;color:#5b21b6}
+.tier-line{flex:1;height:1px;background:#e2e8f0}
+.tier-note{font-size:11px;color:#94a3b8;white-space:nowrap}
+/* cards container */
+.cards{display:flex;flex-direction:column;gap:12px}
+/* card */
+.q-card{background:#fff;border-radius:12px;overflow:hidden;margin-bottom:0}
+.q-card.highlight-budget{box-shadow:0 0 0 2px #0f766e}
+.q-card.highlight-stretch{box-shadow:0 0 0 2px #b45309}
+.badge{padding:4px 16px;font-size:11px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.card-body{padding:14px 16px}
+.name-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.product-name{font-weight:700;font-size:15px;color:#0f172a}
+.product-model{font-size:11px;color:#64748b;margin-top:2px}
+.price-block{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.price{font-weight:700;font-size:14px;color:#1e3a5f}
+.amz-link{display:inline-flex;align-items:center;font-size:11px;color:#FF9900;font-weight:700;background:#fff8ed;border:1px solid #FF9900;border-radius:5px;padding:2px 8px;text-decoration:none;white-space:nowrap}
+/* scores */
+.scores{display:flex;gap:16px;margin-bottom:10px}
+.score-block{display:flex;flex-direction:column;gap:3px}
+.score-label{font-size:10px;color:#94a3b8;font-weight:600}
+.score-row{display:flex;align-items:center;gap:6px}
+.dots{display:flex;gap:4px}
+.dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0}
+.dot.blue{background:#1e3a5f}
+.dot.cyan{background:#0284c7}
+.score-text{font-size:11px;color:#475569}
+/* stylus */
+.stylus-badge{border-radius:8px;padding:7px 10px;margin-bottom:10px;font-size:12px;font-weight:500}
+.stylus-badge.included{background:#f0fdf4;color:#16a34a}
+.stylus-badge.needs-buy{background:#fffbeb;color:#d97706}
+.verdict{font-size:12px;color:#475569;font-style:italic;line-height:1.4}
+.toggle-btn{margin-top:10px;background:none;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;font-size:12px;color:#64748b;cursor:pointer;width:100%}
+/* details */
+.details-panel{display:none;border-top:1px solid #f1f5f9;padding:14px 16px;background:#f8fafc}
+.details-panel.open{display:block}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.spec-key{font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase}
+.spec-val{font-size:12px;color:#1e293b;margin-top:2px;line-height:1.4}
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pc-title-pos{font-size:11px;font-weight:700;color:#15803d;margin-bottom:4px}
+.pc-title-neg{font-size:11px;font-weight:700;color:#b91c1c;margin-bottom:4px}
+.pc-item{font-size:11px;color:#374151;margin-bottom:3px;line-height:1.4}
+/* premium toggle */
+.premium-toggle{background:#fff;border:1px dashed #c4b5fd;border-radius:10px;padding:12px 16px;margin-top:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.premium-toggle-left{display:flex;flex-direction:column;gap:3px}
+.premium-toggle-title{font-size:13px;font-weight:700;color:#5b21b6}
+.premium-toggle-sub{font-size:11px;color:#94a3b8}
+.premium-toggle-icon{font-size:18px;color:#c4b5fd}
+.premium-section{display:none}
+.premium-section.open{display:block}
+/* eliminated */
+.elim-section{display:none}
+.elim-section.visible{display:flex;flex-direction:column;gap:10px}
+.elim-card{background:#fff;border-radius:10px;padding:14px 16px;border-left:4px solid #ef4444}
+.elim-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.elim-name{font-weight:700;font-size:14px;color:#0f172a}
+.elim-right{display:flex;align-items:center;gap:8px}
+.elim-price{font-size:13px;font-weight:700;color:#64748b}
+.elim-reason{font-size:12px;color:#b91c1c;line-height:1.5}
+/* pen guide */
+.pen-guide{background:#eff6ff;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:12px;color:#1e40af}
+.pen-guide-title{font-weight:700;margin-bottom:4px}
+.pen-guide-body{line-height:1.6}
+.footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Civil Engineering · Site + Boardroom Use</div>
+  <div class="header-title">Laptop Comparison</div>
+  <div class="header-desc">AutoCAD · Touch + Pen · ~10 hr Battery · Durability</div>
+  <div class="wuxga-note"><b>WUXGA vs FHD?</b> WUXGA (1920×1200) is <em>better</em> than FHD (1920×1080) — same width, extra vertical height. Shows more of a drawing without scrolling.</div>
+</div>
+
+<div class="budget-banner">
+  <b>🎯 Target budget: ₹60–75k</b><br>
+  Best options are shown first within this range. Stretch and premium picks follow — only consider those if the budget is flexible.
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('qualified')">✓ Qualified (11)</button>
+  <button class="tab-btn inactive" onclick="switchTab('eliminated')">✗ Eliminated (4)</button>
+</div>
+
+<div class="section visible" id="qualified-section"></div>
+<div class="elim-section" id="eliminated-section"></div>
+
+<div id="pen-guide" class="pen-guide">
+  <div class="pen-guide-title">🖊 Pens under ₹1,000</div>
+  <div class="pen-guide-body">
+    <strong>HP &amp; Dell models:</strong> Search "Lazarite M Pen MPP" on Amazon India · ~₹700–900<br>
+    <strong>Lenovo Flex 5 (82R9):</strong> Search "AES stylus Lenovo" · ~₹700–800<br>
+    <strong>ASUS Vivobook Flip:</strong> Search "Wacom AES 2.0 stylus" · ~₹800<br>
+    <strong>Basic tap-only use:</strong> Any capacitive rubber-tip stylus at ₹200 works on all models.
+  </div>
+</div>
+<div class="footer">15 laptops reviewed · Prices verified June 2026</div>
+
+<script>
+const eliminated = [
+  { id:1, name:"Dell Vostro 3530", price:"~₹52–60k", link:"https://www.amazon.in/dp/B0D2Y1BLDT", reason:"No touchscreen at all — fundamental disqualifier for this use case." },
+  { id:3, name:"Lenovo IdeaPad Flex 5 (i3 / 8GB)", price:"~₹46–50k", link:"https://www.amazon.in/dp/B0D3PJZC55", reason:"Intel i3 + 8GB RAM is too underpowered to run AutoCAD reliably." },
+  { id:4, name:"Lenovo IdeaPad Flex 5 Ryzen 5 (8GB)", price:"~₹60k", link:"https://www.amazon.in/dp/B0B56CZ9KH", reason:"Only 8GB RAM — AutoCAD minimum is 8GB but 16GB is strongly recommended." },
+  { id:6, name:"Dell G15 5530 Gaming", price:"~₹78–83k", link:"https://www.amazon.in/dp/B0CRKXDX83", reason:"Gaming laptop — no touchscreen, weighs 2.65 kg, battery lasts only 3–4 hrs. Wrong category." },
+];
+
+// tier: "budget" = ₹60-75k | "stretch" = ₹76-83k (just over, worth considering) | "premium" = ₹85k+ (optional)
+const qualified = [
+  // ── TIER 1: IN BUDGET ──────────────────────────────────────────────────────
+  {
+    id:13, tier:"budget", badge:"★ Best In Budget", badgeBg:"#0f766e",
+    highlight:"highlight-budget",
+    name:"HP OmniBook 5 Flip", model:"fp0790TU · All-Metal · 1TB", price:"~₹75–80k",
+    link:"https://www.amazon.in/dp/B0G3P29KHH",
+    processor:"Intel i5-1334U (13th Gen · up to 4.6 GHz)",
+    display:"14\" 2K WUXGA 1920×1200 IPS Touch · 300 nits · Micro-Edge",
+    ram:"16GB LPDDR5 (onboard)", storage:"1TB PCIe Gen4 SSD",
+    battery:"Up to 15 hrs · 68Wh", weight:"1.65 kg", build:"All-metal aluminium (confirmed by HP)",
+    stylus:{status:"needs-buy", text:"MPP 2.0 · 3rd-party pen ~₹700–900"},
+    autocad:{score:3, label:"Adequate"}, batteryScore:5,
+    pros:["All-metal chassis — more durable than plastic peers at this price","1TB SSD — double the storage of most competitors","Same 68Wh battery as the ₹95k Core 7 version","2K WUXGA display ideal for reading AutoCAD plans"],
+    cons:["Pen not included — add ~₹800 for an MPP stylus","i5-1334U is adequate but not the fastest for CAD","Slightly borderline on budget at ₹75–80k"],
+    verdict:"Strongest all-round pick within budget. All-metal body, 1TB storage, and a 15-hr battery at the best price on this list. Add an ₹800 pen and you're set."
+  },
+  {
+    id:5, tier:"budget", badge:"✓ Best Battery In Budget", badgeBg:"#0f766e",
+    highlight:"",
+    name:"Lenovo IdeaPad Flex 5", model:"82R900ELIN · Ryzen 7 5700U", price:"~₹63–68k",
+    link:"https://www.amazon.in/dp/B0CKWB92ST",
+    processor:"AMD Ryzen 7 5700U (2021 gen, 8-core U-series)",
+    display:"14\" WUXGA 1920×1200 IPS Touch · 300 nits · Glossy",
+    ram:"16GB LPDDR4x (soldered)", storage:"512GB SSD",
+    battery:"~10 hrs · 52.5Wh", weight:"1.55 kg", build:"Standard plastic",
+    stylus:{status:"needs-buy", text:"AES compatible · 3rd-party ~₹700–800"},
+    autocad:{score:3, label:"Adequate"}, batteryScore:4,
+    pros:["Clearly within budget at ₹63–68k","WUXGA (1920×1200) — extra vertical space for CAD drawings","10-hr battery comfortably meets the requirement","Light at 1.55 kg"],
+    cons:["2021 processor — 3 generations behind current chips","Pen not included","Glossy screen glares in outdoor/site use","512GB storage only"],
+    verdict:"The most affordable route to a 10-hr battery + WUXGA display. CPU age is the only real trade-off for light AutoCAD viewing."
+  },
+  {
+    id:9, tier:"budget", badge:null, badgeBg:null, highlight:"",
+    name:"HP Pavilion x360", model:"ek1148TU", price:"~₹63–68k",
+    link:"https://www.amazon.in/dp/B0CJ2KWNNQ",
+    processor:"Intel i5-1335U (13th Gen U-series)",
+    display:"14\" FHD 1080p IPS Touch · 250 nits · Glossy",
+    ram:"16GB DDR4", storage:"512GB SSD",
+    battery:"~7–8 hrs · 43Wh", weight:"1.5 kg", build:"Standard plastic",
+    stylus:{status:"needs-buy", text:"MPP 2.0 · 3rd-party pen ~₹700–900"},
+    autocad:{score:3, label:"Adequate"}, batteryScore:2,
+    pros:["Cheapest 2-in-1 with touch + 16GB","Newest-gen i5-1335U within budget","Compact at 1.5 kg"],
+    cons:["43Wh battery is the smallest here — will NOT hit 10 hrs","250 nits is dim for site use","FHD only, no WUXGA","Glossy screen"],
+    verdict:"Cheapest option with touch and 16GB, but the small battery is a real problem for all-day use. Only choose this if portability outweighs battery life."
+  },
+  // ── TIER 2: WORTH THE STRETCH ──────────────────────────────────────────────
+  {
+    id:14, tier:"stretch", badge:"↑ Anti-Glare Pick", badgeBg:"#b45309", highlight:"",
+    name:"HP OmniBook 5 Flip", model:"fp0789TU · Anti-Glare · 512GB", price:"~₹77k",
+    link:"https://www.amazon.in/dp/B0FP96GL7V",
+    processor:"Intel i5-1334U (13th Gen · up to 4.6 GHz)",
+    display:"14\" 2K WUXGA 1920×1200 IPS Touch · 300 nits · ANTI-GLARE ✓",
+    ram:"16GB LPDDR5 (onboard)", storage:"512GB SSD",
+    battery:"Up to 15 hrs · 68Wh", weight:"1.65 kg", build:"Polycarbonate + Aluminium deck",
+    stylus:{status:"needs-buy", text:"MPP 2.0 · 3rd-party pen ~₹700–900"},
+    autocad:{score:3, label:"Adequate"}, batteryScore:5,
+    pros:["Anti-glare display — only mid-range option here with this feature","Outdoor site readability is noticeably better than glossy screens","Same 68Wh battery as the in-budget fp0790TU","2K WUXGA for AutoCAD plan clarity"],
+    cons:["₹77k is ~₹2–12k over the ₹75k ceiling","Only 512GB (vs 1TB in fp0790TU at similar price)","No pen included","Polycarbonate body"],
+    verdict:"₹2k over budget but the anti-glare display is a genuine advantage for outdoor construction site visits. Choose this over fp0790TU if sun glare is a known problem."
+  },
+  {
+    id:2, tier:"stretch", badge:"↑ Best Stretch Value", badgeBg:"#b45309",
+    highlight:"highlight-stretch",
+    name:"Lenovo IdeaPad 5 2-in-1", model:"83KX0059IN", price:"~₹78k",
+    link:"https://www.amazon.in/dp/B0DSL4R3DL",
+    processor:"Intel i5-13420H (13th Gen H-series · 8 cores)",
+    display:"14\" WUXGA 1920×1200 IPS Touch · 300 nits · Glossy",
+    ram:"16GB LPDDR5x (soldered)", storage:"512GB SSD",
+    battery:"~8–9 hrs · 47Wh", weight:"1.6 kg", build:"Standard (plastic top / metal palm rest)",
+    stylus:{status:"included", text:"Lenovo Digital Pen 2 INCLUDED IN BOX ✓"},
+    autocad:{score:5, label:"Best for CAD"}, batteryScore:3,
+    pros:["H-series CPU — significantly faster for AutoCAD than U-series in-budget options","Pen included (saves ₹3,000+ on separate purchase)","WUXGA — tallest aspect ratio for drawing review","Best AutoCAD performance on the entire list at ₹78k"],
+    cons:["₹78k is ₹3–8k over the ₹75k ceiling","Glossy screen — glare on outdoor sites","Battery may not consistently hit 10 hrs under AutoCAD load","Plastic build"],
+    verdict:"The most compelling stretch buy. At ₹3–8k over budget, you gain H-series AutoCAD performance, a pen in the box, and WUXGA — hard to match elsewhere."
+  },
+  {
+    id:7, tier:"stretch", badge:"↑ Best Build Quality", badgeBg:"#b45309", highlight:"",
+    name:"Dell Inspiron 7440 2-in-1", model:"i5-1334U · Ice Blue", price:"~₹82k",
+    link:"https://www.amazon.in/dp/B0DGLDHHY9",
+    processor:"Intel i5-1334U (13th Gen U-series)",
+    display:"14\" FHD+ WVA Touch · 250 nits · Anti-glare ✓",
+    ram:"16GB DDR5", storage:"512GB SSD",
+    battery:"~10 hrs · 54Wh", weight:"1.71 kg", build:"Premium aluminium chassis",
+    stylus:{status:"included", text:"Dell Active Pen INCLUDED IN BOX ✓"},
+    autocad:{score:3, label:"Adequate"}, batteryScore:4,
+    pros:["Active pen in the box","Premium aluminum body — built for boardroom to site","Anti-glare display — one of two laptops here with this for outdoor use","10-hr battery","Strong Dell service centre presence across India"],
+    cons:["₹82k is ₹7–12k over budget ceiling","250 nits is the dimmest of the finalists","WVA panel (lower quality than IPS)","Heaviest at 1.71 kg"],
+    verdict:"₹7k over budget but the pen, anti-glare display, and aluminum build make it the most durable package. Best choice if site durability is the top concern."
+  },
+];
+
+// Premium options — shown collapsed
+const premium = [
+  {
+    id:8, tier:"premium", badge:"◆ Premium", badgeBg:"#6b21a8", highlight:"",
+    name:"HP Envy x360", model:"fc0105TU · Core Ultra 5 125U", price:"~₹87–97k",
+    link:"https://www.amazon.in/dp/B0CWFGVGPL",
+    processor:"Intel Core Ultra 5 125U (Series 1 · AI PC)",
+    display:"14\" WUXGA 2K IPS Touch · 300 nits · Glossy",
+    ram:"16GB LPDDR5 (soldered)", storage:"512GB SSD",
+    battery:"~12 hrs · 59Wh", weight:"1.39 kg", build:"Premium aluminium",
+    stylus:{status:"needs-buy", text:"MPP 2.0 · 3rd-party pen ~₹700–900"},
+    autocad:{score:4, label:"Very Good"}, batteryScore:5,
+    pros:["Confirmed 12-hr battery — best among premium picks","Lightest at 1.39 kg","Premium 2K IPS — sharpest display on this list","Modern AI chip"],
+    cons:["₹12–22k over budget","Pen not included","Glossy screen"],
+    verdict:"Best if light weight and long battery matter most. At ₹87k+ it's well over budget."
+  },
+  {
+    id:10, tier:"premium", badge:"◆ Premium", badgeBg:"#6b21a8", highlight:"",
+    name:"Dell 14 Plus 2-in-1", model:"Core Ultra 5 226V · LPDDR5X", price:"~₹91k",
+    link:"https://www.amazon.in/dp/B0FBWS8NWH",
+    processor:"Intel Core Ultra 5 226V (Series 2 · AI PC)",
+    display:"14\" FHD+ WVA Touch · 300 nits · Glossy",
+    ram:"16GB LPDDR5X (soldered)", storage:"512GB SSD",
+    battery:"~10 hrs · 64Wh", weight:"1.61 kg", build:"Premium aluminium",
+    stylus:{status:"needs-buy", text:"MPP 2.0 · 3rd-party pen ~₹700–900"},
+    autocad:{score:4, label:"Very Good"}, batteryScore:4,
+    pros:["Latest Core Ultra 5 Series 2 — most future-proof chip here","Intel Arc graphics — best for AutoCAD among non-ASUS options","Premium aluminum"],
+    cons:["₹16k over budget","No pen included","WVA panel"],
+    verdict:"Worth considering only if long-term chip headroom matters. Otherwise the fp0790TU gives similar value at ₹16k less."
+  },
+  {
+    id:11, tier:"premium", badge:"◆ Premium · Top for Site", badgeBg:"#6b21a8", highlight:"",
+    name:"ASUS Vivobook 14 Flip", model:"TP3407SA-QL024WS · Copilot+", price:"~₹93k",
+    link:"https://www.amazon.in/dp/B0DSHTTNVW",
+    processor:"Intel Core Ultra 5 226V (Series 2 · Intel Arc 130V)",
+    display:"14\" FHD+ Touch · 360° hinge",
+    ram:"16GB LPDDR5X (soldered)", storage:"512GB SSD",
+    battery:"~12 hrs · 70Wh", weight:"1.57 kg", build:"MIL-STD 810H military-grade certified",
+    stylus:{status:"needs-buy", text:"ASUS Pen 2.0 (Wacom AES) · 3rd-party ~₹800"},
+    autocad:{score:5, label:"Best for CAD"}, batteryScore:5,
+    pros:["Only MIL-STD 810H certified option — drops, dust, humidity for site work","Best AutoCAD graphics (Intel Arc 130V)","Largest battery (70Wh) among all options","Newest Series 2 Core Ultra chip"],
+    cons:["₹18k over budget","Pen not included","Glossy screen"],
+    verdict:"The strongest overall spec for this use case — but ₹18k over budget. Justify it only if the site environment is genuinely harsh."
+  },
+  {
+    id:12, tier:"premium", badge:"◆ Premium", badgeBg:"#6b21a8", highlight:"",
+    name:"HP OmniBook 5 Flip", model:"fp0690TU · Core 7 150U · Pen", price:"~₹95–101k",
+    link:"https://www.amazon.in/dp/B0FP5J5J7R",
+    processor:"Intel Core 7 150U (10-core · up to 5.4 GHz · Series 1)",
+    display:"14\" 2K WUXGA 1920×1200 IPS Touch · 300 nits",
+    ram:"16GB LPDDR5-5200 (onboard)", storage:"1TB PCIe Gen4 SSD",
+    battery:"Up to 15 hrs · 68Wh", weight:"1.65 kg", build:"Polycarbonate lid · Aluminium deck",
+    stylus:{status:"included", text:"HP MPP 2.0 Pen INCLUDED IN BOX (₹3,999 value) ✓"},
+    autocad:{score:4, label:"Very Good"}, batteryScore:5,
+    pros:["Pen in the box (₹3,999 value)","1TB SSD","68Wh battery with 45-min fast charge","Powerful Core 7 150U (10-core)"],
+    cons:["₹20–26k over budget","Polycarbonate lid","Iris Xe graphics (no Arc)"],
+    verdict:"Same form factor as fp0790TU but with a faster chip and pen in the box. Pay ₹20k+ extra for the pen and chip upgrade only if that genuinely matters."
+  },
+  {
+    id:15, tier:"premium", badge:"◆ Premium · OLED", badgeBg:"#6b21a8", highlight:"",
+    name:"Lenovo Yoga 7 2-in-1", model:"83JR001EIN · Ryzen AI 7 350 · OLED", price:"~₹1,03k",
+    link:"https://www.amazon.in/dp/B0F9WSL7C7",
+    processor:"AMD Ryzen AI 7 350 (Zen 5 · 8 cores · 50 TOPS · up to 5.0 GHz)",
+    display:"14\" WUXGA OLED · 600 nits peak · TÜV Low Blue Light · Dolby Vision",
+    ram:"24GB LPDDR5x (soldered)", storage:"1TB SSD",
+    battery:"~12–15 hrs · 70Wh", weight:"1.38 kg", build:"Full aluminium · Copilot+ PC",
+    stylus:{status:"included", text:"Lenovo Yoga Pen INCLUDED + 1-Year ADP ✓"},
+    autocad:{score:4, label:"Very Good"}, batteryScore:5,
+    pros:["OLED 600 nits — most eye-friendly display for prolonged daily use","TÜV Low Blue Light — genuine benefit for a 60-year-old","Yoga Pen + 1-yr ADP (damage protection) included","24GB RAM, 1TB, lightest premium at 1.38 kg"],
+    cons:["₹28k over budget — furthest from target","Glossy OLED","AMD Radeon 860M, not Intel Arc"],
+    verdict:"Only consider if the user will spend long hours on the laptop daily and eye comfort is a priority. The OLED display is genuinely different from any IPS screen here."
+  },
+];
+
+function dots(score, cls, max=5) {
+  return Array.from({length:max},(_,i)=>`<div class="dot ${i<score?cls:''}"></div>`).join('');
+}
+
+function cardHtml(l) {
+  const badgeHtml = l.badge ? `<div class="badge" style="background:${l.badgeBg}">${l.badge}</div>` : '';
+  const stylusClass = l.stylus.status === 'included' ? 'included' : 'needs-buy';
+  return `
+  <div class="q-card ${l.highlight||''}" id="card-${l.id}">
+    ${badgeHtml}
+    <div class="card-body">
+      <div class="name-row">
+        <div>
+          <div class="product-name">${l.name}</div>
+          <div class="product-model">${l.model}</div>
+        </div>
+        <div class="price-block">
+          <span class="price">${l.price}</span>
+          <a class="amz-link" href="${l.link}" target="_blank">Amazon ↗</a>
+        </div>
+      </div>
+      <div class="scores">
+        <div class="score-block">
+          <div class="score-label">AUTOCAD</div>
+          <div class="score-row">
+            <div class="dots">${dots(l.autocad.score,'blue')}</div>
+            <span class="score-text">${l.autocad.label}</span>
+          </div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">BATTERY</div>
+          <div class="score-row">
+            <div class="dots">${dots(l.batteryScore,'cyan')}</div>
+            <span class="score-text">${l.battery.split('·')[0].trim()}</span>
+          </div>
+        </div>
+      </div>
+      <div class="stylus-badge ${stylusClass}">🖊 ${l.stylus.text}</div>
+      <div class="verdict">${l.verdict}</div>
+      <button class="toggle-btn" onclick="toggleCard(${l.id})">▼ Show full specs</button>
+    </div>
+    <div class="details-panel" id="details-${l.id}">
+      <div class="spec-grid">
+        ${[['Processor',l.processor],['RAM',l.ram],['Display',l.display],['Storage',l.storage],['Weight',l.weight],['Build',l.build]].map(([k,v])=>`
+          <div><div class="spec-key">${k}</div><div class="spec-val">${v}</div></div>`).join('')}
+      </div>
+      <div class="pc-grid">
+        <div>
+          <div class="pc-title-pos">✓ STRENGTHS</div>
+          ${l.pros.map(p=>`<div class="pc-item">• ${p}</div>`).join('')}
+        </div>
+        <div>
+          <div class="pc-title-neg">✗ WATCH OUT</div>
+          ${l.cons.map(c=>`<div class="pc-item">• ${c}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderQualified() {
+  const budget  = qualified.filter(l=>l.tier==='budget');
+  const stretch = qualified.filter(l=>l.tier==='stretch');
+
+  let html = '';
+
+  // — Tier 1 ——————————————————————————————————
+  html += `<div class="tier-header tier-budget">
+    <span class="tier-label">✓ In Budget · ₹60–75k</span>
+    <div class="tier-line"></div>
+    <span class="tier-note">Target range</span>
+  </div>
+  <div class="cards">${budget.map(cardHtml).join('')}</div>`;
+
+  // — Tier 2 ——————————————————————————————————
+  html += `<div class="tier-header tier-stretch">
+    <span class="tier-label">↑ Worth The Stretch · ₹76–83k</span>
+    <div class="tier-line"></div>
+    <span class="tier-note">₹1–8k over budget</span>
+  </div>
+  <div class="cards">${stretch.map(cardHtml).join('')}</div>`;
+
+  // — Tier 3 toggle ——————————————————————————————————
+  html += `<div class="tier-header tier-premium">
+    <span class="tier-label">◆ Optional Upgrades · ₹87k–₹1,03k</span>
+    <div class="tier-line"></div>
+  </div>
+  <div class="premium-toggle" onclick="togglePremium()">
+    <div class="premium-toggle-left">
+      <div class="premium-toggle-title">Show 5 premium options</div>
+      <div class="premium-toggle-sub">₹87k–₹1,03k · Only if budget is flexible</div>
+    </div>
+    <div class="premium-toggle-icon" id="premium-icon">▼</div>
+  </div>
+  <div class="premium-section" id="premium-section">
+    <div style="height:10px"></div>
+    <div class="cards">${premium.map(cardHtml).join('')}</div>
+  </div>`;
+
+  document.getElementById('qualified-section').innerHTML = html;
+}
+
+function renderEliminated() {
+  document.getElementById('eliminated-section').innerHTML = eliminated.map(l=>`
+    <div class="elim-card">
+      <div class="elim-row">
+        <div><div class="elim-name">${l.name}</div></div>
+        <div class="elim-right">
+          <span class="elim-price">${l.price}</span>
+          <a class="amz-link" href="${l.link}" target="_blank">Amazon ↗</a>
+        </div>
+      </div>
+      <div class="elim-reason">✗ ${l.reason}</div>
+    </div>`).join('');
+}
+
+function toggleCard(id) {
+  const panel = document.getElementById(`details-${id}`);
+  const card  = document.getElementById(`card-${id}`);
+  const btn   = card.querySelector('.toggle-btn');
+  const open  = panel.classList.toggle('open');
+  btn.textContent = open ? '▲ Hide details' : '▼ Show full specs';
+}
+
+function togglePremium() {
+  const sec  = document.getElementById('premium-section');
+  const icon = document.getElementById('premium-icon');
+  const open = sec.classList.toggle('open');
+  icon.textContent = open ? '▲' : '▼';
+}
+
+function switchTab(tab) {
+  const qs   = document.getElementById('qualified-section');
+  const es   = document.getElementById('eliminated-section');
+  const pg   = document.getElementById('pen-guide');
+  const btns = document.querySelectorAll('.tab-btn');
+  if (tab==='qualified') {
+    qs.classList.add('visible');    es.classList.remove('visible');
+    pg.style.display='';
+    btns[0].className='tab-btn active'; btns[1].className='tab-btn inactive';
+  } else {
+    es.classList.add('visible');    qs.classList.remove('visible');
+    pg.style.display='none';
+    btns[0].className='tab-btn inactive'; btns[1].className='tab-btn active';
+  }
+}
+
+renderQualified();
+renderEliminated();
+</script>
+</body>
+</html>
