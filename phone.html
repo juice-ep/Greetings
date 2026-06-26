@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phone Comparison · Civil Engineering</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f4f8;min-height:100vh;padding:16px 12px}
+.header{background:#1e3a5f;border-radius:12px;padding:16px 18px;margin-bottom:14px;color:#fff}
+.header-sub{font-size:11px;letter-spacing:2px;color:#93c5fd;text-transform:uppercase;margin-bottom:4px}
+.header-title{font-size:20px;font-weight:700}
+.header-desc{font-size:13px;color:#bfdbfe;margin-top:2px}
+.use-note{margin-top:12px;background:rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:12px;color:#dbeafe;line-height:1.6}
+.use-note b{color:#93c5fd}
+.budget-banner{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#065f46}
+.budget-banner b{font-size:13px}
+/* tier headers */
+.tier-header{display:flex;align-items:center;gap:10px;margin:14px 0 10px}
+.tier-header:first-of-type{margin-top:0}
+.tier-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;white-space:nowrap;padding:3px 10px;border-radius:20px}
+.tier-budget .tier-label{background:#d1fae5;color:#065f46}
+.tier-stretch .tier-label{background:#fef3c7;color:#92400e}
+.tier-premium .tier-label{background:#ede9fe;color:#5b21b6}
+.tier-line{flex:1;height:1px;background:#e2e8f0}
+.tier-note{font-size:11px;color:#94a3b8;white-space:nowrap}
+.cards{display:flex;flex-direction:column;gap:12px}
+/* card */
+.q-card{background:#fff;border-radius:12px;overflow:hidden}
+.q-card.ring-budget{box-shadow:0 0 0 2px #0f766e}
+.q-card.ring-stretch{box-shadow:0 0 0 2px #b45309}
+.badge{padding:4px 16px;font-size:11px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.card-body{padding:14px 16px}
+.name-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.product-name{font-weight:700;font-size:15px;color:#0f172a}
+.product-model{font-size:11px;color:#64748b;margin-top:2px}
+.price-block{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.price{font-weight:700;font-size:14px;color:#1e3a5f}
+.amz-link{display:inline-flex;align-items:center;font-size:11px;color:#FF9900;font-weight:700;background:#fff8ed;border:1px solid #FF9900;border-radius:5px;padding:2px 8px;text-decoration:none;white-space:nowrap}
+/* scores — 5 dimensions */
+.scores{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.score-block{display:flex;flex-direction:column;align-items:center;gap:3px}
+.score-label{font-size:9px;color:#94a3b8;font-weight:600;text-align:center;line-height:1.2}
+.dots{display:flex;gap:3px}
+.dot{width:7px;height:7px;border-radius:50%;background:#e2e8f0}
+.dot.calls{background:#1e3a5f}
+.dot.battery{background:#0284c7}
+.dot.ease{background:#16a34a}
+.dot.durability{background:#d97706}
+.dot.media{background:#db2777}
+/* score legend */
+.score-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#64748b}
+.legend-dot{width:8px;height:8px;border-radius:50%}
+/* highlights */
+.highlights{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.hl-cell{background:#f8fafc;border-radius:6px;padding:6px 8px}
+.hl-key{font-size:10px;color:#94a3b8;font-weight:600}
+.hl-val{font-size:11px;color:#1e293b;margin-top:2px;line-height:1.3}
+/* update badge */
+.update-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-bottom:8px}
+.update-badge.great{background:#d1fae5;color:#065f46}
+.update-badge.ok{background:#fef3c7;color:#92400e}
+.update-badge.weak{background:#fee2e2;color:#991b1b}
+.verdict{font-size:12px;color:#475569;font-style:italic;line-height:1.4;margin-bottom:6px}
+.site-tip{font-size:11px;color:#1e40af;background:#eff6ff;border-radius:6px;padding:5px 10px;margin-bottom:8px}
+.toggle-btn{background:none;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;font-size:12px;color:#64748b;cursor:pointer;width:100%}
+/* details */
+.details-panel{display:none;border-top:1px solid #f1f5f9;padding:14px 16px;background:#f8fafc}
+.details-panel.open{display:block}
+.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.spec-key{font-size:10px;color:#94a3b8;font-weight:600;text-transform:uppercase}
+.spec-val{font-size:12px;color:#1e293b;margin-top:2px;line-height:1.4}
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pc-title-pos{font-size:11px;font-weight:700;color:#15803d;margin-bottom:4px}
+.pc-title-neg{font-size:11px;font-weight:700;color:#b91c1c;margin-bottom:4px}
+.pc-item{font-size:11px;color:#374151;margin-bottom:3px;line-height:1.4}
+/* premium toggle */
+.premium-toggle{background:#fff;border:1px dashed #c4b5fd;border-radius:10px;padding:12px 16px;margin-top:4px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.pt-left{display:flex;flex-direction:column;gap:3px}
+.pt-title{font-size:13px;font-weight:700;color:#5b21b6}
+.pt-sub{font-size:11px;color:#94a3b8}
+.pt-icon{font-size:18px;color:#c4b5fd}
+.premium-section{display:none}
+.premium-section.open{display:block}
+.footer{text-align:center;font-size:11px;color:#94a3b8;margin-top:14px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">Civil Engineering · Site + Boardroom</div>
+  <div class="header-title">Phone Comparison</div>
+  <div class="header-desc">Heavy Calling · Media · 256GB+ · ₹30–40k Budget</div>
+  <div class="use-note">
+    <b>Who this is for:</b> 60-year-old project head, non-tech native. Heavy calling from noisy sites and quiet boardrooms. WhatsApp/media in downtime. Needs a simple, durable phone that lasts a full workday without hunting for a charger.
+  </div>
+</div>
+
+<div class="budget-banner">
+  <b>🎯 Target budget: ₹30–40k · 256GB minimum</b><br>
+  In-budget picks shown first. Stretch and optional upgrades follow — consider only if budget is flexible.
+</div>
+
+<div id="main"></div>
+
+<div class="footer">5 phones compared · Prices verified June 2026</div>
+
+<script>
+const phones = [
+  // ─── TIER 1: IN BUDGET ────────────────────────────────────────────────────
+  {
+    id:"pixel9a", tier:"budget",
+    badge:"★ Best for Calling", badgeBg:"#0f766e", ring:"ring-budget",
+    name:"Google Pixel 9a", model:"8GB · 256GB · Tensor G4", price:"₹39,999",
+    link:"https://www.amazon.in/s?k=Google+Pixel+9a+256GB",
+    chip:"Google Tensor G4", display:"6.3\" pOLED · 120Hz · 2,400 nits peak",
+    battery:"5,100 mAh · 18W wired · Wireless charging", weight:"183g",
+    ip:"IP68 — water + dust sealed", updates:"7 years OS + security (until 2032)",
+    updateBadge:"great", updateLabel:"7-yr updates ✓",
+    storage:"256GB (no microSD slot)",
+    scores:{calls:5, battery:4, ease:5, durability:3, media:4},
+    siteTip:"AI Clear Calling filters out background noise from your microphone — people on the other end hear you clearly even from a noisy construction site.",
+    pros:["AI Clear Calling — best call quality in this range","7 years of updates means security patches until 2032","Clean Android — simplest, least cluttered interface","5,100 mAh battery handles a full day easily","Brightest display at 2,400 nits — readable in direct sunlight","Lightest at 183g — comfortable for long calls"],
+    cons:["Smallest display at 6.3\" — less comfortable for extended media","No expandable storage (256GB is fixed)","Tensor G4 is less powerful than Snapdragon peers","Weakest IP rating (IP68 vs IP69K on rivals)"],
+    verdict:"Strongest pick for someone who values call clarity above all else. The AI call noise cancellation is a practical advantage every day on a construction site. 7-year update guarantee makes this the safest long-term investment in the list."
+  },
+  {
+    id:"moto70pro", tier:"budget",
+    badge:"✓ Best Durability In Budget", badgeBg:"#0f766e", ring:"",
+    name:"Motorola Edge 70 Pro", model:"8GB · 256GB · Snapdragon 7 Gen 3", price:"₹38,999",
+    link:"https://www.flipkart.com/search?q=Motorola+Edge+70+Pro+256GB",
+    chip:"Qualcomm Snapdragon 7 Gen 3", display:"6.7\" pOLED · 144Hz · 2,000 nits",
+    battery:"4,500 mAh · 125W fast charge (full in ~30 min)", weight:"185g",
+    ip:"IP68 + IP69 + MIL-STD 810H (military-grade)",
+    updates:"3 years OS + 5 years security",
+    updateBadge:"ok", updateLabel:"3-yr OS updates",
+    storage:"256GB (no microSD slot)",
+    scores:{calls:4, battery:3, ease:5, durability:5, media:4},
+    siteTip:"IP69 means it survives high-pressure water jets (think a site hose-down). MIL-STD 810H means it's been tested for drops, humidity, and temperature extremes.",
+    pros:["IP68+IP69+MIL-STD 810H — most complete weather + drop protection here","Near-stock Android — fewest apps, simplest menus","125W charging: 15 min plugged in ≈ most of the day's battery","6.7\" display with 2,000 nits — good outdoor visibility","Launched at ₹36,999 after bank discounts","50MP Sony camera + 10MP telephoto — excellent site documentation"],
+    cons:["4,500 mAh battery is the smallest here — won't satisfy heavy callers","Only 3 years of OS updates (outlasted by Pixel and Samsung)","Snapdragon 7 Gen 3 is mid-range; won't match Nord 6 in heavy multitasking","No expandable storage"],
+    verdict:"Best choice if the phone is going to a dusty, wet construction environment regularly. The triple IP rating is unusual at this price. The 125W charging compensates for the smaller battery — a 15-minute plug-in at lunch is genuinely useful."
+  },
+  // ─── TIER 2: STRETCH ──────────────────────────────────────────────────────
+  {
+    id:"nord6", tier:"stretch",
+    badge:"↑ Best Battery · Best Durability", badgeBg:"#b45309", ring:"ring-stretch",
+    name:"OnePlus Nord 6", model:"8GB · 256GB · Snapdragon 8s Gen 4", price:"~₹41,999",
+    link:"https://www.amazon.in/OnePlus-Snapdragon-Segments-Complete-Personalized/dp/B0GRBBPBGQ",
+    chip:"Qualcomm Snapdragon 8s Gen 4 (flagship-level)",
+    display:"6.78\" 1.5K AMOLED · 165Hz · 3,600 nits peak (brightest here)",
+    battery:"9,000 mAh · 80W fast charge · ~2.5 day real-world", weight:"217g",
+    ip:"IP66 + IP68 + IP69 + IP69K + MIL-STD 810H",
+    updates:"4 years OS + 6 years security",
+    updateBadge:"great", updateLabel:"4+6 yr updates ✓",
+    storage:"256GB (no microSD slot)",
+    scores:{calls:3, battery:5, ease:3, media:5, durability:5},
+    siteTip:"3,600 nits peak brightness — the brightest phone display under ₹50k. WhatsApp voice notes, site videos, or Google Maps all stay readable even in blazing outdoor sun.",
+    pros:["9,000 mAh — 2.5 days of real-world use without charging","IP69K rated — survives high-pressure hot water jets (unique in this range)","Brightest display at 3,600 nits — unmatched outdoor readability","Snapdragon 8s Gen 4 — fastest chip on this list by a significant margin","Launched at ₹38,999 (may drop back to budget range on sale)","4+6 year update commitment"],
+    cons:["Currently ₹41,999 — ₹2k over the ₹40k ceiling (launched at ₹38,999)","Heaviest at 217g — noticeable in the pocket for a full day","OxygenOS has more settings than stock Android — slight learning curve","Reviews note battery SOT can vary; some users report 8-10 hrs screen-on","No expandable storage"],
+    verdict:"The 9,000 mAh battery is in a completely different class — for a professional who's on calls all day and can't always find a charger, this is genuinely life-changing. ₹2k over budget but worth checking for sale prices."
+  },
+  {
+    id:"a56", tier:"stretch",
+    badge:"↑ Most Senior-Friendly", badgeBg:"#b45309", ring:"",
+    name:"Samsung Galaxy A56 5G", model:"8GB · 256GB · Exynos 1580", price:"₹41,999",
+    link:"https://www.amazon.in/s?k=Samsung+Galaxy+A56+5G+256GB",
+    chip:"Samsung Exynos 1580", display:"6.7\" Super AMOLED+ · 120Hz · high brightness",
+    battery:"5,000 mAh · 45W fast charge", weight:"197g",
+    ip:"IP67 — water + dust resistant (1m for 30 min)",
+    updates:"4 years OS + 5 years security patches",
+    updateBadge:"great", updateLabel:"4+5 yr updates ✓",
+    storage:"256GB + microSD expansion (up to 1TB)",
+    scores:{calls:4, battery:4, ease:5, durability:3, media:5},
+    siteTip:"Samsung Easy Mode converts the interface to large icons, large text, and a simplified layout — designed specifically for users who prefer a no-fuss phone experience.",
+    pros:["Samsung Easy Mode — best senior-friendly UI on any phone","Only phone here with microSD expansion (add 256GB for ₹700)","Super AMOLED+ display — Samsung's vibrant, sharp screen quality","Samsung service centres everywhere in India (tier 2/3 cities included)","45W charging fills up in ~60 minutes","Galaxy ecosystem: works seamlessly with the Galaxy Tab S series tablets"],
+    cons:["₹41,999 — ₹2k over budget","IP67 is the weakest rating here (not IP68/69)","Exynos 1580 is mid-range — adequate but not the fastest","Only 4 years OS updates (vs 7 years on Pixel)"],
+    verdict:"Best pick if the person already has a Samsung tablet or prioritises Easy Mode and Samsung's wide service network. The expandable storage is genuinely useful for storing site videos and large WhatsApp files long-term."
+  },
+  // ─── TIER 3: OPTIONAL ─────────────────────────────────────────────────────
+  {
+    id:"s24fe", tier:"premium",
+    badge:"◆ Optional Upgrade", badgeBg:"#6b21a8", ring:"",
+    name:"Samsung Galaxy S24 FE", model:"8GB · 256GB · Exynos 2400e", price:"~₹43,300",
+    link:"https://www.amazon.in/s?k=Samsung+Galaxy+S24+FE+256GB",
+    chip:"Samsung Exynos 2400e (near-flagship performance)",
+    display:"6.7\" Dynamic AMOLED · 120Hz · bright and vibrant",
+    battery:"4,700 mAh · 25W wired + wireless charging", weight:"213g",
+    ip:"IP68 — water + dust sealed",
+    updates:"7 years OS + security (until 2031)",
+    updateBadge:"great", updateLabel:"7-yr updates ✓",
+    storage:"256GB (no microSD slot)",
+    scores:{calls:4, battery:4, ease:5, media:5, durability:4},
+    siteTip:"Galaxy AI features include Live Translate on calls (useful for multilingual construction teams) and Note Assist for converting spoken meeting notes to structured summaries.",
+    pros:["7 years of OS updates — same as Pixel, outlasts all other Samsungs here","Exynos 2400e = near-flagship performance, very smooth in daily use","Galaxy AI: Live Translate on calls + meeting summaries","Samsung Easy Mode + largest Samsung service network","Wireless charging — useful in cars and meeting rooms","Dynamic AMOLED display is class-leading"],
+    cons:["~₹43,300 for 256GB — ₹3k over budget","Note: ₹39,999 version is only 128GB — verify storage before purchasing","Battery slightly smaller than A56 (4700 vs 5000 mAh)","No expandable storage","25W charging is slower than A56 (45W) and Nord 6 (80W)"],
+    verdict:"The Samsung flagship pick. 7-year updates + Galaxy AI + Exynos 2400e is genuinely premium for ₹43k. Only justified over the A56 if you want AI features and longer update support. Confirm the 256GB variant before purchase — the 128GB is ₹39,999."
+  },
+];
+
+function dots(score, cls, max=5) {
+  return Array.from({length:max},(_,i)=>`<div class="dot ${i<score?cls:''}"></div>`).join('');
+}
+
+function cardHtml(p) {
+  const badgeHtml = p.badge ? `<div class="badge" style="background:${p.badgeBg}">${p.badge}</div>` : '';
+  const ubCls = p.updateBadge === 'great' ? 'great' : p.updateBadge === 'ok' ? 'ok' : 'weak';
+  return `
+  <div class="q-card ${p.ring||''}" id="card-${p.id}">
+    ${badgeHtml}
+    <div class="card-body">
+      <div class="name-row">
+        <div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-model">${p.model}</div>
+        </div>
+        <div class="price-block">
+          <span class="price">${p.price}</span>
+          <a class="amz-link" href="${p.link}" target="_blank">Buy ↗</a>
+        </div>
+      </div>
+
+      <div class="score-legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#1e3a5f"></span>Calls</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#0284c7"></span>Battery</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#16a34a"></span>Easy to Use</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>Durability</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#db2777"></span>Media/Display</span>
+      </div>
+
+      <div class="scores">
+        <div class="score-block">
+          <div class="score-label">Calls</div>
+          <div class="dots">${dots(p.scores.calls,'calls')}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">Battery</div>
+          <div class="dots">${dots(p.scores.battery,'battery')}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">Easy Use</div>
+          <div class="dots">${dots(p.scores.ease,'ease')}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">Durability</div>
+          <div class="dots">${dots(p.scores.durability,'durability')}</div>
+        </div>
+        <div class="score-block">
+          <div class="score-label">Media</div>
+          <div class="dots">${dots(p.scores.media,'media')}</div>
+        </div>
+      </div>
+
+      <span class="update-badge ${ubCls}">${p.updateLabel}</span>
+
+      <div class="highlights">
+        ${[['📞 Calling',p.ip+' · '+p.weight],['🔋 Battery',p.battery],['📺 Display',p.display],['💾 Storage',p.storage]].map(([k,v])=>`
+          <div class="hl-cell">
+            <div class="hl-key">${k}</div>
+            <div class="hl-val">${v}</div>
+          </div>`).join('')}
+      </div>
+
+      <div class="site-tip">📍 ${p.siteTip}</div>
+      <div class="verdict">${p.verdict}</div>
+
+      <button class="toggle-btn" onclick="toggleCard('${p.id}')">▼ Full specs + pros &amp; cons</button>
+    </div>
+    <div class="details-panel" id="details-${p.id}">
+      <div class="spec-grid">
+        ${[['Chip',p.chip],['Display',p.display],['Battery',p.battery],['IP Rating',p.ip],['Weight',p.weight],['OS Updates',p.updates]].map(([k,v])=>`
+          <div><div class="spec-key">${k}</div><div class="spec-val">${v}</div></div>`).join('')}
+      </div>
+      <div class="pc-grid">
+        <div>
+          <div class="pc-title-pos">✓ STRENGTHS</div>
+          ${p.pros.map(x=>`<div class="pc-item">• ${x}</div>`).join('')}
+        </div>
+        <div>
+          <div class="pc-title-neg">✗ WATCH OUT</div>
+          ${p.cons.map(x=>`<div class="pc-item">• ${x}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function render() {
+  const budget  = phones.filter(p=>p.tier==='budget');
+  const stretch = phones.filter(p=>p.tier==='stretch');
+  const premium = phones.filter(p=>p.tier==='premium');
+
+  let html = '';
+
+  html += `<div class="tier-header tier-budget">
+    <span class="tier-label">✓ In Budget · ₹30–40k</span>
+    <div class="tier-line"></div>
+    <span class="tier-note">Target range</span>
+  </div>
+  <div class="cards">${budget.map(cardHtml).join('')}</div>`;
+
+  html += `<div class="tier-header tier-stretch">
+    <span class="tier-label">↑ Worth the Stretch · ₹41–42k</span>
+    <div class="tier-line"></div>
+    <span class="tier-note">₹1–2k over budget</span>
+  </div>
+  <div class="cards">${stretch.map(cardHtml).join('')}</div>`;
+
+  html += `<div class="tier-header tier-premium">
+    <span class="tier-label">◆ Optional Upgrade · ₹43k+</span>
+    <div class="tier-line"></div>
+  </div>
+  <div class="premium-toggle" onclick="togglePremium()">
+    <div class="pt-left">
+      <div class="pt-title">Show Samsung S24 FE (256GB)</div>
+      <div class="pt-sub">~₹43,300 · Only if budget is flexible</div>
+    </div>
+    <div class="pt-icon" id="premium-icon">▼</div>
+  </div>
+  <div class="premium-section" id="premium-section">
+    <div style="height:10px"></div>
+    <div class="cards">${premium.map(cardHtml).join('')}</div>
+  </div>`;
+
+  document.getElementById('main').innerHTML = html;
+}
+
+function toggleCard(id) {
+  const panel = document.getElementById(`details-${id}`);
+  const card  = document.getElementById(`card-${id}`);
+  const btn   = card.querySelector('.toggle-btn');
+  const open  = panel.classList.toggle('open');
+  btn.textContent = open ? '▲ Hide specs' : '▼ Full specs + pros & cons';
+}
+
+function togglePremium() {
+  const sec  = document.getElementById('premium-section');
+  const icon = document.getElementById('premium-icon');
+  const open = sec.classList.toggle('open');
+  icon.textContent = open ? '▲' : '▼';
+}
+
+render();
+</script>
+</body>
+</html>
