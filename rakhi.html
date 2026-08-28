@@ -26,10 +26,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 32px 16px;
+    padding: 16px 8px;
   }
 
   .stage { width: 100%; max-width: 460px; }
+
+  @media (max-width: 480px) {
+    body { padding: 8px; }
+  }
 
   .card-frame {
     position: relative;
@@ -45,11 +49,16 @@
     border: 1px solid rgba(240, 201, 135, 0.15);
     border-radius: 4px;
     position: relative;
-    padding: 34px 26px 30px;
+    padding: 28px 18px 24px;
     display: flex;
     flex-direction: column;
     align-items: center;
     overflow: hidden;
+  }
+
+  @media (max-width: 480px) {
+    .card { padding: 22px 12px 20px; border-radius: 0; }
+    .card-frame { border-radius: 0; }
   }
 
   .stars { position: absolute; inset: 0; pointer-events: none; }
